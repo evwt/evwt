@@ -1,4 +1,5 @@
 # EvMenu
+Vue data bindings and events for Electron menus
 
 - EvMenu bridges application menus across the background and renderer/Vue processes.
 - Adds `this.$menu` so you can use familiar Vue bindings to update the window menu as you would any Vue component.
