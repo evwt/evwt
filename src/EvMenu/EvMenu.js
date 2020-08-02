@@ -59,7 +59,7 @@ EvMenu.install = function (Vue, menu) {
     }
   });
 
-  Vue.prototype.$menu = menuVm;
+  Vue.prototype.$evmenu = menuVm;
 };
 
 //
