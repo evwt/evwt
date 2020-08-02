@@ -4,7 +4,7 @@ Vue data bindings and events for Electron menus
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 
-- Adds `this.$menu` so you can use familiar Vue bindings to update the window menu as you would any Vue component.
+- Adds `this.$evmenu` so you can use familiar Vue bindings to update the window menu as you would any Vue component.
 - Creates a unified event system to respond to menu input in background or renderer, or both.
 
 ## Setup
