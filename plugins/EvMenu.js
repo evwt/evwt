@@ -17,14 +17,14 @@ EvMenu.install = function (Vue, menu) {
   ipcRenderer.send('evmenu:ipc:set', menu);
 
   ipcRenderer.on('evmenu:ipc:input', (event, message) => {
-    let menuItem = findDeep(menu, (_, __, item) => {
+    const menuItem = findDeep(menu, (_, __, item) => {
       if (item.id === message.id) return true;
     });
 
     menuItem.parent.checked = message.item.checked;
   });
 
-  let menuVm = new Vue({
+  const menuVm = new Vue({
     data() {
       return {
         menu
@@ -85,7 +85,7 @@ function handleClick(menuItem, focusedWindow, event) {
     return;
   }
 
-  let item = {
+  const item = {
     accelerator: menuItem.accelerator,
     label: menuItem.label,
     type: menuItem.type,
