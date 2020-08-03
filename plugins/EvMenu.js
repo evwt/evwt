@@ -16,15 +16,15 @@ EvMenu.install = function (Vue, menu) {
 
   ipcRenderer.send('evmenu:ipc:set', menu);
 
-  ipcRenderer.on('evmenu:ipc:input', (event, message) => {
-    const menuItem = findDeep(menu, (_, __, item) => {
-      if (item.id === message.id) return true;
+  ipcRenderer.on('evmenu:ipc:input', (event, { id, checked }) => {
+    let menuItem = findDeep(menu, (_, __, item) => {
+      if (item.id === id) return true;
     });
 
-    menuItem.parent.checked = message.item.checked;
+    menuItem.parent.checked = checked;
   });
 
-  const menuVm = new Vue({
+  let menuVm = new Vue({
     data() {
       return {
         menu
@@ -32,6 +32,17 @@ EvMenu.install = function (Vue, menu) {
     },
 
     created() {
+      this.$on('click', command => {
+        let menuItem = findDeep(menu, (_, __, item) => {
+          if (item.id === command) return true;
+        });
+
+        ipcRenderer.send('evmenu:ipc:click', {
+          id: menuItem.parent.id,
+          checked: menuItem.parent.checked
+        });
+      });
+
       this.watchMenu();
       this.listenIpc();
     },
@@ -47,13 +58,9 @@ EvMenu.install = function (Vue, menu) {
       },
 
       listenIpc() {
-        ipcRenderer.on('evmenu:ipc:input', (event, message) => {
-          this.$emit('input', message);
-
-          this.$emit(`input:${message.id}`, {
-            event: message.event,
-            item: message.item
-          });
+        ipcRenderer.on('evmenu:ipc:input', (event, payload) => {
+          this.$emit('input', payload);
+          this.$emit(`input:${payload.id}`, payload.checked);
         });
       }
     }
@@ -69,59 +76,54 @@ EvMenu.install = function (Vue, menu) {
 function activate(win) {
   let menu;
 
-  win.on('focus', () => {
-    Menu.setApplicationMenu(menu);
-  });
-
   ipcMain.on('evmenu:ipc:set', (e, definition) => {
+    if (!definition) {
+      console.warn('[EvMenu] No definition to build menu from');
+      return;
+    }
     menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
     Menu.setApplicationMenu(menu);
   });
+
+  win.on('focus', () => {
+    if (!menu) {
+      console.warn('[EvMenu] No menu to set app menu from');
+      return;
+    }
+
+    Menu.setApplicationMenu(menu);
+  });
+
+  ipcMain.on('evmenu:ipc:click', (e, payload) => {
+    if (e.sender !== win.webContents) return;
+
+    win.emit('evmenu:win:input', payload);
+    win.emit(`evmenu:win:input:${payload.id}`, payload.checked);
+    app.emit('evmenu:app:input', payload);
+    app.emit(`evmenu:app:input:${payload.id}`, payload.checked);
+  });
 }
 
-function handleClick(menuItem, focusedWindow, event) {
+function handleClick(menuItem, focusedWindow) {
   if (!menuItem.id) {
-    console.warn(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending event.`);
+    console.warn(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
     return;
   }
 
-  const item = {
-    accelerator: menuItem.accelerator,
-    label: menuItem.label,
-    type: menuItem.type,
-    sublabel: menuItem.sublabel,
-    toolTip: menuItem.toolTip,
-    enabled: menuItem.enabled,
-    visible: menuItem.visible,
-    checked: menuItem.checked,
-    acceleratorWorksWhenHidden: menuItem.acceleratorWorksWhenHidden,
-    registerAccelerator: menuItem.registerAccelerator,
-    commandId: menuItem.commandId
+  let payload = {
+    id: menuItem.id,
+    checked: menuItem.checked
   };
 
-  app.emit('evmenu:app:input', {
-    id: menuItem.id,
-    event,
-    item
-  });
-
-  app.emit(`evmenu:app:input:${menuItem.id}`, item);
+  app.emit('evmenu:app:input', payload);
+  app.emit(`evmenu:app:input:${payload.id}`, payload.checked);
 
   if (focusedWindow) {
-    focusedWindow.emit('evmenu:win:input', {
-      id: menuItem.id,
-      event,
-      item
-    });
-
-    focusedWindow.emit(`evmenu:win:input:${menuItem.id}`, item);
+    focusedWindow.emit('evmenu:win:input', payload);
+    focusedWindow.emit(`evmenu:win:input:${payload.id}`, payload.checked);
 
     if (focusedWindow.webContents) {
-      focusedWindow.webContents.send('evmenu:ipc:input', {
-        id: menuItem.id,
-        event,
-        item
-      });
+      focusedWindow.webContents.send('evmenu:ipc:input', payload);
     }
   }
 }

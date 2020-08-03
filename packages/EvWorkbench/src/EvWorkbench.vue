@@ -46,8 +46,8 @@
 
 <script>
 import Split from 'split-grid';
-import '@/../style/split-grid.scss';
-import '@/../style/utilities.scss';
+import '../../../style/split-grid.scss';
+import '../../../style/utilities.scss';
 
 export default {
   name: 'EvWorkbench',
@@ -58,10 +58,12 @@ export default {
         {
           track: 1,
           element: this.$refs.gutterActivitybarSidebar
-        }, {
+        },
+        {
           track: 3,
           element: this.$refs.gutterSidebarMain
-        }, {
+        },
+        {
           track: 1,
           element: this.$refs.gutterMainSupp
         }

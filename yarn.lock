@@ -1998,6 +1998,11 @@ bindings@^1.5.0:
   dependencies:
     file-uri-to-path "1.0.0"
 
+bit-twiddle@^1.0.0, bit-twiddle@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/bit-twiddle/-/bit-twiddle-1.0.2.tgz#0c6c1fabe2b23d17173d9a61b7b7093eb9e1769e"
+  integrity sha1-DGwfq+KyPRcXPZpht7cJPrnhdp4=
+
 block-stream@*:
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/block-stream/-/block-stream-0.0.9.tgz#13ebfe778a03205cfe03751481ebb4b3300c126a"
@@ -2052,6 +2057,14 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
+
+box-intersect@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/box-intersect/-/box-intersect-1.0.2.tgz#4693ad63e828868d0654b114e09364d6281f3fbd"
+  integrity sha512-yJeMwlmFPG1gIa7Rs/cGXeI6iOj6Qz5MG5PE61xLKpElUGzmJ4abm+qsLpzxKJFpsSDq742BQEocr8dI2t8Nxw==
+  dependencies:
+    bit-twiddle "^1.0.2"
+    typedarray-pool "^1.1.0"
 
 boxen@^4.2.0:
   version "4.2.0"
@@ -3559,6 +3572,11 @@ dotenv@^8.2.0:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
   integrity sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
+
+dup@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/dup/-/dup-1.0.0.tgz#51fc5ac685f8196469df0b905e934b20af5b4029"
+  integrity sha1-UfxaxoX4GWRp3wuQXpNLIK9bQCk=
 
 duplexer3@^0.1.4:
   version "0.1.4"
@@ -9380,6 +9398,14 @@ type-is@~1.6.17, type-is@~1.6.18:
   dependencies:
     media-typer "0.3.0"
     mime-types "~2.1.24"
+
+typedarray-pool@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/typedarray-pool/-/typedarray-pool-1.2.0.tgz#e7e90720144ba02b9ed660438af6f3aacfe33ac3"
+  integrity sha512-YTSQbzX43yvtpfRtIDAYygoYtgT+Rpjuxy9iOpczrjpXLgGoyG7aS5USJXV2d3nn8uHTeb9rXDvzS27zUg5KYQ==
+  dependencies:
+    bit-twiddle "^1.0.0"
+    dup "^1.0.0"
 
 typedarray-to-buffer@^3.1.5:
   version "3.1.5"

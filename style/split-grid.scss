@@ -13,14 +13,12 @@
     width: 4px;
     height: 100%;
     margin-left: -2px;
-    background: red;
   }
 
   &.gutter-row::after {
     width: 100%;
     height: 4px;
     margin-top: -2px;
-    background: red;
   }
 }
 

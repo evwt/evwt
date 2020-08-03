@@ -5,8 +5,9 @@
 </template>
 
 <script>
-import '@/../style/utilities.scss';
-export default {}
+import '../../../style/utilities.scss';
+
+export default {};
 </script>
 
 <style lang="scss" scoped>

@@ -5,11 +5,11 @@
 </template>
 
 <script>
-import '@/../style/utilities.scss';
+import '../../../style/utilities.scss';
 
 export default {
   props: {
-    name: String,
+    name: String
   }
 };
 </script>

@@ -8,8 +8,8 @@
 </template>
 
 <script>
-import EvIcon from '@/../packages/EvIcon';
-import '@/../style/utilities.scss';
+import EvIcon from '../../EvIcon';
+import '../../../style/utilities.scss';
 
 export default {
   components: {

@@ -8,7 +8,7 @@
     "email": "john@johnsolo.net"
   },
   "scripts": {
-    "watch": "nodemon --ignore dist/ -x \"npm run build\"",
+    "watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
     "build": "npm run build:umd & npm run build:es",
     "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/evwt.umd.js",
     "build:es": "rollup --config build/rollup.config.js --format es --file dist/evwt.esm.js"
@@ -16,6 +16,7 @@
   "main": "index.js",
   "module": "dist/evwt.esm.js",
   "dependencies": {
+    "box-intersect": "^1.0.2",
     "core-js": "^3.6.5",
     "deepdash-es": "^5.2.1",
     "lodash": "^4.17.19",

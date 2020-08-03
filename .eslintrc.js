@@ -1,9 +1,11 @@
+let path = require('path');
+
 module.exports = {
   root: true,
   env: {
     node: true
   },
-  'globals':{
+  'globals': {
     'BigInt': true,
     'BigUint64Array': true
   },

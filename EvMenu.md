@@ -33,23 +33,25 @@ Vue.use(EvMenu, template);
 
 ```js
 win.on('evmenu:win:input', item => {
-  console.log('menuItem changed:', item);
+  console.log(`${item.id} clicked`);
+  // if menuItem is a radio/checkbox, item.checked will have its value
 });
 
 // or item-specific listener
-win.on('evmenu:win:input:open-file', item => {
-  console.log('menuItem with id "open-file" changed:', item);
+win.on('evmenu:win:input:open-file', checked => {
+  console.log('open-file clicked');
 });
 ```
 
 ```js
 app.on('evmenu:app:input', item => {
-  console.log('menuItem changed:', item);
+  console.log(`${item.id} clicked`);
+  // if menuItem is a radio/checkbox, item.checked will have its value
 });
 
 // or item-specific listener
-app.on('evmenu:app:input:open-file', item => {
-  console.log('menuItem with id "open-file" changed:', item);
+app.on('evmenu:app:input:open-file', checked => {
+  console.log('open-file clicked');
 });
 ```
 
@@ -77,13 +79,22 @@ EvMenu introduces a new instance variable `this.$evmenu` that represents the app
 
 ```js
 this.$evmenu.$on('input', item => {
-  console.log('menuItem changed:', item);
+  console.log(`${item.id} clicked`);
+  // if menuItem is a radio/checkbox, item.checked will have its value
 });
 
 // or item-specific listener
-this.$evmenu.$on('input:open-file', item => {
-  console.log('menuItem with id "open-file" changed:', item);
+this.$evmenu.$on('input:open-file', checked => {
+  console.log('open-file clicked');
 });
+```
+
+* Send menu commands with `this.$evmenu.$emit`
+  * Ideally, all user commands/actions in your app will be available in the menus.
+  * Triggering these actions via $evmenu events allows you to handle all events in the same place whether they come from menu clicks, keyboard shortcuts or your UI.
+
+```js
+this.$evmenu.$emit('click', 'open-file');
 ```
 
 ## Development
@@ -132,6 +143,9 @@ These are internal to EvMenu to link things together, you'll probably not want t
 
 * evmenu:ipc:set
   - To set the window menu from the renderer
+
+* evmenu:ipc:click
+  - Shuttles click command from the renderer (Vue event) to BrowserWindow/Win events
 
 * evmenu:ipc:input
   - IPC event to inform renderer that a menu item has been changed/activated
