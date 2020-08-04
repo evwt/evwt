@@ -10,7 +10,7 @@ import Store from 'electron-store';
 
 let store = new Store();
 let evWindow = new EvWindow(options, 'main', store);
-let win = evWindow.win; // BrowserWindow reference
+let win = evWindow.win; // BrowserWindow reference if you need it
 ```
 
 - `options` - [BrowserWindow](https://www.electronjs.org/docs/api/browser-window) options
