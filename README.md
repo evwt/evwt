@@ -2,7 +2,7 @@
 
 EVWT's goal is to provide components, plugins and other tools to assist in building great Electron/Vue apps.
 
-![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
+<img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="240">
 
 ### Priorities
 * Vue-first
@@ -11,6 +11,8 @@ EVWT's goal is to provide components, plugins and other tools to assist in build
   * Virtualized lists, lazy loading, GPU-accelerated transforms, no CSS reflows
 * OS Integration
   * Drap and drop, context menus, window management, native friendly features
+
+
 
 ### Setup
 
@@ -28,8 +30,11 @@ That's it, now read on for how to use the various parts of EVWT.
 
 #### Plugins
 
+
 * [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md)
   - Vue data bindings and events for native menus
+  - ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
+
 
 * [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md)
   - Simple unified persistent reactive data storage
