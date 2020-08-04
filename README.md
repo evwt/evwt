@@ -33,8 +33,6 @@ That's it, now read on for how to use the various parts of EVWT.
 
 * [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md)
   - Vue data bindings and events for native menus
-  - ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
-
 
 * [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md)
   - Simple unified persistent reactive data storage
