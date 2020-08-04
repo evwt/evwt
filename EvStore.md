@@ -33,4 +33,4 @@ Use `this.$evstore.store` to work with the store as you would any other reactive
 <input v-model="$evstore.store.foo" />
 ```
 
-In your background script, you can work with `store` as usual per the [electron-store docs](https://github.com/sindresorhus/electron-store).
+In your background script, you can work with `store` as usual per the [electron-store docs](https://github.com/sindresorhus/electron-store) and changes will automatically be synced with your components.
