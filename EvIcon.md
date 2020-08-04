@@ -14,7 +14,7 @@ In your electronBuilder config (typically in vue.config.js):
 let { useEvIcon } = require('evwt/plugins/EvIcon');
 ```
 
-```json
+```js
 electronBuilder: {
   chainWebpackRendererProcess: (config) => {
     useEvIcon(config);
