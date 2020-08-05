@@ -5,8 +5,6 @@
 </template>
 
 <script>
-import '../../../style/utilities.scss';
-
 export default {
   props: {
     name: String
@@ -15,6 +13,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/../style/utilities.scss';
+
 svg {
   width: auto;
   height: 100%;

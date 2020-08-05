@@ -5,12 +5,12 @@
 </template>
 
 <script>
-import '../../../style/utilities.scss';
-
 export default {};
 </script>
 
 <style lang="scss" scoped>
+@import '@/../style/utilities.scss';
+
 .ev-toolbar {
   user-select: none;
 }

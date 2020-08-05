@@ -1,7 +1,7 @@
 import EvWindow from './plugins/EvWindow';
 import EvMenu from './plugins/EvMenu';
 import EvStore from './plugins/EvStore';
-import EvWorkbench from './packages/EvWorkbench';
+import EvLayout from './packages/EvLayout';
 import EvIcon from './packages/EvIcon';
 import EvToolbar from './packages/EvToolbar';
 import EvToolbarItem from './packages/EvToolbarItem';
@@ -11,7 +11,7 @@ export {
   EvWindow,
   EvMenu,
   EvStore,
-  EvWorkbench,
+  EvLayout,
   EvIcon,
   EvToolbar,
   EvToolbarItem,

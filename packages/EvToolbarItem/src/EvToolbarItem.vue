@@ -9,7 +9,6 @@
 
 <script>
 import EvIcon from '../../EvIcon';
-import '../../../style/utilities.scss';
 
 export default {
   components: {
@@ -25,6 +24,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/../style/utilities.scss';
+
 .ev-icon {
   height: 1rem;
 }

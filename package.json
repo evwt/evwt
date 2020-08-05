@@ -2,6 +2,15 @@
   "name": "evwt",
   "version": "0.0.2",
   "description": "Electron Vue Window Toolkit",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evwt/evwt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evwt/evwt/issues"
+  },
+  "homepage": "https://evwt.net",
   "author": {
     "name": "John Susek",
     "email": "john@johnsolo.net"
@@ -15,44 +24,37 @@
   "main": "index.js",
   "module": "dist/evwt.esm.js",
   "dependencies": {
-    "box-intersect": "^1.0.2",
-    "core-js": "^3.6.5",
-    "deepdash-es": "^5.2.1",
-    "lodash": "^4.17.19",
-    "split-grid": "^1.0.9",
-    "vue": "^2.6.11"
+    "core-js": "3.6.5",
+    "deepdash-es": "5.2.1",
+    "lodash": "4.17.19",
+    "vue": "2.6.11"
   },
   "devDependencies": {
-    "@rollup/plugin-alias": "^3.1.1",
-    "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-commonjs": "^14.0.0",
-    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-alias": "3.1.1",
+    "@rollup/plugin-buble": "0.21.3",
+    "@rollup/plugin-commonjs": "14.0.0",
+    "@rollup/plugin-node-resolve": "8.4.0",
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
-    "@vue/eslint-config-airbnb": "^5.0.2",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "nodemon": "^2.0.4",
-    "rollup": "^2.23.0",
-    "rollup-plugin-css-only": "^2.1.0",
-    "rollup-plugin-scss": "^2.5.0",
+    "@vue/eslint-config-airbnb": "5.0.2",
+    "babel-eslint": "10.1.0",
+    "eslint": "6.7.2",
+    "eslint-plugin-import": "2.20.2",
+    "eslint-plugin-vue": "6.2.2",
+    "nodemon": "2.0.4",
+    "rollup": "2.23.0",
+    "rollup-plugin-css-only": "2.1.0",
+    "rollup-plugin-scss": "2.5.0",
     "rollup-plugin-vue": "5.1.9",
-    "sass": "^1.26.5",
-    "sass-loader": "^8.0.2",
-    "vue-svg-loader": "^0.16.0",
-    "vue-template-compiler": "^2.6.11"
+    "sass": "1.26.5",
+    "sass-loader": "8.0.2",
+    "vue-svg-loader": "0.16.0",
+    "vue-template-compiler": "2.6.11"
   },
   "peerDependencies": {
     "electron": "*"
   },
-  "_id": "evwt@0.0.1",
-  "bugs": {
-    "url": "https://github.com/evwt/evwt/issues"
-  },
-  "homepage": "https://github.com/evwt/evwt#readme",
   "keywords": [
     "electron",
     "vue",
@@ -61,11 +63,5 @@
     "toolkit",
     "menu",
     "native"
-  ],
-  "license": "Apache-2.0",
-  "readme": "ERROR: No README data found!",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/evwt/evwt.git"
-  }
+  ]
 }

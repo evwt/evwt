@@ -22355,48 +22355,43 @@ function activate$1(store) {
   });
 }
 
-var numeric = function (value, unit) { return Number(value.slice(0, -1 * unit.length)); };
+const numeric = (value, unit) => Number(value.slice(0, -1 * unit.length));
 
-var parseValue = function (value) {
-    if (value.endsWith('px'))
-        { return { value: value, type: 'px', numeric: numeric(value, 'px') } }
-    if (value.endsWith('fr'))
-        { return { value: value, type: 'fr', numeric: numeric(value, 'fr') } }
-    if (value.endsWith('%'))
-        { return { value: value, type: '%', numeric: numeric(value, '%') } }
-    if (value === 'auto') { return { value: value, type: 'auto' } }
-    return null
+const parseValue = value => {
+  if (value.endsWith('px')) { return { value, type: 'px', numeric: numeric(value, 'px') }; }
+  if (value.endsWith('fr')) { return { value, type: 'fr', numeric: numeric(value, 'fr') }; }
+  if (value.endsWith('%')) { return { value, type: '%', numeric: numeric(value, '%') }; }
+  if (value === 'auto') return { value, type: 'auto' };
+  return null;
 };
 
-var parse = function (rule) { return rule.split(' ').map(parseValue); };
+const parse = rule => rule.split(' ').map(parseValue);
 
-var getSizeAtTrack = function (index, tracks, gap, end) {
-    if ( gap === void 0 ) { gap = 0; }
-    if ( end === void 0 ) { end = false; }
+const getSizeAtTrack = (index, tracks, gap = 0, end = false) => {
+  const newIndex = end ? index + 1 : index;
+  const trackSum = tracks
+    .slice(0, newIndex)
+    .reduce((accum, value) => accum + value.numeric, 0);
+  const gapSum = gap ? index * gap : 0;
 
-    var newIndex = end ? index + 1 : index;
-    var trackSum = tracks
-        .slice(0, newIndex)
-        .reduce(function (accum, value) { return accum + value.numeric; }, 0);
-    var gapSum = gap ? index * gap : 0;
-
-    return trackSum + gapSum
+  return trackSum + gapSum;
 };
 
-var getStyles = function (rule, ownRules, matchedRules) { return ownRules.concat( matchedRules)
-        .map(function (r) { return r.style[rule]; })
-        .filter(function (style) { return style !== undefined && style !== ''; }); };
+const getStyles = (rule, ownRules, matchedRules) =>
+    [...ownRules, ...matchedRules]
+        .map(r => r.style[rule])
+        .filter(style => style !== undefined && style !== '');
 
-var getGapValue = function (unit, size) {
+const getGapValue = (unit, size) => {
     if (size.endsWith(unit)) {
         return Number(size.slice(0, -1 * unit.length))
     }
     return null
 };
 
-var firstNonZero = function (tracks) {
+const firstNonZero = tracks => {
     // eslint-disable-next-line no-plusplus
-    for (var i = 0; i < tracks.length; i++) {
+    for (let i = 0; i < tracks.length; i++) {
         if (tracks[i].numeric > 0) {
             return i
         }
@@ -22404,13 +22399,26 @@ var firstNonZero = function (tracks) {
     return null
 };
 
-function getMatchedCSSRules (el) {
-        var ref;
+const NOOP = () => false;
 
-        return (ref = [])
-        .concat.apply(
-            ref, Array.from(el.ownerDocument.styleSheets).map(function (s) {
-                var rules = [];
+const defaultWriteStyle = (element, gridTemplateProp, style) => {
+    // eslint-disable-next-line no-param-reassign
+    element.style[gridTemplateProp] = style;
+};
+
+const getOption = (options, propName, def) => {
+    const value = options[propName];
+    if (value !== undefined) {
+        return value
+    }
+    return def
+};
+
+var getMatchedCSSRules = el =>
+    []
+        .concat(
+            ...Array.from(el.ownerDocument.styleSheets).map(s => {
+                let rules = [];
 
                 try {
                     rules = Array.from(s.cssRules || []);
@@ -22419,10 +22427,10 @@ function getMatchedCSSRules (el) {
                 }
 
                 return rules
-            })
+            }),
         )
-        .filter(function (r) {
-            var matches = false;
+        .filter(r => {
+            let matches = false;
             try {
                 matches = el.matches(r.selectorText);
             } catch (e) {
@@ -22431,81 +22439,65 @@ function getMatchedCSSRules (el) {
 
             return matches
         });
-}
 
-var gridTemplatePropColumns = 'grid-template-columns';
-var gridTemplatePropRows = 'grid-template-rows';
+const gridTemplatePropColumns = 'grid-template-columns';
+const gridTemplatePropRows = 'grid-template-rows';
 
-var NOOP = function () { return false; };
-
-var defaultWriteStyle = function (element, gridTemplateProp, style) {
-    // eslint-disable-next-line no-param-reassign
-    element.style[gridTemplateProp] = style;
-};
-
-var getOption = function (options, propName, def) {
-    var value = options[propName];
-    if (value !== undefined) {
-        return value
-    }
-    return def
-};
-
-var Gutter = function Gutter(direction, options, parentOptions) {
+class Gutter {
+  constructor(direction, options, parentOptions) {
     this.direction = direction;
     this.element = options.element;
     this.track = options.track;
-    this.trackTypes = {};
 
     if (direction === 'column') {
-        this.gridTemplateProp = gridTemplatePropColumns;
-        this.gridGapProp = 'grid-column-gap';
-        this.cursor = getOption(
-            parentOptions,
-            'columnCursor',
-            getOption(parentOptions, 'cursor', 'col-resize')
-        );
-        this.snapOffset = getOption(
-            parentOptions,
-            'columnSnapOffset',
-            getOption(parentOptions, 'snapOffset', 30)
-        );
-        this.dragInterval = getOption(
-            parentOptions,
-            'columnDragInterval',
-            getOption(parentOptions, 'dragInterval', 1)
-        );
-        this.clientAxis = 'clientX';
-        this.optionStyle = getOption(parentOptions, 'gridTemplateColumns');
+      this.gridTemplateProp = gridTemplatePropColumns;
+      this.gridGapProp = 'grid-column-gap';
+      this.cursor = getOption(
+        parentOptions,
+        'columnCursor',
+        getOption(parentOptions, 'cursor', 'col-resize'),
+      );
+      this.snapOffset = getOption(
+        parentOptions,
+        'columnSnapOffset',
+        getOption(parentOptions, 'snapOffset', 30),
+      );
+      this.dragInterval = getOption(
+        parentOptions,
+        'columnDragInterval',
+        getOption(parentOptions, 'dragInterval', 1),
+      );
+      this.clientAxis = 'clientX';
+      this.optionStyle = getOption(parentOptions, 'gridTemplateColumns');
     } else if (direction === 'row') {
-        this.gridTemplateProp = gridTemplatePropRows;
-        this.gridGapProp = 'grid-row-gap';
-        this.cursor = getOption(
-            parentOptions,
-            'rowCursor',
-            getOption(parentOptions, 'cursor', 'row-resize')
-        );
-        this.snapOffset = getOption(
-            parentOptions,
-            'rowSnapOffset',
-            getOption(parentOptions, 'snapOffset', 30)
-        );
-        this.dragInterval = getOption(
-            parentOptions,
-            'rowDragInterval',
-            getOption(parentOptions, 'dragInterval', 1)
-        );
-        this.clientAxis = 'clientY';
-        this.optionStyle = getOption(parentOptions, 'gridTemplateRows');
+      this.gridTemplateProp = gridTemplatePropRows;
+      this.gridGapProp = 'grid-row-gap';
+      this.cursor = getOption(
+        parentOptions,
+        'rowCursor',
+        getOption(parentOptions, 'cursor', 'row-resize'),
+      );
+      this.snapOffset = getOption(
+        parentOptions,
+        'rowSnapOffset',
+        getOption(parentOptions, 'snapOffset', 30),
+      );
+      this.dragInterval = getOption(
+        parentOptions,
+        'rowDragInterval',
+        getOption(parentOptions, 'dragInterval', 1),
+      );
+      this.clientAxis = 'clientY';
+      this.optionStyle = getOption(parentOptions, 'gridTemplateRows');
     }
 
     this.onDragStart = getOption(parentOptions, 'onDragStart', NOOP);
     this.onDragEnd = getOption(parentOptions, 'onDragEnd', NOOP);
     this.onDrag = getOption(parentOptions, 'onDrag', NOOP);
     this.writeStyle = getOption(
-        parentOptions,
-        'writeStyle',
-        defaultWriteStyle
+      parentOptions,
+      'writeStyle',
+      defaultWriteStyle,
     );
 
     this.startDragging = this.startDragging.bind(this);
@@ -22516,114 +22508,115 @@ var Gutter = function Gutter(direction, options, parentOptions) {
     this.minSizeEnd = options.minSizeEnd;
 
     if (options.element) {
-        this.element.addEventListener('mousedown', this.startDragging);
-        this.element.addEventListener('touchstart', this.startDragging);
+      this.element.addEventListener('mousedown', this.startDragging);
+      this.element.addEventListener('touchstart', this.startDragging);
     }
-};
+  }
 
-Gutter.prototype.getDimensions = function getDimensions () {
-    var ref = this.grid.getBoundingClientRect();
-        var width = ref.width;
-        var height = ref.height;
-        var top = ref.top;
-        var bottom = ref.bottom;
-        var left = ref.left;
-        var right = ref.right;
+  getDimensions() {
+    const {
+      width,
+      height,
+      top,
+      bottom,
+      left,
+      right
+    } = this.grid.getBoundingClientRect();
 
     if (this.direction === 'column') {
-        this.start = top;
-        this.end = bottom;
-        this.size = height;
+      this.start = top;
+      this.end = bottom;
+      this.size = height;
     } else if (this.direction === 'row') {
-        this.start = left;
-        this.end = right;
-        this.size = width;
+      this.start = left;
+      this.end = right;
+      this.size = width;
     }
-};
+  }
 
-Gutter.prototype.getSizeAtTrack = function getSizeAtTrack$1 (track, end) {
+  getSizeAtTrack(track, end) {
     return getSizeAtTrack(
-        track,
-        this.computedPixels,
-        this.computedGapPixels,
-        end
-    )
-};
+      track,
+      this.computedPixels,
+      this.computedGapPixels,
+      end,
+    );
+  }
 
-Gutter.prototype.getSizeOfTrack = function getSizeOfTrack (track) {
-    return this.computedPixels[track].numeric
-};
+  getSizeOfTrack(track) {
+    return this.computedPixels[track].numeric;
+  }
 
-Gutter.prototype.getRawTracks = function getRawTracks () {
-    var tracks = getStyles(
-        this.gridTemplateProp,
-        [this.grid],
-        getMatchedCSSRules(this.grid)
+  getRawTracks() {
+    const tracks = getStyles(
+      this.gridTemplateProp,
+      [this.grid],
+      getMatchedCSSRules(this.grid),
     );
     if (!tracks.length) {
-        if (this.optionStyle) { return this.optionStyle }
+      if (this.optionStyle) return this.optionStyle;
 
-        throw Error('Unable to determine grid template tracks from styles.')
+      throw Error('Unable to determine grid template tracks from styles.');
     }
-    return tracks[0]
-};
+    return tracks[0];
+  }
 
-Gutter.prototype.getGap = function getGap () {
-    var gap = getStyles(
-        this.gridGapProp,
-        [this.grid],
-        getMatchedCSSRules(this.grid)
+  getGap() {
+    const gap = getStyles(
+      this.gridGapProp,
+      [this.grid],
+      getMatchedCSSRules(this.grid),
     );
     if (!gap.length) {
-        return null
+      return null;
     }
-    return gap[0]
-};
+    return gap[0];
+  }
 
-Gutter.prototype.getRawComputedTracks = function getRawComputedTracks () {
-    return window.getComputedStyle(this.grid)[this.gridTemplateProp]
-};
+  getRawComputedTracks() {
+    return window.getComputedStyle(this.grid)[this.gridTemplateProp];
+  }
 
-Gutter.prototype.getRawComputedGap = function getRawComputedGap () {
-    return window.getComputedStyle(this.grid)[this.gridGapProp]
-};
+  getRawComputedGap() {
+    return window.getComputedStyle(this.grid)[this.gridGapProp];
+  }
 
-Gutter.prototype.setTracks = function setTracks (raw) {
+  setTracks(raw) {
     this.tracks = raw.split(' ');
     this.trackValues = parse(raw);
-};
+  }
 
-Gutter.prototype.setComputedTracks = function setComputedTracks (raw) {
+  setComputedTracks(raw) {
     this.computedTracks = raw.split(' ');
     this.computedPixels = parse(raw);
-};
+  }
 
-Gutter.prototype.setGap = function setGap (raw) {
+  setGap(raw) {
     this.gap = raw;
-};
+  }
 
-Gutter.prototype.setComputedGap = function setComputedGap (raw) {
+  setComputedGap(raw) {
     this.computedGap = raw;
     this.computedGapPixels = getGapValue('px', this.computedGap) || 0;
-};
+  }
 
-Gutter.prototype.getMousePosition = function getMousePosition (e) {
-    if ('touches' in e) { return e.touches[0][this.clientAxis] }
-    return e[this.clientAxis]
-};
+  getMousePosition(e) {
+    if ('touches' in e) return e.touches[0][this.clientAxis];
+    return e[this.clientAxis];
+  }
 
-Gutter.prototype.startDragging = function startDragging (e) {
+  startDragging(e) {
     if ('button' in e && e.button !== 0) {
-        return
+      return;
     }
 
     // Don't actually drag the element. We emulate that in the drag function.
     e.preventDefault();
 
     if (this.element) {
-        this.grid = this.element.parentNode;
+      this.grid = this.element.parentNode;
     } else {
-        this.grid = e.target.parentNode;
+      this.grid = e.target.parentNode;
     }
 
     this.getDimensions();
@@ -22632,44 +22625,45 @@ Gutter.prototype.startDragging = function startDragging (e) {
     this.setGap(this.getGap());
     this.setComputedGap(this.getRawComputedGap());
 
-    var trackPercentage = this.trackValues.filter(
-        function (track) { return track.type === '%'; }
+    const trackPercentage = this.trackValues.filter(
+      track => track.type === '%',
     );
-    var trackFr = this.trackValues.filter(function (track) { return track.type === 'fr'; });
+    const trackFr = this.trackValues.filter(track => track.type === 'fr');
 
     this.totalFrs = trackFr.length;
 
     if (this.totalFrs) {
-        var track = firstNonZero(trackFr);
+      const track = firstNonZero(trackFr);
 
-        if (track !== null) {
-            this.frToPixels =
-                this.computedPixels[track].numeric / trackFr[track].numeric;
+      if (track !== null) {
+        this.frToPixels = this.computedPixels[track].numeric / trackFr[track].numeric;
+        if (this.frToPixels === 0) {
+          this.frToPixels = Number.EPSILON;
         }
+      }
     }
 
     if (trackPercentage.length) {
-        var track$1 = firstNonZero(trackPercentage);
+      const track = firstNonZero(trackPercentage);
 
-        if (track$1 !== null) {
-            this.percentageToPixels =
-                this.computedPixels[track$1].numeric /
-                trackPercentage[track$1].numeric;
-        }
+      if (track !== null) {
+        this.percentageToPixels = this.computedPixels[track].numeric
+                    / trackPercentage[track].numeric;
+      }
     }
 
     // get start of gutter track
-    var gutterStart = this.getSizeAtTrack(this.track, false) + this.start;
+    const gutterStart = this.getSizeAtTrack(this.track, false) + this.start;
     this.dragStartOffset = this.getMousePosition(e) - gutterStart;
 
     this.aTrack = this.track - 1;
 
     if (this.track < this.tracks.length - 1) {
-        this.bTrack = this.track + 1;
+      this.bTrack = this.track + 1;
     } else {
-        throw Error(
-            ("Invalid track index: " + (this.track) + ". Track must be between two other tracks and only " + (this.tracks.length) + " tracks were found.")
-        )
+      throw Error(
+        `Invalid track index: ${this.track}. Track must be between two other tracks and only ${this.tracks.length} tracks were found.`,
+      );
     }
 
     this.aTrackStart = this.getSizeAtTrack(this.aTrack, false) + this.start;
@@ -22699,9 +22693,9 @@ Gutter.prototype.startDragging = function startDragging (e) {
     window.document.body.style.cursor = this.cursor;
 
     this.onDragStart(this.direction, this.track);
-};
+  }
 
-Gutter.prototype.stopDragging = function stopDragging () {
+  stopDragging() {
     this.dragging = false;
 
     // Remove the stored event listeners. This is why we store them.
@@ -22710,114 +22704,109 @@ Gutter.prototype.stopDragging = function stopDragging () {
     this.onDragEnd(this.direction, this.track);
 
     if (this.needsDestroy) {
-        if (this.element) {
-            this.element.removeEventListener(
-                'mousedown',
-                this.startDragging
-            );
-            this.element.removeEventListener(
-                'touchstart',
-                this.startDragging
-            );
-        }
-        this.destroyCb();
-        this.needsDestroy = false;
-        this.destroyCb = null;
+      if (this.element) {
+        this.element.removeEventListener(
+          'mousedown',
+          this.startDragging,
+        );
+        this.element.removeEventListener(
+          'touchstart',
+          this.startDragging,
+        );
+      }
+      this.destroyCb();
+      this.needsDestroy = false;
+      this.destroyCb = null;
     }
-};
+  }
 
-Gutter.prototype.drag = function drag (e) {
-    var mousePosition = this.getMousePosition(e);
+  drag(e) {
+    let mousePosition = this.getMousePosition(e);
 
-    var gutterSize = this.getSizeOfTrack(this.track);
-    var minMousePosition =
-        this.aTrackStart +
-        this.minSizeStart +
-        this.dragStartOffset +
-        this.computedGapPixels;
-    var maxMousePosition =
-        this.bTrackEnd -
-        this.minSizeEnd -
-        this.computedGapPixels -
-        (gutterSize - this.dragStartOffset);
-    var minMousePositionOffset = minMousePosition + this.snapOffset;
-    var maxMousePositionOffset = maxMousePosition - this.snapOffset;
+    const gutterSize = this.getSizeOfTrack(this.track);
+    const minMousePosition = this.aTrackStart
+            + this.minSizeStart
+            + this.dragStartOffset
+            + this.computedGapPixels;
+    const maxMousePosition = this.bTrackEnd
+            - this.minSizeEnd
+            - this.computedGapPixels
+            - (gutterSize - this.dragStartOffset);
+    const minMousePositionOffset = minMousePosition + this.snapOffset;
+    const maxMousePositionOffset = maxMousePosition - this.snapOffset;
 
     if (mousePosition < minMousePositionOffset) {
-        mousePosition = minMousePosition;
+      mousePosition = minMousePosition;
     }
 
     if (mousePosition > maxMousePositionOffset) {
-        mousePosition = maxMousePosition;
+      mousePosition = maxMousePosition;
     }
 
     if (mousePosition < minMousePosition) {
-        mousePosition = minMousePosition;
+      mousePosition = minMousePosition;
     } else if (mousePosition > maxMousePosition) {
-        mousePosition = maxMousePosition;
+      mousePosition = maxMousePosition;
     }
 
-    var aTrackSize =
-        mousePosition -
-        this.aTrackStart -
-        this.dragStartOffset -
-        this.computedGapPixels;
-    var bTrackSize =
-        this.bTrackEnd -
-        mousePosition +
-        this.dragStartOffset -
-        gutterSize -
-        this.computedGapPixels;
+    let aTrackSize = mousePosition
+            - this.aTrackStart
+            - this.dragStartOffset
+            - this.computedGapPixels;
+    let bTrackSize = this.bTrackEnd
+            - mousePosition
+            + this.dragStartOffset
+            - gutterSize
+            - this.computedGapPixels;
 
     if (this.dragInterval > 1) {
-        var aTrackSizeIntervaled =
-            Math.round(aTrackSize / this.dragInterval) * this.dragInterval;
-        bTrackSize -= aTrackSizeIntervaled - aTrackSize;
-        aTrackSize = aTrackSizeIntervaled;
+      const aTrackSizeIntervaled = Math.round(aTrackSize / this.dragInterval) * this.dragInterval;
+      bTrackSize -= aTrackSizeIntervaled - aTrackSize;
+      aTrackSize = aTrackSizeIntervaled;
     }
 
     if (aTrackSize < this.minSizeStart) {
-        aTrackSize = this.minSizeStart;
+      aTrackSize = this.minSizeStart;
     }
 
     if (bTrackSize < this.minSizeEnd) {
-        bTrackSize = this.minSizeEnd;
+      bTrackSize = this.minSizeEnd;
     }
 
     if (this.trackValues[this.aTrack].type === 'px') {
-        this.tracks[this.aTrack] = aTrackSize + "px";
+      this.tracks[this.aTrack] = `${aTrackSize}px`;
     } else if (this.trackValues[this.aTrack].type === 'fr') {
-        if (this.totalFrs === 1) {
-            this.tracks[this.aTrack] = '1fr';
-        } else {
-            var targetFr = aTrackSize / this.frToPixels;
-            this.tracks[this.aTrack] = targetFr + "fr";
-        }
+      if (this.totalFrs === 1) {
+        this.tracks[this.aTrack] = '1fr';
+      } else {
+        const targetFr = aTrackSize / this.frToPixels;
+        this.tracks[this.aTrack] = `${targetFr}fr`;
+      }
     } else if (this.trackValues[this.aTrack].type === '%') {
-        var targetPercentage = aTrackSize / this.percentageToPixels;
-        this.tracks[this.aTrack] = targetPercentage + "%";
+      const targetPercentage = aTrackSize / this.percentageToPixels;
+      this.tracks[this.aTrack] = `${targetPercentage}%`;
     }
 
     if (this.trackValues[this.bTrack].type === 'px') {
-        this.tracks[this.bTrack] = bTrackSize + "px";
+      this.tracks[this.bTrack] = `${bTrackSize}px`;
     } else if (this.trackValues[this.bTrack].type === 'fr') {
-        if (this.totalFrs === 1) {
-            this.tracks[this.bTrack] = '1fr';
-        } else {
-            var targetFr$1 = bTrackSize / this.frToPixels;
-            this.tracks[this.bTrack] = targetFr$1 + "fr";
-        }
+      if (this.totalFrs === 1) {
+        this.tracks[this.bTrack] = '1fr';
+      } else {
+        const targetFr = bTrackSize / this.frToPixels;
+        this.tracks[this.bTrack] = `${targetFr}fr`;
+      }
     } else if (this.trackValues[this.bTrack].type === '%') {
-        var targetPercentage$1 = bTrackSize / this.percentageToPixels;
-        this.tracks[this.bTrack] = targetPercentage$1 + "%";
+      const targetPercentage = bTrackSize / this.percentageToPixels;
+      this.tracks[this.bTrack] = `${targetPercentage}%`;
     }
 
-    var style = this.tracks.join(' ');
+    const style = this.tracks.join(' ');
     this.writeStyle(this.grid, this.gridTemplateProp, style);
     this.onDrag(this.direction, this.track, style);
-};
+  }
 
-Gutter.prototype.cleanup = function cleanup () {
+  cleanup() {
     window.removeEventListener('mouseup', this.stopDragging);
     window.removeEventListener('touchend', this.stopDragging);
     window.removeEventListener('touchcancel', this.stopDragging);
@@ -22825,48 +22814,47 @@ Gutter.prototype.cleanup = function cleanup () {
     window.removeEventListener('touchmove', this.drag);
 
     if (this.grid) {
-        this.grid.removeEventListener('selectstart', NOOP);
-        this.grid.removeEventListener('dragstart', NOOP);
+      this.grid.removeEventListener('selectstart', NOOP);
+      this.grid.removeEventListener('dragstart', NOOP);
 
-        this.grid.style.userSelect = '';
-        this.grid.style.webkitUserSelect = '';
-        this.grid.style.MozUserSelect = '';
-        this.grid.style.pointerEvents = '';
+      this.grid.style.userSelect = '';
+      this.grid.style.webkitUserSelect = '';
+      this.grid.style.MozUserSelect = '';
+      this.grid.style.pointerEvents = '';
 
-        this.grid.style.cursor = '';
+      this.grid.style.cursor = '';
     }
 
     window.document.body.style.cursor = '';
-};
+  }
 
-Gutter.prototype.destroy = function destroy (immediate, cb) {
-        if ( immediate === void 0 ) immediate = true;
-
+  destroy(immediate = true, cb) {
     if (immediate || this.dragging === false) {
-        this.cleanup();
-        if (this.element) {
-            this.element.removeEventListener(
-                'mousedown',
-                this.startDragging
-            );
-            this.element.removeEventListener(
-                'touchstart',
-                this.startDragging
-            );
-        }
+      this.cleanup();
+      if (this.element) {
+        this.element.removeEventListener(
+          'mousedown',
+          this.startDragging,
+        );
+        this.element.removeEventListener(
+          'touchstart',
+          this.startDragging,
+        );
+      }
 
-        if (cb) {
-            cb();
-        }
+      if (cb) {
+        cb();
+      }
     } else {
-        this.needsDestroy = true;
-        if (cb) {
-            this.destroyCb = cb;
-        }
+      this.needsDestroy = true;
+      if (cb) {
+        this.destroyCb = cb;
+      }
     }
-};
+  }
+}
 
-var getTrackOption = function (options, track, defaultValue) {
+const getTrackOption = (options, track, defaultValue) => {
     if (track in options) {
         return options[track]
     }
@@ -22874,29 +22862,30 @@ var getTrackOption = function (options, track, defaultValue) {
     return defaultValue
 };
 
-var createGutter = function (direction, options) { return function (gutterOptions) {
+const createGutter = (direction, options) => gutterOptions => {
     if (gutterOptions.track < 1) {
         throw Error(
-            ("Invalid track index: " + (gutterOptions.track) + ". Track must be between two other tracks.")
+            `Invalid track index: ${gutterOptions.track}. Track must be between two other tracks.`,
         )
     }
 
-    var trackMinSizes =
+    const trackMinSizes =
         direction === 'column'
             ? options.columnMinSizes || {}
             : options.rowMinSizes || {};
-    var trackMinSize = direction === 'column' ? 'columnMinSize' : 'rowMinSize';
+    const trackMinSize = direction === 'column' ? 'columnMinSize' : 'rowMinSize';
 
     return new Gutter(
         direction,
-        Object.assign({}, {minSizeStart: getTrackOption(
+        {
+            minSizeStart: getTrackOption(
                 trackMinSizes,
                 gutterOptions.track - 1,
                 getOption(
                     options,
                     trackMinSize,
-                    getOption(options, 'minSize', 0)
-                )
+                    getOption(options, 'minSize', 0),
+                ),
             ),
             minSizeEnd: getTrackOption(
                 trackMinSizes,
@@ -22904,150 +22893,188 @@ var createGutter = function (direction, options) { return function (gutterOption
                 getOption(
                     options,
                     trackMinSize,
-                    getOption(options, 'minSize', 0)
-                )
-            )},
-            gutterOptions),
-        options
+                    getOption(options, 'minSize', 0),
+                ),
+            ),
+            ...gutterOptions,
+        },
+        options,
     )
-}; };
-
-var Grid = function Grid(options) {
-    var this$1 = this;
-
-    this.columnGutters = {};
-    this.rowGutters = {};
-
-    this.options = Object.assign({}, {columnGutters: options.columnGutters || [],
-        rowGutters: options.rowGutters || [],
-        columnMinSizes: options.columnMinSizes || {},
-        rowMinSizes: options.rowMinSizes || {}},
-        options);
-
-    this.options.columnGutters.forEach(function (gutterOptions) {
-        this$1.columnGutters[options.track] = createGutter(
-            'column',
-            this$1.options
-        )(gutterOptions);
-    });
-
-    this.options.rowGutters.forEach(function (gutterOptions) {
-        this$1.rowGutters[options.track] = createGutter('row', this$1.options)(
-            gutterOptions
-        );
-    });
 };
 
-Grid.prototype.addColumnGutter = function addColumnGutter (element, track) {
-    if (this.columnGutters[track]) {
-        this.columnGutters[track].destroy();
-    }
+class Grid {
+    constructor(options) {
+        this.columnGutters = {};
+        this.rowGutters = {};
 
-    this.columnGutters[track] = createGutter('column', this.options)({
-        element: element,
-        track: track,
-    });
-};
+        this.options = {
+            columnGutters: options.columnGutters || [],
+            rowGutters: options.rowGutters || [],
+            columnMinSizes: options.columnMinSizes || {},
+            rowMinSizes: options.rowMinSizes || {},
+            ...options,
+        };
 
-Grid.prototype.addRowGutter = function addRowGutter (element, track) {
-    if (this.rowGutters[track]) {
-        this.rowGutters[track].destroy();
-    }
+        this.options.columnGutters.forEach(gutterOptions => {
+            this.columnGutters[options.track] = createGutter(
+                'column',
+                this.options,
+            )(gutterOptions);
+        });
 
-    this.rowGutters[track] = createGutter('row', this.options)({
-        element: element,
-        track: track,
-    });
-};
-
-Grid.prototype.removeColumnGutter = function removeColumnGutter (track, immediate) {
-        var this$1 = this;
-        if ( immediate === void 0 ) immediate = true;
-
-    if (this.columnGutters[track]) {
-        this.columnGutters[track].destroy(immediate, function () {
-            delete this$1.columnGutters[track];
+        this.options.rowGutters.forEach(gutterOptions => {
+            this.rowGutters[options.track] = createGutter(
+                'row',
+                this.options,
+            )(gutterOptions);
         });
     }
-};
 
-Grid.prototype.removeRowGutter = function removeRowGutter (track, immediate) {
-        var this$1 = this;
-        if ( immediate === void 0 ) immediate = true;
-
-    if (this.rowGutters[track]) {
-        this.rowGutters[track].destroy(immediate, function () {
-            delete this$1.rowGutters[track];
-        });
-    }
-};
-
-Grid.prototype.handleDragStart = function handleDragStart (e, direction, track) {
-    if (direction === 'column') {
+    addColumnGutter(element, track) {
         if (this.columnGutters[track]) {
             this.columnGutters[track].destroy();
         }
 
-        this.columnGutters[track] = createGutter('column', this.options)({
-            track: track,
+        this.columnGutters[track] = createGutter(
+            'column',
+            this.options,
+        )({
+            element,
+            track,
         });
-        this.columnGutters[track].startDragging(e);
-    } else if (direction === 'row') {
+    }
+
+    addRowGutter(element, track) {
         if (this.rowGutters[track]) {
             this.rowGutters[track].destroy();
         }
 
-        this.rowGutters[track] = createGutter('row', this.options)({
-            track: track,
+        this.rowGutters[track] = createGutter(
+            'row',
+            this.options,
+        )({
+            element,
+            track,
         });
-        this.rowGutters[track].startDragging(e);
     }
-};
 
-Grid.prototype.destroy = function destroy (immediate) {
-        var this$1 = this;
-        if ( immediate === void 0 ) immediate = true;
+    removeColumnGutter(track, immediate = true) {
+        if (this.columnGutters[track]) {
+            this.columnGutters[track].destroy(immediate, () => {
+                delete this.columnGutters[track];
+            });
+        }
+    }
 
-    Object.keys(this.columnGutters).forEach(function (track) { return this$1.columnGutters[track].destroy(immediate, function () {
-            delete this$1.columnGutters[track];
-        }); }
-    );
-    Object.keys(this.rowGutters).forEach(function (track) { return this$1.rowGutters[track].destroy(immediate, function () {
-            delete this$1.rowGutters[track];
-        }); }
-    );
-};
+    removeRowGutter(track, immediate = true) {
+        if (this.rowGutters[track]) {
+            this.rowGutters[track].destroy(immediate, () => {
+                delete this.rowGutters[track];
+            });
+        }
+    }
 
-function index (options) { return new Grid(options); }
+    handleDragStart(e, direction, track) {
+        if (direction === 'column') {
+            if (this.columnGutters[track]) {
+                this.columnGutters[track].destroy();
+            }
 
+            this.columnGutters[track] = createGutter(
+                'column',
+                this.options,
+            )({
+                track,
+            });
+            this.columnGutters[track].startDragging(e);
+        } else if (direction === 'row') {
+            if (this.rowGutters[track]) {
+                this.rowGutters[track].destroy();
+            }
+
+            this.rowGutters[track] = createGutter(
+                'row',
+                this.options,
+            )({
+                track,
+            });
+            this.rowGutters[track].startDragging(e);
+        }
+    }
+
+    destroy(immediate = true) {
+        Object.keys(this.columnGutters).forEach(track =>
+            this.columnGutters[track].destroy(immediate, () => {
+                delete this.columnGutters[track];
+            }),
+        );
+        Object.keys(this.rowGutters).forEach(track =>
+            this.rowGutters[track].destroy(immediate, () => {
+                delete this.rowGutters[track];
+            }),
+        );
+    }
+}
+
+var Split = options => new Grid(options);
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 
 var script = {
-  name: 'EvWorkbench',
+  name: 'EvLayoutChild',
 
-  mounted() {
-    index({
-      columnGutters: [
-        {
-          track: 1,
-          element: this.$refs.gutterActivitybarSidebar
-        },
-        {
-          track: 3,
-          element: this.$refs.gutterSidebarMain
-        },
-        {
-          track: 1,
-          element: this.$refs.gutterMainSupp
-        }
-      ],
-      rowGutters: [
-        {
-          track: 1,
-          element: this.$refs.gutterMainTopBottom
-        }
-      ]
-    });
+  props: {
+    child: Object
+  },
+
+  methods: {
+    gutterClass(child, direction) {
+      let className = `ev-gutter ev-gutter-${child.name} ev-gutter-${direction}`;
+
+      if (child.resizable === false) {
+        className += ' ev-gutter-no-resize';
+      }
+
+      return className;
+    },
+
+    childStyle(child) {
+      if (!child.sizes || !child.sizes.length || !child.direction) {
+        return;
+      }
+
+      let sizes = child.sizes.map(s => [s, 0]).flat();
+      sizes.pop();
+
+      return `grid-template-${child.direction}s: ${sizes.join(' ')}`;
+    }
   }
 };
 
@@ -23190,111 +23217,61 @@ var __vue_render__ = function() {
   return _c(
     "div",
     {
-      staticClass: "d-grid overflow-hidden",
-      staticStyle: { "grid-template-rows": "36px 1fr" }
+      staticClass: "d-grid overflow-hidden h-100 w-100",
+      class: "ev-pane-" + _vm.child.name,
+      style: _vm.childStyle(_vm.child),
+      attrs: { "data-min-size": _vm.child.minSize }
     },
     [
-      _c(
-        "div",
-        { staticClass: "ev-workbench-toolbar" },
-        [_vm._t("toolbar")],
-        2
-      ),
-      _vm._v(" "),
-      _c(
-        "div",
-        {
-          staticClass: "d-grid overflow-hidden",
-          staticStyle: { "grid-template-columns": "50px 0 100px 0 1fr" }
-        },
-        [
-          _c("div", { staticClass: "vh-main" }, [
-            _c(
-              "div",
-              {
-                staticClass: "h-100 w-100 overflow-auto ev-workbench-activity"
-              },
-              [_vm._t("activity")],
-              2
-            )
-          ]),
-          _vm._v(" "),
-          _c("div", {
-            ref: "gutterActivitybarSidebar",
-            staticClass: "hide gutter-hidden gutter gutter-column"
-          }),
-          _vm._v(" "),
-          _c("div", { staticClass: "vh-main" }, [
-            _c(
-              "div",
-              { staticClass: "h-100 w-100 overflow-auto ev-workbench-sidebar" },
-              [_vm._t("sidebar")],
-              2
-            )
-          ]),
-          _vm._v(" "),
-          _c("div", {
-            ref: "gutterSidebarMain",
-            staticClass: "gutter-hidden gutter gutter-column"
-          }),
-          _vm._v(" "),
-          _c(
+      !_vm.child.panes
+        ? _c(
             "div",
+            { staticClass: "ev-layout-pane h-100 w-100 overflow-auto" },
+            [_vm._t(_vm.child.name)],
+            2
+          )
+        : _vm._e(),
+      _vm._v(" "),
+      _vm._l(_vm.child.panes, function(grandChild, idx) {
+        return [
+          _c(
+            "ev-layout-child",
             {
-              staticClass: "d-grid overflow-hidden vh-main",
-              staticStyle: { "grid-template-rows": "1fr 0 200px" }
+              key: grandChild.name,
+              attrs: { child: grandChild },
+              scopedSlots: _vm._u(
+                [
+                  _vm._l(_vm.$scopedSlots, function(_, name) {
+                    return {
+                      key: name,
+                      fn: function(slotData) {
+                        return [_vm._t(name, null, null, slotData)]
+                      }
+                    }
+                  })
+                ],
+                null,
+                true
+              )
             },
             [
-              _c(
-                "div",
-                {
-                  staticClass: "d-grid overflow-hidden",
-                  staticStyle: { "grid-template-columns": "1fr 0 200px" }
-                },
-                [
-                  _c(
-                    "div",
-                    {
-                      staticClass:
-                        "h-100 w-100 overflow-hidden ev-workbench-main"
-                    },
-                    [_vm._t("main")],
-                    2
-                  ),
-                  _vm._v(" "),
-                  _c("div", {
-                    ref: "gutterMainSupp",
-                    staticClass: "gutter-hidden gutter gutter-column"
-                  }),
-                  _vm._v(" "),
-                  _c(
-                    "div",
-                    {
-                      staticClass:
-                        "h-100 w-100 overflow-auto ev-workbench-supplemental"
-                    },
-                    [_vm._t("supplemental")],
-                    2
-                  )
-                ]
-              ),
-              _vm._v(" "),
-              _c("div", {
-                ref: "gutterMainTopBottom",
-                staticClass: "gutter-hidden gutter gutter-row"
-              }),
-              _vm._v(" "),
-              _c(
-                "div",
-                { staticClass: "h-100 w-100 overflow-auto ev-workbench-panel" },
-                [_vm._t("panel")],
-                2
-              )
-            ]
-          )
+              _vm._l(_vm.$slots, function(_, name) {
+                return _vm._t(name, null, { slot: name })
+              })
+            ],
+            2
+          ),
+          _vm._v(" "),
+          _vm.child.panes[idx + 1]
+            ? _c("div", {
+                key: grandChild.name + "gutter",
+                class: _vm.gutterClass(grandChild, _vm.child.direction)
+              })
+            : _vm._e()
         ]
-      )
-    ]
+      })
+    ],
+    2
   )
 };
 var __vue_staticRenderFns__ = [];
@@ -23303,11 +23280,11 @@ __vue_render__._withStripped = true;
   /* style */
   const __vue_inject_styles__ = function (inject) {
     if (!inject) return
-    inject("data-v-253f630d_0", { source: ".vh-main {\n  height: calc(100vh - 36px);\n}\n\n/*# sourceMappingURL=EvWorkbench.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvWorkbench/src/EvWorkbench.vue","EvWorkbench.vue"],"names":[],"mappings":"AAkFA;EACA,0BAAA;ACjFA;;AAEA,0CAA0C","file":"EvWorkbench.vue","sourcesContent":["<template>\n  <div class=\"d-grid overflow-hidden\" style=\"grid-template-rows: 36px 1fr\">\n    <div class=\"ev-workbench-toolbar\">\n      <slot name=\"toolbar\" />\n    </div>\n\n    <div class=\"d-grid overflow-hidden\" style=\"grid-template-columns: 50px 0 100px 0 1fr\">\n      <div class=\"vh-main\">\n        <div class=\"h-100 w-100 overflow-auto ev-workbench-activity\">\n          <slot name=\"activity\" />\n        </div>\n      </div>\n\n      <div ref=\"gutterActivitybarSidebar\" class=\"hide gutter-hidden gutter gutter-column\" />\n\n      <div class=\"vh-main\">\n        <div class=\"h-100 w-100 overflow-auto ev-workbench-sidebar\">\n          <slot name=\"sidebar\" />\n        </div>\n      </div>\n\n      <div ref=\"gutterSidebarMain\" class=\"gutter-hidden gutter gutter-column\" />\n\n      <div class=\"d-grid overflow-hidden vh-main\" style=\"grid-template-rows: 1fr 0 200px\">\n        <div class=\"d-grid overflow-hidden\" style=\"grid-template-columns: 1fr 0 200px\">\n          <div class=\"h-100 w-100 overflow-hidden ev-workbench-main\">\n            <slot name=\"main\" />\n          </div>\n\n          <div ref=\"gutterMainSupp\" class=\"gutter-hidden gutter gutter-column\" />\n\n          <div class=\"h-100 w-100 overflow-auto ev-workbench-supplemental\">\n            <slot name=\"supplemental\" />\n          </div>\n        </div>\n\n        <div ref=\"gutterMainTopBottom\" class=\"gutter-hidden gutter gutter-row\" />\n\n        <div class=\"h-100 w-100 overflow-auto ev-workbench-panel\">\n          <slot name=\"panel\" />\n        </div>\n      </div>\n    </div>\n  </div>\n</template>\n\n<script>\nimport Split from 'split-grid';\nimport '../../../style/split-grid.scss';\nimport '../../../style/utilities.scss';\n\nexport default {\n  name: 'EvWorkbench',\n\n  mounted() {\n    Split({\n      columnGutters: [\n        {\n          track: 1,\n          element: this.$refs.gutterActivitybarSidebar\n        },\n        {\n          track: 3,\n          element: this.$refs.gutterSidebarMain\n        },\n        {\n          track: 1,\n          element: this.$refs.gutterMainSupp\n        }\n      ],\n      rowGutters: [\n        {\n          track: 1,\n          element: this.$refs.gutterMainTopBottom\n        }\n      ]\n    });\n  }\n};\n</script>\n\n<style lang=\"scss\">\n.vh-main {\n  height: calc(100vh - 36px);\n}\n</style>\n",".vh-main {\n  height: calc(100vh - 36px);\n}\n\n/*# sourceMappingURL=EvWorkbench.vue.map */"]}, media: undefined });
+    inject("data-v-bb924b72_0", { source: "*[data-v-bb924b72] {\n  box-sizing: border-box;\n}\n*[data-v-bb924b72]:before,\n*[data-v-bb924b72]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-bb924b72] {\n  height: 100%;\n}\n.vh-100[data-v-bb924b72] {\n  height: 100vh;\n}\n.w-100[data-v-bb924b72] {\n  width: 100%;\n}\n.vw-100[data-v-bb924b72] {\n  width: 100vw;\n}\n.pre-line[data-v-bb924b72] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-bb924b72] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-bb924b72] {\n  white-space: nowrap;\n}\n.d-block[data-v-bb924b72] {\n  display: block;\n}\n.d-inline-block[data-v-bb924b72] {\n  display: inline-block;\n}\n.d-flex[data-v-bb924b72] {\n  display: flex;\n}\n.d-inline-flex[data-v-bb924b72] {\n  display: inline-flex;\n}\n.d-grid[data-v-bb924b72] {\n  display: grid;\n}\n.d-none[data-v-bb924b72] {\n  display: none;\n}\n.hide[data-v-bb924b72] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-bb924b72] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-bb924b72] {\n  overflow: auto;\n}\n.flex-center[data-v-bb924b72] {\n  justify-content: center;\n}\n.flex-middle[data-v-bb924b72] {\n  align-items: center;\n}\n.flex-grow[data-v-bb924b72] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-bb924b72] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-bb924b72] {\n  flex-direction: column;\n}\n.flex-space[data-v-bb924b72] {\n  justify-content: space-between;\n}\n.flex-end[data-v-bb924b72] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-bb924b72] {\n  justify-content: flex-start;\n}\n.m-z[data-v-bb924b72] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-bb924b72] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-bb924b72] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-bb924b72] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-bb924b72] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-bb924b72] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-bb924b72] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-bb924b72] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-bb924b72] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-bb924b72] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-bb924b72] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-bb924b72] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-bb924b72] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-bb924b72] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-bb924b72] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-bb924b72] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-bb924b72] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-bb924b72] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-bb924b72] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-bb924b72] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-bb924b72] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-bb924b72] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-bb924b72] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-bb924b72] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-bb924b72] {\n  margin-left: 5px;\n}\n.p-z[data-v-bb924b72] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-bb924b72] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-bb924b72] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-bb924b72] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-bb924b72] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-bb924b72] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-bb924b72] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-bb924b72] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-bb924b72] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-bb924b72] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-bb924b72] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-bb924b72] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-bb924b72] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-bb924b72] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-bb924b72] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-bb924b72] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-bb924b72] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-bb924b72] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-bb924b72] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-bb924b72] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-bb924b72] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-bb924b72] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-bb924b72] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-bb924b72] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-bb924b72] {\n  padding-left: 5px;\n}\n.p-xs[data-v-bb924b72] {\n  padding: 5px;\n}\n.p-sm[data-v-bb924b72] {\n  padding: 10px;\n}\n.p-med[data-v-bb924b72] {\n  padding: 15px;\n}\n.p-lg[data-v-bb924b72] {\n  padding: 20px;\n}\n.p-xl[data-v-bb924b72] {\n  padding: 25px;\n}\n.m-xs[data-v-bb924b72] {\n  margin: 5px;\n}\n.m-sm[data-v-bb924b72] {\n  margin: 10px;\n}\n.m-med[data-v-bb924b72] {\n  margin: 15px;\n}\n.m-lg[data-v-bb924b72] {\n  margin: 20px;\n}\n.m-xl[data-v-bb924b72] {\n  margin: 25px;\n}\n.ev-gutter-column[data-v-bb924b72] {\n  cursor: col-resize;\n}\n.ev-gutter-row[data-v-bb924b72] {\n  cursor: row-resize;\n}\n.ev-gutter[data-v-bb924b72]:not(.ev-gutter-no-resize)::after {\n  display: block;\n  position: relative;\n  content: \"\";\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-column[data-v-bb924b72]::after {\n  width: 8px;\n  height: 100%;\n  margin-left: -4px;\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-row[data-v-bb924b72]::after {\n  width: 100%;\n  height: 8px;\n  margin-top: -4px;\n}\n\n/*# sourceMappingURL=EvLayoutChild.vue.map */", map: {"version":3,"sources":["EvLayoutChild.vue","/Users/john/Code/evwt/packages/EvLayout/src/EvLayoutChild.vue"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;AAEA;;EAEE,sBAAsB;AACxB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,aAAa;AACf;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,aAAa;AACf;ACOA;EACA,aAAA;ADJA;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,uBAAuB;AACzB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,YAAY;AACd;AAEA;EACE,cAAc;AAChB;AAEA;EACE,sBAAsB;AACxB;AAEA;EACE,8BAA8B;AAChC;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,wBAAwB;AAC1B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,eAAe;AACjB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,4BAA4B;AAC9B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,cAAc;EACd,kBAAkB;EAClB,WAAW;AACb;AACA;EACE,UAAU;EACV,YAAY;EACZ,iBAAiB;AACnB;AACA;EACE,WAAW;EACX,WAAW;EACX,gBAAgB;AAClB;;AAEA,4CAA4C","file":"EvLayoutChild.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-gutter-column {\n  cursor: col-resize;\n}\n\n.ev-gutter-row {\n  cursor: row-resize;\n}\n\n.ev-gutter:not(.ev-gutter-no-resize)::after {\n  display: block;\n  position: relative;\n  content: \"\";\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-column::after {\n  width: 8px;\n  height: 100%;\n  margin-left: -4px;\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-row::after {\n  width: 100%;\n  height: 8px;\n  margin-top: -4px;\n}\n\n/*# sourceMappingURL=EvLayoutChild.vue.map */","<template>\n  <div\n    :style=\"childStyle(child)\"\n    :data-min-size=\"child.minSize\"\n    class=\"d-grid overflow-hidden h-100 w-100\"\n    :class=\"`ev-pane-${child.name}`\">\n    <div v-if=\"!child.panes\" class=\"ev-layout-pane h-100 w-100 overflow-auto\">\n      <slot :name=\"child.name\" class=\"overflow-auto\" />\n    </div>\n\n    <template v-for=\"(grandChild, idx) in child.panes\">\n      <ev-layout-child\n        :key=\"grandChild.name\"\n        :child=\"grandChild\">\n        <slot v-for=\"(_, name) in $slots\" :slot=\"name\" :name=\"name\" />\n        <template v-for=\"(_, name) in $scopedSlots\" :slot=\"name\" slot-scope=\"slotData\">\n          <slot :name=\"name\" v-bind=\"slotData\" />\n        </template>\n      </ev-layout-child>\n\n      <div\n        v-if=\"child.panes[idx + 1]\"\n        :key=\"grandChild.name + 'gutter'\"\n        :class=\"gutterClass(grandChild, child.direction)\" />\n    </template>\n  </div>\n</template>\n\n<script>\nexport default {\n  name: 'EvLayoutChild',\n\n  props: {\n    child: Object\n  },\n\n  methods: {\n    gutterClass(child, direction) {\n      let className = `ev-gutter ev-gutter-${child.name} ev-gutter-${direction}`;\n\n      if (child.resizable === false) {\n        className += ' ev-gutter-no-resize';\n      }\n\n      return className;\n    },\n\n    childStyle(child) {\n      if (!child.sizes || !child.sizes.length || !child.direction) {\n        return;\n      }\n\n      let sizes = child.sizes.map(s => [s, 0]).flat();\n      sizes.pop();\n\n      return `grid-template-${child.direction}s: ${sizes.join(' ')}`;\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/utilities.scss';\n@import '@/../style/split-grid.scss';\n</style>\n"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__ = undefined;
+  const __vue_scope_id__ = "data-v-bb924b72";
   /* module identifier */
   const __vue_module_identifier__ = undefined;
   /* functional template */
@@ -23331,15 +23308,59 @@ __vue_render__._withStripped = true;
     undefined
   );
 
-__vue_component__.install = function(Vue) {
-  Vue.component(__vue_component__.name, __vue_component__);
-};
-
 //
 
 var script$1 = {
-  props: {
-    name: String
+  name: 'EvLayout',
+
+  components: {
+    EvLayoutChild: __vue_component__
+  },
+
+  props: ['layout'],
+
+  async mounted() {
+    let rowGutters = [...this.$el.querySelectorAll('.ev-gutter-row')].map((gutter) => ({
+      track: Array.prototype.indexOf.call(gutter.parentNode.children, gutter),
+      element: gutter
+    }));
+
+    let columnGutters = [...this.$el.querySelectorAll('.ev-gutter-column')].map((gutter) => ({
+      track: Array.prototype.indexOf.call(gutter.parentNode.children, gutter),
+      element: gutter
+    }));
+
+    let columnMinSizes = [...this.$el.querySelectorAll('.ev-gutter-column')].reduce((acc, gutter) => {
+      let pane = gutter.previousElementSibling;
+      let minSize = parseInt(pane.dataset.minSize || 0);
+      let index = Array.prototype.indexOf.call(pane.parentNode.children, pane);
+      acc[index] = minSize;
+      return acc;
+    }, {});
+
+    let rowMinSizes = [...this.$el.querySelectorAll('.ev-gutter-row')].reduce((acc, gutter) => {
+      let pane = gutter.previousElementSibling;
+      let minSize = parseInt(pane.dataset.minSize || 0);
+      let index = Array.prototype.indexOf.call(pane.parentNode.children, pane);
+      acc[index] = minSize;
+      return acc;
+    }, {});
+
+    let onDragStart = (direction, track) => {
+      this.$emit('dragStart', { direction, track });
+    };
+
+    let onDrag = (direction, track, gridTemplateStyle) => {
+      this.$emit('drag', { direction, track, gridTemplateStyle });
+    };
+
+    let onDragEnd = (direction, track) => {
+      this.$emit('dragEnd', { direction, track });
+    };
+
+    Split({
+      columnGutters, rowGutters, columnMinSizes, rowMinSizes, onDragStart, onDrag, onDragEnd
+    });
   }
 };
 
@@ -23352,13 +23373,30 @@ var __vue_render__$1 = function() {
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
   return _c(
-    "div",
+    "ev-layout-child",
     {
-      staticClass: "ev-icon d-inline-flex flex-center flex-middle",
-      class: "ev-icon-" + _vm.name
+      attrs: { child: _vm.layout },
+      scopedSlots: _vm._u(
+        [
+          _vm._l(_vm.$scopedSlots, function(_, name) {
+            return {
+              key: name,
+              fn: function(slotData) {
+                return [_vm._t(name, null, null, slotData)]
+              }
+            }
+          })
+        ],
+        null,
+        true
+      )
     },
-    [_c("ev-icon-" + _vm.name, { tag: "component" })],
-    1
+    [
+      _vm._l(_vm.$slots, function(_, name) {
+        return _vm._t(name, null, { slot: name })
+      })
+    ],
+    2
   )
 };
 var __vue_staticRenderFns__$1 = [];
@@ -23367,11 +23405,11 @@ __vue_render__$1._withStripped = true;
   /* style */
   const __vue_inject_styles__$1 = function (inject) {
     if (!inject) return
-    inject("data-v-ec80258a_0", { source: "svg[data-v-ec80258a] {\n  width: auto;\n  height: 100%;\n}\n\n/*# sourceMappingURL=EvIcon.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvIcon/src/EvIcon.vue","EvIcon.vue"],"names":[],"mappings":"AAiBA;EACA,WAAA;EACA,YAAA;AChBA;;AAEA,qCAAqC","file":"EvIcon.vue","sourcesContent":["<template>\n  <div class=\"ev-icon d-inline-flex flex-center flex-middle\" :class=\"`ev-icon-${name}`\">\n    <component :is=\"`ev-icon-${name}`\" />\n  </div>\n</template>\n\n<script>\nimport '../../../style/utilities.scss';\n\nexport default {\n  props: {\n    name: String\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\nsvg {\n  width: auto;\n  height: 100%;\n}\n</style>\n","svg {\n  width: auto;\n  height: 100%;\n}\n\n/*# sourceMappingURL=EvIcon.vue.map */"]}, media: undefined });
+    inject("data-v-c8930340_0", { source: "*[data-v-c8930340] {\n  box-sizing: border-box;\n}\n*[data-v-c8930340]:before,\n*[data-v-c8930340]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-c8930340] {\n  height: 100%;\n}\n.vh-100[data-v-c8930340] {\n  height: 100vh;\n}\n.w-100[data-v-c8930340] {\n  width: 100%;\n}\n.vw-100[data-v-c8930340] {\n  width: 100vw;\n}\n.pre-line[data-v-c8930340] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-c8930340] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-c8930340] {\n  white-space: nowrap;\n}\n.d-block[data-v-c8930340] {\n  display: block;\n}\n.d-inline-block[data-v-c8930340] {\n  display: inline-block;\n}\n.d-flex[data-v-c8930340] {\n  display: flex;\n}\n.d-inline-flex[data-v-c8930340] {\n  display: inline-flex;\n}\n.d-grid[data-v-c8930340] {\n  display: grid;\n}\n.d-none[data-v-c8930340] {\n  display: none;\n}\n.hide[data-v-c8930340] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-c8930340] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-c8930340] {\n  overflow: auto;\n}\n.flex-center[data-v-c8930340] {\n  justify-content: center;\n}\n.flex-middle[data-v-c8930340] {\n  align-items: center;\n}\n.flex-grow[data-v-c8930340] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-c8930340] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-c8930340] {\n  flex-direction: column;\n}\n.flex-space[data-v-c8930340] {\n  justify-content: space-between;\n}\n.flex-end[data-v-c8930340] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-c8930340] {\n  justify-content: flex-start;\n}\n.m-z[data-v-c8930340] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-c8930340] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-c8930340] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-c8930340] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-c8930340] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-c8930340] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-c8930340] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-c8930340] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-c8930340] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-c8930340] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-c8930340] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-c8930340] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-c8930340] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-c8930340] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-c8930340] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-c8930340] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-c8930340] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-c8930340] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-c8930340] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-c8930340] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-c8930340] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-c8930340] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-c8930340] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-c8930340] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-c8930340] {\n  margin-left: 5px;\n}\n.p-z[data-v-c8930340] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-c8930340] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-c8930340] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-c8930340] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-c8930340] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-c8930340] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-c8930340] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-c8930340] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-c8930340] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-c8930340] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-c8930340] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-c8930340] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-c8930340] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-c8930340] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-c8930340] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-c8930340] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-c8930340] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-c8930340] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-c8930340] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-c8930340] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-c8930340] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-c8930340] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-c8930340] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-c8930340] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-c8930340] {\n  padding-left: 5px;\n}\n.p-xs[data-v-c8930340] {\n  padding: 5px;\n}\n.p-sm[data-v-c8930340] {\n  padding: 10px;\n}\n.p-med[data-v-c8930340] {\n  padding: 15px;\n}\n.p-lg[data-v-c8930340] {\n  padding: 20px;\n}\n.p-xl[data-v-c8930340] {\n  padding: 25px;\n}\n.m-xs[data-v-c8930340] {\n  margin: 5px;\n}\n.m-sm[data-v-c8930340] {\n  margin: 10px;\n}\n.m-med[data-v-c8930340] {\n  margin: 15px;\n}\n.m-lg[data-v-c8930340] {\n  margin: 20px;\n}\n.m-xl[data-v-c8930340] {\n  margin: 25px;\n}\n.ev-gutter-column[data-v-c8930340] {\n  cursor: col-resize;\n}\n.ev-gutter-row[data-v-c8930340] {\n  cursor: row-resize;\n}\n.ev-gutter[data-v-c8930340]:not(.ev-gutter-no-resize)::after {\n  display: block;\n  position: relative;\n  content: \"\";\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-column[data-v-c8930340]::after {\n  width: 8px;\n  height: 100%;\n  margin-left: -4px;\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-row[data-v-c8930340]::after {\n  width: 100%;\n  height: 8px;\n  margin-top: -4px;\n}\n\n/*# sourceMappingURL=EvLayout.vue.map */", map: {"version":3,"sources":["EvLayout.vue"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;AAEA;;EAEE,sBAAsB;AACxB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,aAAa;AACf;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,uBAAuB;AACzB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,YAAY;AACd;AAEA;EACE,cAAc;AAChB;AAEA;EACE,sBAAsB;AACxB;AAEA;EACE,8BAA8B;AAChC;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,wBAAwB;AAC1B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,eAAe;AACjB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,4BAA4B;AAC9B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,cAAc;EACd,kBAAkB;EAClB,WAAW;AACb;AACA;EACE,UAAU;EACV,YAAY;EACZ,iBAAiB;AACnB;AACA;EACE,WAAW;EACX,WAAW;EACX,gBAAgB;AAClB;;AAEA,uCAAuC","file":"EvLayout.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-gutter-column {\n  cursor: col-resize;\n}\n\n.ev-gutter-row {\n  cursor: row-resize;\n}\n\n.ev-gutter:not(.ev-gutter-no-resize)::after {\n  display: block;\n  position: relative;\n  content: \"\";\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-column::after {\n  width: 8px;\n  height: 100%;\n  margin-left: -4px;\n}\n.ev-gutter:not(.ev-gutter-no-resize).ev-gutter-row::after {\n  width: 100%;\n  height: 8px;\n  margin-top: -4px;\n}\n\n/*# sourceMappingURL=EvLayout.vue.map */"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$1 = "data-v-ec80258a";
+  const __vue_scope_id__$1 = "data-v-c8930340";
   /* module identifier */
   const __vue_module_identifier__$1 = undefined;
   /* functional template */
@@ -23400,8 +23438,17 @@ __vue_component__$1.install = function(Vue) {
 };
 
 //
+//
+//
+//
+//
+//
 
-var script$2 = {};
+var script$2 = {
+  props: {
+    name: String
+  }
+};
 
 /* script */
 const __vue_script__$2 = script$2;
@@ -23413,9 +23460,12 @@ var __vue_render__$2 = function() {
   var _c = _vm._self._c || _h;
   return _c(
     "div",
-    { staticClass: "ev-toolbar d-flex h-100 flex-middle p-xs" },
-    [_vm._t("default")],
-    2
+    {
+      staticClass: "ev-icon d-inline-flex flex-center flex-middle",
+      class: "ev-icon-" + _vm.name
+    },
+    [_c("ev-icon-" + _vm.name, { tag: "component" })],
+    1
   )
 };
 var __vue_staticRenderFns__$2 = [];
@@ -23424,11 +23474,11 @@ __vue_render__$2._withStripped = true;
   /* style */
   const __vue_inject_styles__$2 = function (inject) {
     if (!inject) return
-    inject("data-v-014e3f9a_0", { source: ".ev-toolbar[data-v-014e3f9a] {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvToolbar/src/EvToolbar.vue","EvToolbar.vue"],"names":[],"mappings":"AAaA;EACA,iBAAA;ACZA;;AAEA,wCAAwC","file":"EvToolbar.vue","sourcesContent":["<template>\n  <div class=\"ev-toolbar d-flex h-100 flex-middle p-xs\">\n    <slot />\n  </div>\n</template>\n\n<script>\nimport '../../../style/utilities.scss';\n\nexport default {};\n</script>\n\n<style lang=\"scss\" scoped>\n.ev-toolbar {\n  user-select: none;\n}\n</style>\n",".ev-toolbar {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */"]}, media: undefined });
+    inject("data-v-7c111f18_0", { source: "*[data-v-7c111f18] {\n  box-sizing: border-box;\n}\n*[data-v-7c111f18]:before,\n*[data-v-7c111f18]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-7c111f18] {\n  height: 100%;\n}\n.vh-100[data-v-7c111f18] {\n  height: 100vh;\n}\n.w-100[data-v-7c111f18] {\n  width: 100%;\n}\n.vw-100[data-v-7c111f18] {\n  width: 100vw;\n}\n.pre-line[data-v-7c111f18] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-7c111f18] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-7c111f18] {\n  white-space: nowrap;\n}\n.d-block[data-v-7c111f18] {\n  display: block;\n}\n.d-inline-block[data-v-7c111f18] {\n  display: inline-block;\n}\n.d-flex[data-v-7c111f18] {\n  display: flex;\n}\n.d-inline-flex[data-v-7c111f18] {\n  display: inline-flex;\n}\n.d-grid[data-v-7c111f18] {\n  display: grid;\n}\n.d-none[data-v-7c111f18] {\n  display: none;\n}\n.hide[data-v-7c111f18] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-7c111f18] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-7c111f18] {\n  overflow: auto;\n}\n.flex-center[data-v-7c111f18] {\n  justify-content: center;\n}\n.flex-middle[data-v-7c111f18] {\n  align-items: center;\n}\n.flex-grow[data-v-7c111f18] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-7c111f18] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-7c111f18] {\n  flex-direction: column;\n}\n.flex-space[data-v-7c111f18] {\n  justify-content: space-between;\n}\n.flex-end[data-v-7c111f18] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-7c111f18] {\n  justify-content: flex-start;\n}\n.m-z[data-v-7c111f18] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-7c111f18] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-7c111f18] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-7c111f18] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-7c111f18] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-7c111f18] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-7c111f18] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-7c111f18] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-7c111f18] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-7c111f18] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-7c111f18] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-7c111f18] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-7c111f18] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-7c111f18] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-7c111f18] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-7c111f18] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-7c111f18] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-7c111f18] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-7c111f18] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-7c111f18] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-7c111f18] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-7c111f18] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-7c111f18] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-7c111f18] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-7c111f18] {\n  margin-left: 5px;\n}\n.p-z[data-v-7c111f18] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-7c111f18] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-7c111f18] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-7c111f18] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-7c111f18] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-7c111f18] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-7c111f18] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-7c111f18] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-7c111f18] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-7c111f18] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-7c111f18] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-7c111f18] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-7c111f18] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-7c111f18] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-7c111f18] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-7c111f18] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-7c111f18] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-7c111f18] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-7c111f18] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-7c111f18] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-7c111f18] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-7c111f18] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-7c111f18] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-7c111f18] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-7c111f18] {\n  padding-left: 5px;\n}\n.p-xs[data-v-7c111f18] {\n  padding: 5px;\n}\n.p-sm[data-v-7c111f18] {\n  padding: 10px;\n}\n.p-med[data-v-7c111f18] {\n  padding: 15px;\n}\n.p-lg[data-v-7c111f18] {\n  padding: 20px;\n}\n.p-xl[data-v-7c111f18] {\n  padding: 25px;\n}\n.m-xs[data-v-7c111f18] {\n  margin: 5px;\n}\n.m-sm[data-v-7c111f18] {\n  margin: 10px;\n}\n.m-med[data-v-7c111f18] {\n  margin: 15px;\n}\n.m-lg[data-v-7c111f18] {\n  margin: 20px;\n}\n.m-xl[data-v-7c111f18] {\n  margin: 25px;\n}\nsvg[data-v-7c111f18] {\n  width: auto;\n  height: 100%;\n}\n\n/*# sourceMappingURL=EvIcon.vue.map */", map: {"version":3,"sources":["EvIcon.vue","/Users/john/Code/evwt/packages/EvIcon/src/EvIcon.vue"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;AAEA;;EAEE,sBAAsB;AACxB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;ECFA,WAAA;ADIA;ACDA;EACA,YAAA;ADIA;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,aAAa;AACf;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,uBAAuB;AACzB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,YAAY;AACd;AAEA;EACE,cAAc;AAChB;AAEA;EACE,sBAAsB;AACxB;AAEA;EACE,8BAA8B;AAChC;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,wBAAwB;AAC1B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,eAAe;AACjB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,4BAA4B;AAC9B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;ACtUA;EACA,WAAA;EACA,YAAA;ADyUA;;AAEA,qCAAqC","file":"EvIcon.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\nsvg {\n  width: auto;\n  height: 100%;\n}\n\n/*# sourceMappingURL=EvIcon.vue.map */","<template>\n  <div class=\"ev-icon d-inline-flex flex-center flex-middle\" :class=\"`ev-icon-${name}`\">\n    <component :is=\"`ev-icon-${name}`\" />\n  </div>\n</template>\n\n<script>\nexport default {\n  props: {\n    name: String\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/utilities.scss';\n\nsvg {\n  width: auto;\n  height: 100%;\n}\n</style>\n"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$2 = "data-v-014e3f9a";
+  const __vue_scope_id__$2 = "data-v-7c111f18";
   /* module identifier */
   const __vue_module_identifier__$2 = undefined;
   /* functional template */
@@ -23457,18 +23507,13 @@ __vue_component__$2.install = function(Vue) {
 };
 
 //
+//
+//
+//
+//
+//
 
-var script$3 = {
-  components: {
-    EvIcon: __vue_component__$1
-  },
-
-  props: {
-    icon: String,
-    label: String,
-    tooltip: String
-  }
-};
+var script$3 = {};
 
 /* script */
 const __vue_script__$3 = script$3;
@@ -23480,21 +23525,9 @@ var __vue_render__$3 = function() {
   var _c = _vm._self._c || _h;
   return _c(
     "div",
-    {
-      staticClass:
-        "ev-toolbar-item d-flex flex-center flex-middle h-100 p-w-sm p-e-sm",
-      attrs: { title: _vm.tooltip }
-    },
-    [
-      _c("ev-icon", { attrs: { name: _vm.icon } }),
-      _vm._v(" "),
-      _vm.label
-        ? _c("label", { staticClass: "p-w-xs" }, [
-            _vm._v("\n    " + _vm._s(_vm.label) + "\n  ")
-          ])
-        : _vm._e()
-    ],
-    1
+    { staticClass: "ev-toolbar d-flex h-100 flex-middle p-xs" },
+    [_vm._t("default")],
+    2
   )
 };
 var __vue_staticRenderFns__$3 = [];
@@ -23503,11 +23536,11 @@ __vue_render__$3._withStripped = true;
   /* style */
   const __vue_inject_styles__$3 = function (inject) {
     if (!inject) return
-    inject("data-v-13e4ac78_0", { source: ".ev-icon[data-v-13e4ac78] {\n  height: 1rem;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvToolbarItem/src/EvToolbarItem.vue","EvToolbarItem.vue"],"names":[],"mappings":"AA2BA;EACA,YAAA;AC1BA;;AAEA,4CAA4C","file":"EvToolbarItem.vue","sourcesContent":["<template>\n  <div class=\"ev-toolbar-item d-flex flex-center flex-middle h-100 p-w-sm p-e-sm\" :title=\"tooltip\">\n    <ev-icon :name=\"icon\" />\n    <label v-if=\"label\" class=\"p-w-xs\">\n      {{ label }}\n    </label>\n  </div>\n</template>\n\n<script>\nimport EvIcon from '../../EvIcon';\nimport '../../../style/utilities.scss';\n\nexport default {\n  components: {\n    EvIcon\n  },\n\n  props: {\n    icon: String,\n    label: String,\n    tooltip: String\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n.ev-icon {\n  height: 1rem;\n}\n</style>\n",".ev-icon {\n  height: 1rem;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */"]}, media: undefined });
+    inject("data-v-233d4aee_0", { source: "*[data-v-233d4aee] {\n  box-sizing: border-box;\n}\n*[data-v-233d4aee]:before,\n*[data-v-233d4aee]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-233d4aee] {\n  height: 100%;\n}\n.vh-100[data-v-233d4aee] {\n  height: 100vh;\n}\n.w-100[data-v-233d4aee] {\n  width: 100%;\n}\n.vw-100[data-v-233d4aee] {\n  width: 100vw;\n}\n.pre-line[data-v-233d4aee] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-233d4aee] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-233d4aee] {\n  white-space: nowrap;\n}\n.d-block[data-v-233d4aee] {\n  display: block;\n}\n.d-inline-block[data-v-233d4aee] {\n  display: inline-block;\n}\n.d-flex[data-v-233d4aee] {\n  display: flex;\n}\n.d-inline-flex[data-v-233d4aee] {\n  display: inline-flex;\n}\n.d-grid[data-v-233d4aee] {\n  display: grid;\n}\n.d-none[data-v-233d4aee] {\n  display: none;\n}\n.hide[data-v-233d4aee] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-233d4aee] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-233d4aee] {\n  overflow: auto;\n}\n.flex-center[data-v-233d4aee] {\n  justify-content: center;\n}\n.flex-middle[data-v-233d4aee] {\n  align-items: center;\n}\n.flex-grow[data-v-233d4aee] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-233d4aee] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-233d4aee] {\n  flex-direction: column;\n}\n.flex-space[data-v-233d4aee] {\n  justify-content: space-between;\n}\n.flex-end[data-v-233d4aee] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-233d4aee] {\n  justify-content: flex-start;\n}\n.m-z[data-v-233d4aee] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-233d4aee] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-233d4aee] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-233d4aee] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-233d4aee] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-233d4aee] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-233d4aee] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-233d4aee] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-233d4aee] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-233d4aee] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-233d4aee] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-233d4aee] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-233d4aee] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-233d4aee] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-233d4aee] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-233d4aee] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-233d4aee] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-233d4aee] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-233d4aee] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-233d4aee] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-233d4aee] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-233d4aee] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-233d4aee] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-233d4aee] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-233d4aee] {\n  margin-left: 5px;\n}\n.p-z[data-v-233d4aee] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-233d4aee] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-233d4aee] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-233d4aee] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-233d4aee] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-233d4aee] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-233d4aee] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-233d4aee] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-233d4aee] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-233d4aee] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-233d4aee] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-233d4aee] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-233d4aee] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-233d4aee] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-233d4aee] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-233d4aee] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-233d4aee] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-233d4aee] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-233d4aee] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-233d4aee] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-233d4aee] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-233d4aee] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-233d4aee] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-233d4aee] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-233d4aee] {\n  padding-left: 5px;\n}\n.p-xs[data-v-233d4aee] {\n  padding: 5px;\n}\n.p-sm[data-v-233d4aee] {\n  padding: 10px;\n}\n.p-med[data-v-233d4aee] {\n  padding: 15px;\n}\n.p-lg[data-v-233d4aee] {\n  padding: 20px;\n}\n.p-xl[data-v-233d4aee] {\n  padding: 25px;\n}\n.m-xs[data-v-233d4aee] {\n  margin: 5px;\n}\n.m-sm[data-v-233d4aee] {\n  margin: 10px;\n}\n.m-med[data-v-233d4aee] {\n  margin: 15px;\n}\n.m-lg[data-v-233d4aee] {\n  margin: 20px;\n}\n.m-xl[data-v-233d4aee] {\n  margin: 25px;\n}\n.ev-toolbar[data-v-233d4aee] {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */", map: {"version":3,"sources":["EvToolbar.vue","/Users/john/Code/evwt/packages/EvToolbar/src/EvToolbar.vue"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;AAEA;;EAEE,sBAAsB;AACxB;AAEA;EACE,YAAY;AACd;AAEA;ECFA,aAAA;ADIA;ACDA;EACA,WAAA;ADIA;AAEA;EACE,YAAY;AACd;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,aAAa;AACf;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,uBAAuB;AACzB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,YAAY;AACd;AAEA;EACE,cAAc;AAChB;AAEA;EACE,sBAAsB;AACxB;AAEA;EACE,8BAA8B;AAChC;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,wBAAwB;AAC1B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,eAAe;AACjB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,4BAA4B;AAC9B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AC1UA;EACA,iBAAA;AD6UA;;AAEA,wCAAwC","file":"EvToolbar.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-toolbar {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */","<template>\n  <div class=\"ev-toolbar d-flex h-100 flex-middle p-xs\">\n    <slot />\n  </div>\n</template>\n\n<script>\nexport default {};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/utilities.scss';\n\n.ev-toolbar {\n  user-select: none;\n}\n</style>\n"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$3 = "data-v-13e4ac78";
+  const __vue_scope_id__$3 = "data-v-233d4aee";
   /* module identifier */
   const __vue_module_identifier__$3 = undefined;
   /* functional template */
@@ -23536,6 +23569,85 @@ __vue_component__$3.install = function(Vue) {
 };
 
 //
+
+var script$4 = {
+  components: {
+    EvIcon: __vue_component__$2
+  },
+
+  props: {
+    icon: String,
+    label: String,
+    tooltip: String
+  }
+};
+
+/* script */
+const __vue_script__$4 = script$4;
+
+/* template */
+var __vue_render__$4 = function() {
+  var _vm = this;
+  var _h = _vm.$createElement;
+  var _c = _vm._self._c || _h;
+  return _c(
+    "div",
+    {
+      staticClass:
+        "ev-toolbar-item d-flex flex-center flex-middle h-100 p-w-sm p-e-sm",
+      attrs: { title: _vm.tooltip }
+    },
+    [
+      _c("ev-icon", { attrs: { name: _vm.icon } }),
+      _vm._v(" "),
+      _vm.label
+        ? _c("label", { staticClass: "p-w-xs" }, [
+            _vm._v("\n    " + _vm._s(_vm.label) + "\n  ")
+          ])
+        : _vm._e()
+    ],
+    1
+  )
+};
+var __vue_staticRenderFns__$4 = [];
+__vue_render__$4._withStripped = true;
+
+  /* style */
+  const __vue_inject_styles__$4 = function (inject) {
+    if (!inject) return
+    inject("data-v-442985bd_0", { source: "*[data-v-442985bd] {\n  box-sizing: border-box;\n}\n*[data-v-442985bd]:before,\n*[data-v-442985bd]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-442985bd] {\n  height: 100%;\n}\n.vh-100[data-v-442985bd] {\n  height: 100vh;\n}\n.w-100[data-v-442985bd] {\n  width: 100%;\n}\n.vw-100[data-v-442985bd] {\n  width: 100vw;\n}\n.pre-line[data-v-442985bd] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-442985bd] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-442985bd] {\n  white-space: nowrap;\n}\n.d-block[data-v-442985bd] {\n  display: block;\n}\n.d-inline-block[data-v-442985bd] {\n  display: inline-block;\n}\n.d-flex[data-v-442985bd] {\n  display: flex;\n}\n.d-inline-flex[data-v-442985bd] {\n  display: inline-flex;\n}\n.d-grid[data-v-442985bd] {\n  display: grid;\n}\n.d-none[data-v-442985bd] {\n  display: none;\n}\n.hide[data-v-442985bd] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-442985bd] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-442985bd] {\n  overflow: auto;\n}\n.flex-center[data-v-442985bd] {\n  justify-content: center;\n}\n.flex-middle[data-v-442985bd] {\n  align-items: center;\n}\n.flex-grow[data-v-442985bd] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-442985bd] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-442985bd] {\n  flex-direction: column;\n}\n.flex-space[data-v-442985bd] {\n  justify-content: space-between;\n}\n.flex-end[data-v-442985bd] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-442985bd] {\n  justify-content: flex-start;\n}\n.m-z[data-v-442985bd] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-442985bd] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-442985bd] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-442985bd] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-442985bd] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-442985bd] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-442985bd] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-442985bd] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-442985bd] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-442985bd] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-442985bd] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-442985bd] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-442985bd] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-442985bd] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-442985bd] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-442985bd] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-442985bd] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-442985bd] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-442985bd] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-442985bd] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-442985bd] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-442985bd] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-442985bd] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-442985bd] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-442985bd] {\n  margin-left: 5px;\n}\n.p-z[data-v-442985bd] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-442985bd] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-442985bd] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-442985bd] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-442985bd] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-442985bd] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-442985bd] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-442985bd] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-442985bd] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-442985bd] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-442985bd] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-442985bd] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-442985bd] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-442985bd] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-442985bd] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-442985bd] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-442985bd] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-442985bd] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-442985bd] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-442985bd] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-442985bd] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-442985bd] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-442985bd] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-442985bd] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-442985bd] {\n  padding-left: 5px;\n}\n.p-xs[data-v-442985bd] {\n  padding: 5px;\n}\n.p-sm[data-v-442985bd] {\n  padding: 10px;\n}\n.p-med[data-v-442985bd] {\n  padding: 15px;\n}\n.p-lg[data-v-442985bd] {\n  padding: 20px;\n}\n.p-xl[data-v-442985bd] {\n  padding: 25px;\n}\n.m-xs[data-v-442985bd] {\n  margin: 5px;\n}\n.m-sm[data-v-442985bd] {\n  margin: 10px;\n}\n.m-med[data-v-442985bd] {\n  margin: 15px;\n}\n.m-lg[data-v-442985bd] {\n  margin: 20px;\n}\n.m-xl[data-v-442985bd] {\n  margin: 25px;\n}\n.ev-icon[data-v-442985bd] {\n  height: 1rem;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */", map: {"version":3,"sources":["EvToolbarItem.vue","/Users/john/Code/evwt/packages/EvToolbarItem/src/EvToolbarItem.vue"],"names":[],"mappings":"AAAA;EACE,sBAAsB;AACxB;AAEA;;EAEE,sBAAsB;AACxB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;ACGA;EDAE,qBAAqB;AACvB;ACGA;EDAE,qBAAqB;AACvB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,aAAa;AACf;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,cAAc;AAChB;AAEA;EACE,uBAAuB;AACzB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,YAAY;AACd;AAEA;EACE,cAAc;AAChB;AAEA;EACE,sBAAsB;AACxB;AAEA;EACE,8BAA8B;AAChC;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,wBAAwB;AAC1B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,eAAe;AACjB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,qBAAqB;AACvB;AAEA;EACE,yBAAyB;AAC3B;AAEA;EACE,2BAA2B;AAC7B;AAEA;EACE,4BAA4B;AAC9B;AAEA;EACE,0BAA0B;AAC5B;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,oBAAoB;AACtB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,gBAAgB;AAClB;AAEA;EACE,kBAAkB;AACpB;AAEA;EACE,mBAAmB;AACrB;AAEA;EACE,iBAAiB;AACnB;AAEA;EACE,YAAY;AACd;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,aAAa;AACf;AAEA;EACE,WAAW;AACb;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AAEA;EACE,YAAY;AACd;AC3TA;EACA,YAAA;AD8TA;;AAEA,4CAA4C","file":"EvToolbarItem.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-icon {\n  height: 1rem;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */","<template>\n  <div class=\"ev-toolbar-item d-flex flex-center flex-middle h-100 p-w-sm p-e-sm\" :title=\"tooltip\">\n    <ev-icon :name=\"icon\" />\n    <label v-if=\"label\" class=\"p-w-xs\">\n      {{ label }}\n    </label>\n  </div>\n</template>\n\n<script>\nimport EvIcon from '../../EvIcon';\n\nexport default {\n  components: {\n    EvIcon\n  },\n\n  props: {\n    icon: String,\n    label: String,\n    tooltip: String\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/utilities.scss';\n\n.ev-icon {\n  height: 1rem;\n}\n</style>\n"]}, media: undefined });
+
+  };
+  /* scoped */
+  const __vue_scope_id__$4 = "data-v-442985bd";
+  /* module identifier */
+  const __vue_module_identifier__$4 = undefined;
+  /* functional template */
+  const __vue_is_functional_template__$4 = false;
+  /* style inject SSR */
+  
+  /* style inject shadow dom */
+  
+
+  
+  const __vue_component__$4 = /*#__PURE__*/normalizeComponent(
+    { render: __vue_render__$4, staticRenderFns: __vue_staticRenderFns__$4 },
+    __vue_inject_styles__$4,
+    __vue_script__$4,
+    __vue_scope_id__$4,
+    __vue_is_functional_template__$4,
+    __vue_module_identifier__$4,
+    false,
+    createInjector,
+    undefined,
+    undefined
+  );
+
+__vue_component__$4.install = function(Vue) {
+  Vue.component(__vue_component__$4.name, __vue_component__$4);
+};
+
+//
 //
 //
 //
@@ -23550,7 +23662,7 @@ __vue_component__$3.install = function(Vue) {
 //
 //
 
-var script$4 = {
+var script$5 = {
   props: {
     items: Array,
     keyField: String,
@@ -23658,10 +23770,10 @@ var script$4 = {
 };
 
 /* script */
-const __vue_script__$4 = script$4;
+const __vue_script__$5 = script$5;
 
 /* template */
-var __vue_render__$4 = function() {
+var __vue_render__$5 = function() {
   var _vm = this;
   var _h = _vm.$createElement;
   var _c = _vm._self._c || _h;
@@ -23693,42 +23805,42 @@ var __vue_render__$4 = function() {
     )
   ])
 };
-var __vue_staticRenderFns__$4 = [];
-__vue_render__$4._withStripped = true;
+var __vue_staticRenderFns__$5 = [];
+__vue_render__$5._withStripped = true;
 
   /* style */
-  const __vue_inject_styles__$4 = function (inject) {
+  const __vue_inject_styles__$5 = function (inject) {
     if (!inject) return
     inject("data-v-b46d7466_0", { source: ".root[data-v-b46d7466] {\n  min-height: 100%;\n}\n.viewport[data-v-b46d7466] {\n  overflow-y: auto;\n}\n\n/*# sourceMappingURL=EvVirtualScroll.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvVirtualScroll/src/EvVirtualScroll.vue","EvVirtualScroll.vue"],"names":[],"mappings":"AA4HA;EACA,gBAAA;AC3HA;AD8HA;EACA,gBAAA;AC3HA;;AAEA,8CAA8C","file":"EvVirtualScroll.vue","sourcesContent":["<template>\n  <div ref=\"root\" class=\"root\" :style=\"rootStyle\">\n    <div ref=\"viewport\" class=\"viewport\" :style=\"viewportStyle\">\n      <div ref=\"spacer\" class=\"spacer\" :style=\"spacerStyle\">\n        <div v-for=\"item in visibleItems\" :key=\"item[keyField]\" :style=\"itemStyle\">\n          <slot :item=\"item\">\n            {{ item }}\n          </slot>\n        </div>\n      </div>\n    </div>\n  </div>\n</template>\n\n<script>\nexport default {\n  props: {\n    items: Array,\n    keyField: String,\n    rowHeight: Number\n  },\n\n  data() {\n    return {\n      rootHeight: window.innerHeight,\n      scrollTop: 0,\n      nodePadding: 10\n    };\n  },\n\n  computed: {\n    viewportHeight() {\n      return this.itemCount * this.rowHeight;\n    },\n\n    startIndex() {\n      let startNode = Math.floor(this.scrollTop / this.rowHeight) - this.nodePadding;\n      startNode = Math.max(0, startNode);\n      return startNode;\n    },\n\n    visibleNodeCount() {\n      let count = Math.ceil(this.rootHeight / this.rowHeight) + 2 * this.nodePadding;\n      count = Math.min(this.itemCount - this.startIndex, count);\n      return count;\n    },\n\n    visibleItems() {\n      return this.items.slice(\n        this.startIndex,\n        this.startIndex + this.visibleNodeCount\n      );\n    },\n\n    itemCount() {\n      return this.items.length;\n    },\n\n    offsetY() {\n      return this.startIndex * this.rowHeight;\n    },\n\n    spacerStyle() {\n      return {\n        transform: `translateY(${this.offsetY}px)`\n      };\n    },\n\n    viewportStyle() {\n      return {\n        overflow: 'hidden',\n        height: `${this.viewportHeight}px`,\n        position: 'relative'\n      };\n    },\n\n    rootStyle() {\n      return {\n        height: `${this.rootHeight}px`,\n        overflow: 'auto'\n      };\n    },\n\n    itemStyle() {\n      return {\n        height: `${this.rowHeight}px`\n      };\n    }\n  },\n\n  mounted() {\n    this.$refs.root.addEventListener(\n      'scroll',\n      this.handleScroll,\n      { passive: true }\n    );\n\n    this.observeSize();\n  },\n\n  beforeDestroy() {\n    this.$refs.root.removeEventListener('scroll', this.handleScroll);\n  },\n\n  methods: {\n    handleScroll() {\n      this.scrollTop = this.$refs.root.scrollTop;\n    },\n\n    observeSize() {\n      let rootSizeObserver = new ResizeObserver(entries => {\n        for (let entry of entries) {\n          let { contentRect } = entry;\n          this.rootHeight = contentRect.height;\n        }\n      });\n\n      rootSizeObserver.observe(this.$refs.root.parentElement);\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n.root {\n  min-height: 100%;\n}\n\n.viewport {\n  overflow-y: auto;\n}\n</style>\n",".root {\n  min-height: 100%;\n}\n\n.viewport {\n  overflow-y: auto;\n}\n\n/*# sourceMappingURL=EvVirtualScroll.vue.map */"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$4 = "data-v-b46d7466";
+  const __vue_scope_id__$5 = "data-v-b46d7466";
   /* module identifier */
-  const __vue_module_identifier__$4 = undefined;
+  const __vue_module_identifier__$5 = undefined;
   /* functional template */
-  const __vue_is_functional_template__$4 = false;
+  const __vue_is_functional_template__$5 = false;
   /* style inject SSR */
   
   /* style inject shadow dom */
   
 
   
-  const __vue_component__$4 = /*#__PURE__*/normalizeComponent(
-    { render: __vue_render__$4, staticRenderFns: __vue_staticRenderFns__$4 },
-    __vue_inject_styles__$4,
-    __vue_script__$4,
-    __vue_scope_id__$4,
-    __vue_is_functional_template__$4,
-    __vue_module_identifier__$4,
+  const __vue_component__$5 = /*#__PURE__*/normalizeComponent(
+    { render: __vue_render__$5, staticRenderFns: __vue_staticRenderFns__$5 },
+    __vue_inject_styles__$5,
+    __vue_script__$5,
+    __vue_scope_id__$5,
+    __vue_is_functional_template__$5,
+    __vue_module_identifier__$5,
     false,
     createInjector,
     undefined,
     undefined
   );
 
-__vue_component__$4.install = function(Vue) {
-  Vue.component(__vue_component__$4.name, __vue_component__$4);
+__vue_component__$5.install = function(Vue) {
+  Vue.component(__vue_component__$5.name, __vue_component__$5);
 };
 
-export { __vue_component__$1 as EvIcon, EvMenu, EvStore, __vue_component__$2 as EvToolbar, __vue_component__$3 as EvToolbarItem, __vue_component__$4 as EvVirtualScroll, EvWindow, __vue_component__ as EvWorkbench };
+export { __vue_component__$2 as EvIcon, __vue_component__$1 as EvLayout, EvMenu, EvStore, __vue_component__$3 as EvToolbar, __vue_component__$4 as EvToolbarItem, __vue_component__$5 as EvVirtualScroll, EvWindow };
