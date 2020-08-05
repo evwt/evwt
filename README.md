@@ -1,6 +1,6 @@
 # Electron Vue Window Toolkit
 
-EVWT's goal is to provide components, plugins and other tools to assist in building great Electron/Vue apps.
+EVWT's goal is to provide Vue components, plugins and other tools to assist in building great Electron/Vue apps.
 
 <img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="240">
 
@@ -8,9 +8,20 @@ EVWT's goal is to provide components, plugins and other tools to assist in build
 * Vue-first
   * Do more in Vue, less in background scripts
 * Performance
-  * Virtualized lists, lazy loading, GPU-accelerated transforms, no CSS reflows
+  * Virtualized lists, lazy loading, GPU-accelerated transforms, 60fps target
 * OS Integration
   * Drap and drop, context menus, window management, native friendly features
+
+### Goals 
+* Short term
+  * Provide components and plugins, get Electron+Vue developers writing their apps quicker ASAP.
+  * Get word out about project and try to get some people to try it.
+* Medium term
+  * Build out more cohesive native-desktop-first UI/component library.
+  * Try to find a contributor or co-maintainer.
+* Long term
+  * Provide a serious alternative to SwiftUI/AppKit, UWP/WPF and Qt/GTK for writing desktop apps.
+  * Grow team and documentation at pace with ambitions.
 
 ### Setup
 
