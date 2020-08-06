@@ -22175,9 +22175,11 @@
 	          if (item.id === command) return true;
 	        });
 
+	        this.$emit(`input:${command}`);
+
 	        electron.ipcRenderer.send('evmenu:ipc:click', {
-	          id: menuItem.parent.id,
-	          checked: menuItem.parent.checked
+	          id: command,
+	          checked: menuItem && menuItem.checked
 	        });
 	      });
 

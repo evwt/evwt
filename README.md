@@ -1,16 +1,13 @@
 # Electron Vue Window Toolkit
 
-EVWT's goal is to provide Vue components, plugins and other tools to assist in building great Electron/Vue apps.
+EVWT provides Vue components, plugins and other tools to assist in building great Electron/Vue apps.
 
 <img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="240">
 
 ### Priorities
-* Vue-first
-  * Do more in Vue, less in background scripts
-* Performance
-  * Virtualized lists, lazy loading, GPU-accelerated transforms, 60fps target
-* OS Integration
-  * Drap and drop, context menus, window management, native friendly features
+* Productivity - Remove boilerplate and focus more on your app, less on Electron<->Vue IPC wiring.
+* Performance - Use virtualized components, lazy loading, GPU-accelerated transforms, and other techniques to achieve a 60fps target.
+* Integration - Play nice with host OS with native menus, window management, and OS services.
 
 ### Goals
 * Short term
@@ -46,21 +43,16 @@ That's it, now read on for how to use the various parts of EVWT. There's no glob
 #### Plugins
 
 * [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) - Work with native menus as easily as any Vue component.
-
 * [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md) - Simple persistent storage in your Vue components.
-
 * [EvWindow](https://github.com/evwt/evwt/blob/master/EvWindow.md) - Automatically remember window positions.
 
 #### Components
 
-##### General
-
 * [EvLayout](https://github.com/evwt/evwt/blob/master/EvLayout.md) - Perfect desktop app layouts
-
 * [EvToolbar](https://github.com/evwt/evwt/blob/master/EvToolbar.md) - The missing window toolbar component
-
 * [EvIcon](https://github.com/evwt/evwt/blob/master/EvIcon.md) - Create and use a library of SVG icons without fighting webpack
-
-##### Undocumented
-
 * [EvVirtualScroll](https://github.com/evwt/evwt/blob/master/EvVirtualScroll.md) - Minimize memory usage for long lists of items
+
+### Additional docs
+
+* [EVWT CookBook](https://github.com/evwt/evwt/blob/master/CookBook.md)
