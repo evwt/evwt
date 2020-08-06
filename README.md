@@ -45,29 +45,22 @@ That's it, now read on for how to use the various parts of EVWT. There's no glob
 
 #### Plugins
 
-* [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md)
-  - Work with native menus as easily as any Vue component.
+* [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) - Work with native menus as easily as any Vue component.
 
-* [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md)
-  - Simple persistent storage in your Vue components.
+* [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md) - Simple persistent storage in your Vue components.
 
-* [EvWindow](https://github.com/evwt/evwt/blob/master/EvWindow.md)
-  - Automatically remember window positions.
+* [EvWindow](https://github.com/evwt/evwt/blob/master/EvWindow.md) - Automatically remember window positions.
 
 #### Components
 
 ##### General
 
-* [EvLayout](https://github.com/evwt/evwt/blob/master/EvLayout.md)
-  - Perfect desktop app layouts
+* [EvLayout](https://github.com/evwt/evwt/blob/master/EvLayout.md) - Perfect desktop app layouts
 
-* [EvToolbar](https://github.com/evwt/evwt/blob/master/EvToolbar.md)
-  - The missing window toolbar component
+* [EvToolbar](https://github.com/evwt/evwt/blob/master/EvToolbar.md) - The missing window toolbar component
 
-* [EvIcon](https://github.com/evwt/evwt/blob/master/EvIcon.md)
-  - Create and use a library of SVG icons without fighting webpack
+* [EvIcon](https://github.com/evwt/evwt/blob/master/EvIcon.md) - Create and use a library of SVG icons without fighting webpack
 
 ##### Undocumented
 
-* [EvVirtualScroll](https://github.com/evwt/evwt/blob/master/EvVirtualScroll.md)
-  - Minimize memory usage for long lists of items
+* [EvVirtualScroll](https://github.com/evwt/evwt/blob/master/EvVirtualScroll.md) - Minimize memory usage for long lists of items
