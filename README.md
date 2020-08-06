@@ -46,28 +46,28 @@ That's it, now read on for how to use the various parts of EVWT. There's no glob
 #### Plugins
 
 * [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md)
-  - Vue data bindings and events for native menus
+  - Work with native menus as easily as any Vue component.
 
 * [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md)
-  - Simple persistent data storage, unified across your app
+  - Simple persistent storage in your Vue components.
 
 * [EvWindow](https://github.com/evwt/evwt/blob/master/EvWindow.md)
-  - Window memory and management
+  - Automatically remember window positions.
 
 #### Components
 
 ##### General
 
 * [EvLayout](https://github.com/evwt/evwt/blob/master/EvLayout.md)
-  - A customizable pane-based app layout
+  - Perfect desktop app layouts
 
 * [EvToolbar](https://github.com/evwt/evwt/blob/master/EvToolbar.md)
-  - A toolbar to place items on
+  - The missing window toolbar component
 
 * [EvIcon](https://github.com/evwt/evwt/blob/master/EvIcon.md)
-  - Easily create and use a library of inline svg icons in your app
+  - Create and use a library of SVG icons without fighting webpack
 
 ##### Undocumented
 
 * [EvVirtualScroll](https://github.com/evwt/evwt/blob/master/EvVirtualScroll.md)
-  - A simple virtual scroller for any large lists of items
+  - Minimize memory usage for long lists of items
