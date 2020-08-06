@@ -32,10 +32,12 @@ export default {
       if (!this.$evmenu) return;
 
       this.$evmenu.$on('input', ({ id }) => {
-        document.querySelector(`[data-ev-toolbar-item="${id}"]`).classList.add('ev-active');
+        let toolbarItem = document.querySelector(`[data-ev-toolbar-item="${id}"]`);
+        if (!toolbarItem) return;
+        toolbarItem.classList.add('ev-active');
         setTimeout(() => {
-          document.querySelector(`[data-ev-toolbar-item="${id}"]`).classList.remove('ev-active');
-        }, 150);
+          toolbarItem.classList.remove('ev-active');
+        }, 120);
       });
     }
   },
