@@ -75,7 +75,7 @@ Click File -> Save or try Ctrl/Cmd+S, it should save the file. If you added a to
 ### Notes
 
 * You should add error handling around the file saving and invoke calls. The invoke call returns a promise, so will throw an error if something goes wrong.
-* The IPC events can be named differently that the $evmenu events, I just used 'save-file' for both here for simplicity.
+* The IPC events can be named differently than the $evmenu events, I just used 'save-file' for both here for simplicity.
 
 ### References
 
