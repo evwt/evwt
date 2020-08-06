@@ -90,8 +90,6 @@ this.$evmenu.$on('input:open-file', checked => {
 ```
 
 * Send menu commands with `this.$evmenu.$emit`
-  * Ideally, all user commands/actions in your app will be available in the menus.
-  * Triggering these actions via $evmenu events allows you to handle all events in the same place whether they come from menu clicks, keyboard shortcuts or your UI.
 
 ```js
 this.$evmenu.$emit('input', 'open-file');
