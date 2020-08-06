@@ -1,5 +1,10 @@
 <template>
-  <div class="ev-toolbar-item d-flex h-100 m-e-xs" :title="tooltip" :class="itemClass" :style="itemStyle">
+  <div
+    class="ev-toolbar-item d-flex h-100 m-e-xs"
+    :data-ev-toolbar-item="id"
+    :title="tooltip"
+    :class="itemClass"
+    :style="itemStyle">
     <ev-icon v-if="iconShow" class="h-100" :name="icon" :style="iconStyle" />
     <label v-if="labels" :class="labelClass" :style="labelStyle">
       {{ label }}
@@ -20,6 +25,7 @@ export default {
   },
 
   props: {
+    id: String,
     icon: String,
     iconPos: String,
     fontSize: Number,
@@ -92,7 +98,8 @@ export default {
 .ev-toolbar-item {
   user-select: none;
 
-  &:active {
+  &:active,
+  &.ev-active {
     transform: scale(0.94);
   }
 }

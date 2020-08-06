@@ -23,6 +23,23 @@ export default {
     }
   },
 
+  created() {
+    this.addActiveClasses();
+  },
+
+  methods: {
+    addActiveClasses() {
+      if (!this.$evmenu) return;
+
+      this.$evmenu.$on('input', ({ id }) => {
+        document.querySelector(`[data-ev-toolbar-item="${id}"]`).classList.add('ev-active');
+        setTimeout(() => {
+          document.querySelector(`[data-ev-toolbar-item="${id}"]`).classList.remove('ev-active');
+        }, 150);
+      });
+    }
+  },
+
   render(createElement) {
     for (const vnode of this.$slots.default) {
       vnode.componentOptions.propsData = {

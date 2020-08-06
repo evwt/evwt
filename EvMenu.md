@@ -92,7 +92,7 @@ this.$evmenu.$on('input:open-file', checked => {
 * Send menu commands with `this.$evmenu.$emit`
 
 ```js
-this.$evmenu.$emit('input', 'open-file');
+this.$evmenu.$emit('click', 'open-file');
 ```
 
 ## Event Reference

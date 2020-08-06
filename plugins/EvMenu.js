@@ -32,12 +32,16 @@ EvMenu.install = function (Vue, menu) {
     },
 
     created() {
-      this.$on('input', command => {
+      this.$on('click', command => {
         let menuItem = findDeep(menu, (_, __, item) => {
           if (item.id === command) return true;
         });
 
-        this.$emit(`input:${command}`);
+        this.$emit(`input:${command}`, menuItem && menuItem.checked);
+        this.$emit('input', {
+          id: command,
+          checked: menuItem && menuItem.checked
+        });
 
         ipcRenderer.send('evmenu:ipc:click', {
           id: command,
