@@ -12,7 +12,7 @@ EVWT's goal is to provide Vue components, plugins and other tools to assist in b
 * OS Integration
   * Drap and drop, context menus, window management, native friendly features
 
-### Goals 
+### Goals
 * Short term
   * Provide components and plugins, get Electron+Vue developers writing their apps quicker ASAP.
   * Get word out about project and try to get some people to try it.
@@ -25,9 +25,19 @@ EVWT's goal is to provide Vue components, plugins and other tools to assist in b
 
 ### Setup
 
-In any Electron/Vue app:
+New app:
 
-`yarn add evwt` (or `npm install evwt`)
+```bash
+npm install -g @vue/cli
+vue create my-evwt-app
+cd my-evwt-app
+vue add electron-builder
+npm install evwt
+```
+
+Existing Electron/Vue app:
+
+`npm install evwt` (or `yarn add evwt`)
 
 That's it, now read on for how to use the various parts of EVWT. There's no global setup since each part of EVWT can be used independently.
 
