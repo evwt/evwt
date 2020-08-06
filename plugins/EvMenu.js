@@ -1,7 +1,6 @@
 import {
   ipcRenderer, ipcMain, Menu, app
 } from 'electron';
-import findDeep from 'deepdash-es/findDeep';
 
 const EvMenu = {
   activate
@@ -11,62 +10,73 @@ const EvMenu = {
 // This is the Vue/renderer portion of EvMenu
 //
 
-EvMenu.install = function (Vue, menu) {
-  menu = Vue.observable(menu);
-
-  ipcRenderer.send('evmenu:ipc:set', menu);
-
-  ipcRenderer.on('evmenu:ipc:input', (event, { id, checked }) => {
-    let menuItem = findDeep(menu, (_, __, item) => {
-      if (item.id === id) return true;
-    });
-
-    menuItem.parent.checked = checked;
-  });
-
+EvMenu.install = function (Vue, menuDefinition) {
   let menuVm = new Vue({
     data() {
       return {
-        menu
+        menu: Vue.observable(menuDefinition)
       };
     },
 
-    created() {
-      this.$on('click', command => {
-        let menuItem = findDeep(menu, (_, __, item) => {
-          if (item.id === command) return true;
-        });
+    watch: {
+      menu: {
+        deep: true,
+        immediate: true,
+        handler(newMenu) {
+          ipcRenderer.invoke('evmenu:ipc:set', newMenu);
+        }
+      }
+    },
 
-        this.$emit(`input:${command}`, menuItem && menuItem.checked);
-        this.$emit('input', {
-          id: command,
-          checked: menuItem && menuItem.checked
-        });
+    async created() {
+      // evmenu:ipc:set will return a built menu with all the details,
+      // as opposed to just the definition
+      this.menu = await ipcRenderer.invoke('evmenu:ipc:set', menuDefinition);
 
-        ipcRenderer.send('evmenu:ipc:click', {
-          id: command,
-          checked: menuItem && menuItem.checked
-        });
-      });
-
-      this.watchMenu();
+      this.handleClick();
       this.listenIpc();
+
+      this.$emit('ready');
     },
 
     methods: {
-      watchMenu() {
-        this.$watch(() => menu, (newMenu) => {
-          ipcRenderer.send('evmenu:ipc:set', newMenu);
-        },
-        {
-          deep: true
+      get(id) {
+        return this.findMenuItem(this.menu, id);
+      },
+
+      findMenuItem(items, id) {
+        if (!items) { return; }
+
+        for (let item of items) {
+          if (item.id === id) return item;
+
+          if (item.submenu) {
+            let child = this.findMenuItem(item.submenu, id);
+            if (child) return child;
+          }
+        }
+      },
+
+      handleClick() {
+        this.$on('click', command => {
+          let menuItem = this.get(command);
+
+          this.$emit(`input:${command}`, menuItem);
+          this.$emit('input', menuItem);
+          ipcRenderer.send('evmenu:ipc:click', menuItem);
         });
       },
 
       listenIpc() {
         ipcRenderer.on('evmenu:ipc:input', (event, payload) => {
+          let menuItem = this.get(payload.id);
+
+          for (let key of Object.keys(payload)) {
+            menuItem[key] = payload[key];
+          }
+
           this.$emit('input', payload);
-          this.$emit(`input:${payload.id}`, payload.checked);
+          this.$emit(`input:${payload.id}`, payload);
         });
       }
     }
@@ -79,21 +89,63 @@ EvMenu.install = function (Vue, menu) {
 // This is the Electron/main portion of EvMenu
 //
 
+function decorateMenu(menuItem, builtMenu) {
+  // This removes the click handler which can't be serialized for IPC
+  delete menuItem.click;
+
+  if (menuItem.id) {
+    let builtMenuItem = findBuiltMenuItem(builtMenu.items, menuItem.id);
+
+    // This adds properties from the built menu onto the menu definition
+    for (let key of Object.keys(builtMenuItem)) {
+      if (['string', 'number', 'boolean'].includes(typeof builtMenuItem[key])) {
+        menuItem[key] = builtMenuItem[key];
+      }
+    }
+  }
+
+  if (menuItem.submenu) {
+    for (let item of menuItem.submenu) {
+      decorateMenu(item, builtMenu);
+    }
+  }
+}
+
+function findBuiltMenuItem(items, id) {
+  if (!items) { return; }
+
+  for (let item of items) {
+    if (item.id === id) return item;
+
+    if (item.submenu && item.submenu.items) {
+      let child = findBuiltMenuItem(item.submenu.items, id);
+      if (child) return child;
+    }
+  }
+}
+
 function activate(win) {
   let menu;
 
-  ipcMain.on('evmenu:ipc:set', (e, definition) => {
+  ipcMain.handle('evmenu:ipc:set', (e, definition) => {
     if (!definition) {
-      console.warn('[EvMenu] No definition to build menu from');
+      console.log('[EvMenu] No definition to build menu from');
       return;
     }
+
     menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
     Menu.setApplicationMenu(menu);
+
+    for (let item of definition) {
+      decorateMenu(item, menu);
+    }
+
+    return definition;
   });
 
   win.on('focus', () => {
     if (!menu) {
-      console.warn('[EvMenu] No menu to set app menu from');
+      console.log('[EvMenu] No menu to set app menu from');
       return;
     }
 
@@ -104,29 +156,38 @@ function activate(win) {
     if (e.sender !== win.webContents) return;
 
     win.emit('evmenu', payload);
-    win.emit(`evmenu:${payload.id}`, payload.checked);
+    win.emit(`evmenu:${payload.id}`, payload);
     app.emit('evmenu', payload);
-    app.emit(`evmenu:${payload.id}`, payload.checked);
+    app.emit(`evmenu:${payload.id}`, payload);
   });
 }
 
-function handleClick(menuItem, focusedWindow) {
+function payloadFromMenuItem(menuItem) {
+  let payload = {};
+
+  for (let key of Object.keys(menuItem)) {
+    if (['string', 'number', 'boolean'].includes(typeof menuItem[key])) {
+      payload[key] = menuItem[key];
+    }
+  }
+
+  return payload;
+}
+
+function handleNativeClick(menuItem, focusedWindow) {
   if (!menuItem.id) {
-    console.warn(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
+    console.log(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
     return;
   }
 
-  let payload = {
-    id: menuItem.id,
-    checked: menuItem.checked
-  };
+  let payload = payloadFromMenuItem(menuItem);
 
   app.emit('evmenu', payload);
-  app.emit(`evmenu:${payload.id}`, payload.checked);
+  app.emit(`evmenu:${payload.id}`, payload);
 
   if (focusedWindow) {
     focusedWindow.emit('evmenu', payload);
-    focusedWindow.emit(`evmenu:${payload.id}`, payload.checked);
+    focusedWindow.emit(`evmenu:${payload.id}`, payload);
 
     if (focusedWindow.webContents) {
       focusedWindow.webContents.send('evmenu:ipc:input', payload);
@@ -136,7 +197,7 @@ function handleClick(menuItem, focusedWindow) {
 
 function addClickToItems(menu) {
   for (let idx = 0; idx < menu.length; idx++) {
-    menu[idx].click = handleClick;
+    menu[idx].click = handleNativeClick;
     if (menu[idx].submenu) {
       addClickToItems(menu[idx].submenu);
     }

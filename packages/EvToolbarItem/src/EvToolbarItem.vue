@@ -1,10 +1,11 @@
 <template>
   <div
     class="ev-toolbar-item d-flex h-100 m-e-xs"
-    :data-ev-toolbar-item="id"
+    :data-ev-toolbar-item="menuId"
     :title="tooltip"
     :class="itemClass"
-    :style="itemStyle">
+    :style="itemStyle"
+    @click="handleClick">
     <ev-icon v-if="iconShow" class="h-100" :name="icon" :style="iconStyle" />
     <label v-if="labels" :class="labelClass" :style="labelStyle">
       {{ label }}
@@ -25,7 +26,7 @@ export default {
   },
 
   props: {
-    id: String,
+    menuId: String,
     icon: String,
     iconPos: String,
     fontSize: Number,
@@ -35,7 +36,8 @@ export default {
     iconShow: Boolean,
     minWidth: Number,
     tooltip: String,
-    padding: Number
+    padding: Number,
+    disabled: Boolean
   },
 
   computed: {
@@ -82,11 +84,35 @@ export default {
 
       if (this.iconPos === 'above') {
         classes += ' flex-vertical p-n-xs p-s-xs';
-      } else {
-        classes += '';
+      }
+
+      if (this.menuItem.enabled === false) {
+        classes += ' ev-disabled';
+      }
+
+      if (this.menuItem.checked === true) {
+        classes += ' ev-selected';
       }
 
       return classes;
+    },
+
+    menuItem() {
+      return this.$evmenu.get(this.menuId) || {};
+    }
+  },
+
+  methods: {
+    handleClick() {
+      if (!this.$evmenu) return;
+
+      let menuItem = this.$evmenu.get(this.menuId);
+
+      if (menuItem.type === 'checkbox') {
+        menuItem.checked = !menuItem.checked;
+      }
+
+      this.$el.classList.remove('ev-active');
     }
   }
 };
@@ -101,6 +127,11 @@ export default {
   &:active,
   &.ev-active {
     transform: scale(0.94);
+  }
+
+  &.ev-disabled {
+    pointer-events: none;
+    opacity: 0.5;
   }
 }
 </style>

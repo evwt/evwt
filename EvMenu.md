@@ -38,7 +38,7 @@ win.on('evmenu', item => {
 });
 
 // or item-specific listener
-win.on('evmenu:open-file', checked => {
+win.on('evmenu:open-file', item => {
   console.log('open-file clicked');
 });
 ```
@@ -50,7 +50,7 @@ app.on('evmenu', item => {
 });
 
 // or item-specific listener
-app.on('evmenu:open-file', checked => {
+app.on('evmenu:open-file', item => {
   console.log('open-file clicked');
 });
 ```
@@ -84,7 +84,7 @@ this.$evmenu.$on('input', item => {
 });
 
 // or item-specific listener
-this.$evmenu.$on('input:open-file', checked => {
+this.$evmenu.$on('input:open-file', item => {
   console.log('open-file clicked');
 });
 ```
