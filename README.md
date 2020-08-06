@@ -5,7 +5,7 @@ EVWT provides Vue components, plugins and other tools to assist in building grea
 <img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="240">
 
 ### Priorities
-* Productivity - Remove boilerplate and focus more on your app, less on Electron<->Vue IPC wiring.
+* Productivity - Remove boilerplate and focus more on your app, less on Electron <-> Vue IPC wiring.
 * Performance - Use virtualized components, lazy loading, GPU-accelerated transforms, and other techniques to achieve a 60fps target.
 * Integration - Play nice with host OS with native menus, window management, and OS services.
 
@@ -35,8 +35,6 @@ npm install evwt
 Existing Electron/Vue app:
 
 `npm install evwt` (or `yarn add evwt`)
-
-That's it, now read on for how to use the various parts of EVWT. There's no global setup since each part of EVWT can be used independently.
 
 ### Usage
 
