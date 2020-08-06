@@ -32,7 +32,7 @@ EvMenu.install = function (Vue, menu) {
     },
 
     created() {
-      this.$on('click', command => {
+      this.$on('input', command => {
         let menuItem = findDeep(menu, (_, __, item) => {
           if (item.id === command) return true;
         });
@@ -97,10 +97,10 @@ function activate(win) {
   ipcMain.on('evmenu:ipc:click', (e, payload) => {
     if (e.sender !== win.webContents) return;
 
-    win.emit('evmenu:win:input', payload);
-    win.emit(`evmenu:win:input:${payload.id}`, payload.checked);
-    app.emit('evmenu:app:input', payload);
-    app.emit(`evmenu:app:input:${payload.id}`, payload.checked);
+    win.emit('evmenu', payload);
+    win.emit(`evmenu:${payload.id}`, payload.checked);
+    app.emit('evmenu', payload);
+    app.emit(`evmenu:${payload.id}`, payload.checked);
   });
 }
 
@@ -115,12 +115,12 @@ function handleClick(menuItem, focusedWindow) {
     checked: menuItem.checked
   };
 
-  app.emit('evmenu:app:input', payload);
-  app.emit(`evmenu:app:input:${payload.id}`, payload.checked);
+  app.emit('evmenu', payload);
+  app.emit(`evmenu:${payload.id}`, payload.checked);
 
   if (focusedWindow) {
-    focusedWindow.emit('evmenu:win:input', payload);
-    focusedWindow.emit(`evmenu:win:input:${payload.id}`, payload.checked);
+    focusedWindow.emit('evmenu', payload);
+    focusedWindow.emit(`evmenu:${payload.id}`, payload.checked);
 
     if (focusedWindow.webContents) {
       focusedWindow.webContents.send('evmenu:ipc:input', payload);

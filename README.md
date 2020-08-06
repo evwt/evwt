@@ -51,6 +51,9 @@ That's it, now read on for how to use the various parts of EVWT. There's no glob
 * [EvLayout](https://github.com/evwt/evwt/blob/master/EvLayout.md)
   - A customizable pane-based app layout
 
+* [EvToolbar](https://github.com/evwt/evwt/blob/master/EvToolbar.md)
+  - A toolbar to place items on
+
 * [EvIcon](https://github.com/evwt/evwt/blob/master/EvIcon.md)
   - Easily create and use a library of inline svg icons in your app
 
@@ -58,9 +61,3 @@ That's it, now read on for how to use the various parts of EVWT. There's no glob
 
 * [EvVirtualScroll](https://github.com/evwt/evwt/blob/master/EvVirtualScroll.md)
   - A simple virtual scroller for any large lists of items
-
-* [EvToolbar](https://github.com/evwt/evwt/blob/master/EvToolbar.md)
-  - A toolbar to place items on
-
-* [EvToolbarItem](https://github.com/evwt/evwt/blob/master/EvToolbarItem.md)
-  - Items for your toolbars

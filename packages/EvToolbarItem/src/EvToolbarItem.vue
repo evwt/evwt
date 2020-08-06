@@ -1,7 +1,7 @@
 <template>
-  <div class="ev-toolbar-item d-flex flex-center flex-middle h-100 p-w-sm p-e-sm" :title="tooltip">
-    <ev-icon :name="icon" />
-    <label v-if="label" class="p-w-xs">
+  <div class="ev-toolbar-item d-flex h-100 m-e-xs" :title="tooltip" :class="itemClass" :style="itemStyle">
+    <ev-icon v-if="iconShow" class="h-100" :name="icon" :style="iconStyle" />
+    <label v-if="labels" :class="labelClass" :style="labelStyle">
       {{ label }}
     </label>
   </div>
@@ -10,15 +10,78 @@
 <script>
 import EvIcon from '../../EvIcon';
 
+const PADDING_XS = 5;
+
 export default {
+  name: 'EvToolbarItem',
+
   components: {
     EvIcon
   },
 
   props: {
     icon: String,
+    iconPos: String,
+    fontSize: Number,
+    iconSize: Number,
     label: String,
-    tooltip: String
+    labels: Boolean,
+    iconShow: Boolean,
+    minWidth: Number,
+    tooltip: String,
+    padding: Number
+  },
+
+  computed: {
+    labelStyle() {
+      let style = {
+        lineHeight: 1
+      };
+
+      if (this.fontSize) {
+        style.fontSize = `${this.fontSize}px`;
+      }
+
+      return style;
+    },
+
+    itemStyle() {
+      let style = {
+        padding: `${this.padding || PADDING_XS}px`
+      };
+
+      if (this.minWidth) {
+        style.minWidth = `${this.minWidth}px`;
+      }
+
+      return style;
+    },
+
+    iconStyle() {
+      return `height: ${this.iconSize}px`;
+    },
+
+    labelClass() {
+      if (this.iconPos === 'aside') {
+        return 'p-w-xs';
+      }
+
+      if (this.iconShow) return 'p-n-xxs';
+
+      return '';
+    },
+
+    itemClass() {
+      let classes = 'flex-center flex-middle';
+
+      if (this.iconPos === 'above') {
+        classes += ' flex-vertical p-n-xs p-s-xs';
+      } else {
+        classes += '';
+      }
+
+      return classes;
+    }
   }
 };
 </script>
@@ -26,7 +89,11 @@ export default {
 <style lang="scss" scoped>
 @import '@/../style/utilities.scss';
 
-.ev-icon {
-  height: 1rem;
+.ev-toolbar-item {
+  user-select: none;
+
+  &:active {
+    transform: scale(0.94);
+  }
 }
 </style>

@@ -9,7 +9,7 @@ Vue data bindings and events for Electron menus
 
 ## Setup
 
-#### Background script
+### Background script
 
 ```js
 import { EvMenu } from 'evwt';
@@ -17,7 +17,7 @@ import { EvMenu } from 'evwt';
 EvMenu.activate(win); // win should be a BrowserWindow instance
 ```
 
-#### Vue
+### Vue
 
 Pass a [menu template](https://www.electronjs.org/docs/api/menu#main-process) to Vue.use. Make sure all your menu entries have a unique `id`.
 
@@ -29,33 +29,33 @@ Vue.use(EvMenu, template);
 
 ## Usage
 
-#### Background script
+### Background script
 
 ```js
-win.on('evmenu:win:input', item => {
+win.on('evmenu', item => {
   console.log(`${item.id} clicked`);
   // if menuItem is a radio/checkbox, item.checked will have its value
 });
 
 // or item-specific listener
-win.on('evmenu:win:input:open-file', checked => {
+win.on('evmenu:open-file', checked => {
   console.log('open-file clicked');
 });
 ```
 
 ```js
-app.on('evmenu:app:input', item => {
+app.on('evmenu', item => {
   console.log(`${item.id} clicked`);
   // if menuItem is a radio/checkbox, item.checked will have its value
 });
 
 // or item-specific listener
-app.on('evmenu:app:input:open-file', checked => {
+app.on('evmenu:open-file', checked => {
   console.log('open-file clicked');
 });
 ```
 
-#### Vue
+### Vue
 
 EvMenu introduces a new instance variable `this.$evmenu` that represents the application menu.
 
@@ -94,12 +94,10 @@ this.$evmenu.$on('input:open-file', checked => {
   * Triggering these actions via $evmenu events allows you to handle all events in the same place whether they come from menu clicks, keyboard shortcuts or your UI.
 
 ```js
-this.$evmenu.$emit('click', 'open-file');
+this.$evmenu.$emit('input', 'open-file');
 ```
 
-## Development
-
-**This information isn't required to use EvMenu, but might be useful if you are forking or doing development on EvMenu.**
+## Event Reference
 
 Understanding what EvMenu is doing can be a little tricky because of four event systems involved:
 - Electron App events (e.g. app.on('foo')...)
@@ -109,24 +107,22 @@ Understanding what EvMenu is doing can be a little tricky because of four event 
 
 Below is a list of all EvMenu events with their types and purpose.
 
-### Events List
-
 #### BrowserWindow events
 
-* evmenu:win:input
-  - BrowserWindow event to inform background process that a menu item has been changed/activated
+* evmenu
+  - BrowserWindow event to inform window that a menu item has been changed/activated
 
-* evmenu:win:input:\<menuitem-id\>
+* evmenu:\<menuitem-id\>
   - BrowserWindow event for a specific menu item with id
 
 #### App events
 
-Useful on MacOS when all windows are closed, but you still need to process menu input.
+App-level events are useful on MacOS when all windows are closed, but you still need to process menu input.
 
-* evmenu:app:input
-  - App event to inform background process that a menu item has been changed/activated
+* evmenu
+  - App event to inform app that a menu item has been changed/activated
 
-* evmenu:app:input:\<menuitem-id\>
+* evmenu:\<menuitem-id\>
   - App event for a specific menu item with id
 
 #### Vue events

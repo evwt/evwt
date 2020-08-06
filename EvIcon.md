@@ -24,7 +24,7 @@ electronBuilder: {
 
 ### Icon Directory
 
-Create an index.js file in your folder of svg icons:
+Assuming you have a folder of svgs in /src/icons, first create an index.js file in this folder:
 
 ```js
 import Vue from 'vue';
@@ -34,9 +34,15 @@ let context = require.context('.', true, /\.svg$/);
 buildIconLibrary(Vue, context);
 ```
 
+Then in your Vue main.js file:
+
+```js
+import '@/icons';
+```
+
 ## Usage
 
-Assuming you have a file named folder-open.svg in the same directory as the index.js you created above:
+Assuming you have a file named folder-open.svg in /src/icons:
 ```vue
 <template>
   <ev-icon name="folder-open" :size="16" />

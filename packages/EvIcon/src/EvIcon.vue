@@ -1,5 +1,5 @@
 <template>
-  <div class="ev-icon d-inline-flex flex-center flex-middle" :class="`ev-icon-${name}`">
+  <div class="ev-icon" :class="`ev-icon-${name}`">
     <component :is="`ev-icon-${name}`" />
   </div>
 </template>
