@@ -1,7 +1,6 @@
 <template>
   <div
     class="ev-toolbar-item d-flex h-100 m-e-xs"
-    :data-ev-toolbar-item="menuId"
     :title="tooltip"
     :class="itemClass"
     :style="itemStyle"
@@ -108,11 +107,11 @@ export default {
 
       let menuItem = this.$evmenu.get(this.menuId);
 
-      if (menuItem.type === 'checkbox') {
-        menuItem.checked = !menuItem.checked;
+      if (menuItem) {
+        if (menuItem.type === 'checkbox') {
+          menuItem.checked = !menuItem.checked;
+        }
       }
-
-      this.$el.classList.remove('ev-active');
     }
   }
 };

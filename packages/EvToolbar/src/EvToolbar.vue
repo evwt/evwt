@@ -19,26 +19,11 @@ export default {
 
   computed: {
     toolbarStyle() {
-      return `height: ${this.height}px`;
-    }
-  },
+      if (this.height) {
+        return `height: ${this.height}px`;
+      }
 
-  created() {
-    this.addActiveClasses();
-  },
-
-  methods: {
-    addActiveClasses() {
-      if (!this.$evmenu) return;
-
-      this.$evmenu.$on('input', ({ id }) => {
-        let toolbarItem = document.querySelector(`[data-ev-toolbar-item="${id}"]`);
-        if (!toolbarItem) return;
-        toolbarItem.classList.add('ev-active');
-        setTimeout(() => {
-          toolbarItem.classList.remove('ev-active');
-        }, 120);
-      });
+      return '';
     }
   },
 
