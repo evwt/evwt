@@ -1,6 +1,6 @@
 {
   "name": "evwt",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Electron Vue Window Toolkit",
   "license": "Apache-2.0",
   "repository": {
