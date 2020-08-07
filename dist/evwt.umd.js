@@ -17360,7 +17360,8 @@
 	};
 
 	const EvMenu = {
-	  activate
+	  activate,
+	  attach
 	};
 
 	//
@@ -17391,6 +17392,7 @@
 	      this.menu = await electron.ipcRenderer.invoke('evmenu:ipc:set', menuDefinition);
 
 	      this.handleClick();
+	      this.handleFocus();
 	      this.listenIpc();
 
 	      this.$emit('ready');
@@ -17412,6 +17414,12 @@
 	            if (child) return child;
 	          }
 	        }
+	      },
+
+	      handleFocus() {
+	        window.addEventListener('focus', () => {
+	          electron.ipcRenderer.invoke('evmenu:ipc:set', this.menu);
+	        });
 	      },
 
 	      handleClick() {
@@ -17481,41 +17489,39 @@
 	  }
 	}
 
-	function activate(win) {
-	  let menu;
+	function onIpcClick(e, payload) {
+	  let sender = electron.BrowserWindow.fromWebContents(e.sender);
 
+	  electron.app.emit('evmenu', payload);
+	  electron.app.emit(`evmenu:${payload.id}`, payload);
+	  sender.emit('evmenu', payload);
+	  sender.emit(`evmenu:${payload.id}`, payload);
+	}
+
+	function attach(win) {
+	  electron.ipcMain.on('evmenu:ipc:click', onIpcClick);
+
+	  win.on('focus', () => {
+	    electron.Menu.setApplicationMenu(EvMenu.menu);
+	  });
+	}
+
+	function activate() {
 	  electron.ipcMain.handle('evmenu:ipc:set', (e, definition) => {
 	    if (!definition) {
 	      console.log('[EvMenu] No definition to build menu from');
 	      return;
 	    }
 
-	    menu = electron.Menu.buildFromTemplate(buildMenuTemplate(definition));
-	    electron.Menu.setApplicationMenu(menu);
+	    EvMenu.menu = electron.Menu.buildFromTemplate(buildMenuTemplate(definition));
 
 	    for (let item of definition) {
-	      decorateMenu(item, menu);
+	      decorateMenu(item, EvMenu.menu);
 	    }
+
+	    electron.Menu.setApplicationMenu(EvMenu.menu);
 
 	    return definition;
-	  });
-
-	  win.on('focus', () => {
-	    if (!menu) {
-	      console.log('[EvMenu] No menu to set app menu from');
-	      return;
-	    }
-
-	    electron.Menu.setApplicationMenu(menu);
-	  });
-
-	  electron.ipcMain.on('evmenu:ipc:click', (e, payload) => {
-	    if (e.sender !== win.webContents) return;
-
-	    win.emit('evmenu', payload);
-	    win.emit(`evmenu:${payload.id}`, payload);
-	    electron.app.emit('evmenu', payload);
-	    electron.app.emit(`evmenu:${payload.id}`, payload);
 	  });
 	}
 

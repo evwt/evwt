@@ -17356,7 +17356,8 @@ EvWindow.arrange.columns = () => {
 };
 
 const EvMenu = {
-  activate
+  activate,
+  attach
 };
 
 //
@@ -17387,6 +17388,7 @@ EvMenu.install = function (Vue, menuDefinition) {
       this.menu = await ipcRenderer.invoke('evmenu:ipc:set', menuDefinition);
 
       this.handleClick();
+      this.handleFocus();
       this.listenIpc();
 
       this.$emit('ready');
@@ -17408,6 +17410,12 @@ EvMenu.install = function (Vue, menuDefinition) {
             if (child) return child;
           }
         }
+      },
+
+      handleFocus() {
+        window.addEventListener('focus', () => {
+          ipcRenderer.invoke('evmenu:ipc:set', this.menu);
+        });
       },
 
       handleClick() {
@@ -17477,41 +17485,39 @@ function findBuiltMenuItem(items, id) {
   }
 }
 
-function activate(win) {
-  let menu;
+function onIpcClick(e, payload) {
+  let sender = BrowserWindow.fromWebContents(e.sender);
 
+  app.emit('evmenu', payload);
+  app.emit(`evmenu:${payload.id}`, payload);
+  sender.emit('evmenu', payload);
+  sender.emit(`evmenu:${payload.id}`, payload);
+}
+
+function attach(win) {
+  ipcMain.on('evmenu:ipc:click', onIpcClick);
+
+  win.on('focus', () => {
+    Menu.setApplicationMenu(EvMenu.menu);
+  });
+}
+
+function activate() {
   ipcMain.handle('evmenu:ipc:set', (e, definition) => {
     if (!definition) {
       console.log('[EvMenu] No definition to build menu from');
       return;
     }
 
-    menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
-    Menu.setApplicationMenu(menu);
+    EvMenu.menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
 
     for (let item of definition) {
-      decorateMenu(item, menu);
+      decorateMenu(item, EvMenu.menu);
     }
+
+    Menu.setApplicationMenu(EvMenu.menu);
 
     return definition;
-  });
-
-  win.on('focus', () => {
-    if (!menu) {
-      console.log('[EvMenu] No menu to set app menu from');
-      return;
-    }
-
-    Menu.setApplicationMenu(menu);
-  });
-
-  ipcMain.on('evmenu:ipc:click', (e, payload) => {
-    if (e.sender !== win.webContents) return;
-
-    win.emit('evmenu', payload);
-    win.emit(`evmenu:${payload.id}`, payload);
-    app.emit('evmenu', payload);
-    app.emit(`evmenu:${payload.id}`, payload);
   });
 }
 

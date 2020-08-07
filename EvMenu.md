@@ -14,7 +14,8 @@ Vue data bindings and events for Electron menus
 ```js
 import { EvMenu } from 'evwt';
 
-EvMenu.activate(win); // win should be a BrowserWindow instance
+EvMenu.activate(); // Call this once on startup
+EvMenu.attach(win); // Call when creating a window
 ```
 
 ### Vue
