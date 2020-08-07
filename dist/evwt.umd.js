@@ -17498,31 +17498,32 @@
 	  sender.emit(`evmenu:${payload.id}`, payload);
 	}
 
-	function attach(win) {
-	  electron.ipcMain.on('evmenu:ipc:click', onIpcClick);
+	function onIpcSet(e, definition) {
+	  if (!definition) {
+	    console.log('[EvMenu] No definition to build menu from');
+	    return;
+	  }
 
+	  EvMenu.menu = electron.Menu.buildFromTemplate(buildMenuTemplate(definition));
+
+	  for (let item of definition) {
+	    decorateMenu(item, EvMenu.menu);
+	  }
+
+	  electron.Menu.setApplicationMenu(EvMenu.menu);
+
+	  return definition;
+	}
+
+	function attach(win) {
 	  win.on('focus', () => {
 	    electron.Menu.setApplicationMenu(EvMenu.menu);
 	  });
 	}
 
 	function activate() {
-	  electron.ipcMain.handle('evmenu:ipc:set', (e, definition) => {
-	    if (!definition) {
-	      console.log('[EvMenu] No definition to build menu from');
-	      return;
-	    }
-
-	    EvMenu.menu = electron.Menu.buildFromTemplate(buildMenuTemplate(definition));
-
-	    for (let item of definition) {
-	      decorateMenu(item, EvMenu.menu);
-	    }
-
-	    electron.Menu.setApplicationMenu(EvMenu.menu);
-
-	    return definition;
-	  });
+	  electron.ipcMain.on('evmenu:ipc:click', onIpcClick);
+	  electron.ipcMain.handle('evmenu:ipc:set', onIpcSet);
 	}
 
 	function payloadFromMenuItem(menuItem) {

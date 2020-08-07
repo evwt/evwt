@@ -141,31 +141,32 @@ function onIpcClick(e, payload) {
   sender.emit(`evmenu:${payload.id}`, payload);
 }
 
-function attach(win) {
-  ipcMain.on('evmenu:ipc:click', onIpcClick);
+function onIpcSet(e, definition) {
+  if (!definition) {
+    console.log('[EvMenu] No definition to build menu from');
+    return;
+  }
 
+  EvMenu.menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
+
+  for (let item of definition) {
+    decorateMenu(item, EvMenu.menu);
+  }
+
+  Menu.setApplicationMenu(EvMenu.menu);
+
+  return definition;
+}
+
+function attach(win) {
   win.on('focus', () => {
     Menu.setApplicationMenu(EvMenu.menu);
   });
 }
 
 function activate() {
-  ipcMain.handle('evmenu:ipc:set', (e, definition) => {
-    if (!definition) {
-      console.log('[EvMenu] No definition to build menu from');
-      return;
-    }
-
-    EvMenu.menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
-
-    for (let item of definition) {
-      decorateMenu(item, EvMenu.menu);
-    }
-
-    Menu.setApplicationMenu(EvMenu.menu);
-
-    return definition;
-  });
+  ipcMain.on('evmenu:ipc:click', onIpcClick);
+  ipcMain.handle('evmenu:ipc:set', onIpcSet);
 }
 
 function payloadFromMenuItem(menuItem) {
