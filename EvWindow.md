@@ -1,64 +1,47 @@
 # EvWindow
 
-Window memory and management for Electron BrowserWindows
+## Window State
 
-## Setup
-
-```js
-import { EvWindow } from 'evwt';
-import Store from 'electron-store';
-
-let store = new Store();
-let evWindow = new EvWindow(options, 'main', store);
-let win = evWindow.win; // BrowserWindow reference if you need it
-```
-
-- `options` - [BrowserWindow](https://www.electronjs.org/docs/api/browser-window) options
-- `id` - a unique string id for the window, for saving/loading window positions
-- `store` - the electron-store instance to use for saving window positions
-
-
-## Usage
-
-### Window Memory
-
-* EvWindow will create the BrowserWindow and automatically size/position it from storage.
-* When a window is dragged or resized it is automatically saved to the store.
-
-### Window Management
-
-#### Collection
-EvWindow provides a collection of windows in a [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map).
+* EvWindow can automatically store BrowserWindow state across restarts.
 
 ```js
-typeof EvWindow.windows // Map
-typeof EvWindow.windows.get('main') // EvWindow
-typeof EvWindow.windows.get('main').win // BrowserWindow
+// Options from here https://www.electronjs.org/docs/api/browser-window#class-browserwindow
+let defaultOptions = { width: 800, height: 600, webPreferences: { nodeIntegration: true } };
+// Choose a unique restoration ID for your window
+let restoreId = 'MyWindow';
+// Get previous values if they exist
+let storedOptions = EvWindow.getStoredOptions(restoreId, defaultOptions);
+// Create a BrowserWindow like normal, but spreading in the stored options
+let win = new BrowserWindow({ ...defaultOptions, ...storedOptions });
+// Finally, start saving postion and size for next time!
+EvWindow.startStoringOptions(win, restoreId);
 ```
 
-As windows are created and destroyed, they are automatically added and removed from this collection. Use this to find your windows by id in a multi-window application.
+References:
+- [BrowserWindow](https://www.electronjs.org/docs/api/browser-window) options
 
-#### Arranging Windows
 
-##### Cascading
+## Window Management
+
+### Cascase
 
 `EvWindow.arrange.cascade()`
 
 Cascades windows in the center of the screen.
 
-##### Tiling
+### Tile
 
 `EvWindow.arrange.tile()`
 
 Tiles all windows across the screen.
 
-##### Rows
+### Rows
 
 `EvWindow.arrange.rows()`
 
 Places windows into rows.
 
-##### Columns
+### Columns
 
 `EvWindow.arrange.columns()`
 

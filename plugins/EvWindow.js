@@ -1,61 +1,48 @@
 import { BrowserWindow, screen } from 'electron';
-import { debounce } from 'lodash';
 import { getNonOverlappingBounds } from '@/../lib/bounds';
 
-class EvWindow {
-  constructor(options, id, store) {
-    this.id = id;
-    this.store = store;
+const debounce = require('lodash/debounce');
+const Store = require('electron-store');
 
-    this.win = new BrowserWindow({ ...options, ...this.getSizeOptions(options) });
+let store = new Store({
+  name: 'evwt-ui-state'
+});
 
-    this.win.on('closed', () => this.handleClosed());
+const EvWindow = {};
 
-    this.saveBounds = debounce(() => {
-      this.store.set(`evwt.bounds.${this.id}`, this.win.getNormalBounds());
-    }, 200);
+EvWindow.startStoringOptions = (win, restoreId) => {
+  let saveBounds = debounce(() => {
+    console.log('Saving bounds...');
+    store.set(`evwt.bounds.${restoreId}`, win.getNormalBounds());
+  }, 200);
 
-    this.startSavingBounds();
+  win.on('resize', saveBounds);
+  win.on('move', saveBounds);
+};
 
-    EvWindow.windows.set(id, this);
+EvWindow.getStoredOptions = (restoreId, defaultOptions) => {
+  let sizeOptions = {};
+  let savedBounds = store.get(`evwt.bounds.${restoreId}`);
+
+  if (savedBounds) {
+    sizeOptions = getNonOverlappingBounds(defaultOptions, savedBounds);
   }
 
-  getSizeOptions(options) {
-    let sizeOptions = {};
-    let savedBounds = this.store.get(`evwt.bounds.${this.id}`);
-
-    if (savedBounds) {
-      sizeOptions = getNonOverlappingBounds(options, savedBounds);
-    }
-
-    return sizeOptions;
-  }
-
-  startSavingBounds() {
-    this.win.on('resize', this.saveBounds);
-    this.win.on('move', this.saveBounds);
-  }
-
-  handleClosed() {
-    this.win = null;
-    EvWindow.windows.delete(this.id);
-  }
-}
-
-EvWindow.windows = new Map();
+  return sizeOptions;
+};
 
 EvWindow.arrange = {};
 
 EvWindow.arrange.cascade = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windowsCount = EvWindow.windows.size;
+  let windows = BrowserWindow.getAllWindows();
   let maxWidth = 0;
   let maxHeight = 0;
 
   // Loop through all windows, placing them at the top/left of where
   // the biggest window would be if it were centered, +32/32 pixels for each
-  for (let evWindow of EvWindow.windows.values()) {
-    let size = evWindow.win.getSize();
+  for (let win of windows) {
+    let size = win.getSize();
     if (size[0] > maxWidth) maxWidth = size[0];
     if (size[1] > maxHeight) maxHeight = size[1];
   }
@@ -67,18 +54,18 @@ EvWindow.arrange.cascade = () => {
   let topOfTallest = middleOfScreen - middleOfTallestWin;
   let sideOfWidest = centerOfScreen - centerOfWidestWin;
 
-  for (let idx = 0; idx < windowsCount; idx++) {
-    let evWindow = [...EvWindow.windows.values()][idx];
-    evWindow.win.setPosition(sideOfWidest + (32 * idx), topOfTallest + (32 * idx), false);
-    evWindow.win.focus();
+  for (let idx = 0; idx < windows.length; idx++) {
+    let win = windows[idx];
+    win.setPosition(sideOfWidest + (32 * idx), topOfTallest + (32 * idx), false);
+    win.focus();
   }
 };
 
 EvWindow.arrange.tile = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windowsCount = EvWindow.windows.size;
-  let numRows = Math.ceil(Math.sqrt(windowsCount));
-  let numCols = Math.round(Math.sqrt(windowsCount));
+  let windows = BrowserWindow.getAllWindows();
+  let numRows = Math.ceil(Math.sqrt(windows.length));
+  let numCols = Math.round(Math.sqrt(windows.length));
 
   let heightOfEach = parseInt(workArea.height / numRows);
   let widthOfEach = parseInt(workArea.width / numCols);
@@ -88,9 +75,9 @@ EvWindow.arrange.tile = () => {
   for (let idxRow = 0; idxRow < numRows; idxRow++) {
     for (let idxCol = 0; idxCol < numCols; idxCol++) {
       let winIdx = (idxRow * numCols) + idxCol;
-      let evWindow = [...EvWindow.windows.values()][winIdx];
+      let win = windows[winIdx];
 
-      if (!evWindow) continue;
+      if (!win) continue;
 
       let newWidth = widthOfEach;
       let newHeight = heightOfEach;
@@ -103,49 +90,49 @@ EvWindow.arrange.tile = () => {
         newWidth += leftOverWidth;
       }
 
-      evWindow.win.setSize(newWidth, newHeight, false);
-      evWindow.win.setPosition((widthOfEach * idxCol) + workArea.x, (heightOfEach * idxRow) + workArea.y, false);
+      win.setSize(newWidth, newHeight, false);
+      win.setPosition((widthOfEach * idxCol) + workArea.x, (heightOfEach * idxRow) + workArea.y, false);
     }
   }
 };
 
 EvWindow.arrange.rows = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windowsCount = EvWindow.windows.size;
-  let heightOfEach = parseInt(workArea.height / windowsCount);
-  let leftOverHeight = workArea.height % windowsCount;
+  let windows = BrowserWindow.getAllWindows();
+  let heightOfEach = parseInt(workArea.height / windows.length);
+  let leftOverHeight = workArea.height % windows.length;
 
-  for (let idx = 0; idx < windowsCount; idx++) {
-    let evWindow = [...EvWindow.windows.values()][idx];
+  for (let idx = 0; idx < windows.length; idx++) {
+    let win = windows[idx];
 
-    if (idx === windowsCount - 1) {
-      evWindow.win.setSize(workArea.width, heightOfEach + leftOverHeight, false);
-      evWindow.win.focus();
+    if (idx === windows.length - 1) {
+      win.setSize(workArea.width, heightOfEach + leftOverHeight, false);
+      win.focus();
     } else {
-      evWindow.win.setSize(workArea.width, heightOfEach, false);
+      win.setSize(workArea.width, heightOfEach, false);
     }
 
-    evWindow.win.setPosition(workArea.x, (heightOfEach * idx) + workArea.y, false);
+    win.setPosition(workArea.x, (heightOfEach * idx) + workArea.y, false);
   }
 };
 
 EvWindow.arrange.columns = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windowsCount = EvWindow.windows.size;
-  let widthOfEach = parseInt(workArea.width / windowsCount);
-  let leftOverWidth = workArea.width % windowsCount;
+  let windows = BrowserWindow.getAllWindows();
+  let widthOfEach = parseInt(workArea.width / windows.length);
+  let leftOverWidth = workArea.width % windows.length;
 
-  for (let idx = 0; idx < windowsCount; idx++) {
-    let evWindow = [...EvWindow.windows.values()][idx];
+  for (let idx = 0; idx < windows.length; idx++) {
+    let win = windows[idx];
 
-    if (idx === windowsCount - 1) {
-      evWindow.win.setSize(widthOfEach + leftOverWidth, workArea.height, false);
-      evWindow.win.focus();
+    if (idx === windows.length - 1) {
+      win.setSize(widthOfEach + leftOverWidth, workArea.height, false);
+      win.focus();
     } else {
-      evWindow.win.setSize(widthOfEach, workArea.height, false);
+      win.setSize(widthOfEach, workArea.height, false);
     }
 
-    evWindow.win.setPosition((widthOfEach * idx) + workArea.x, workArea.y, false);
+    win.setPosition((widthOfEach * idx) + workArea.x, workArea.y, false);
   }
 };
 
