@@ -4,6 +4,11 @@
 
 * EvWindow can automatically store BrowserWindow state across restarts.
 
+_**Restoration ID**_  | String
+<br>
+A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
+
+
 ```js
 // Options from here https://www.electronjs.org/docs/api/browser-window#class-browserwindow
 let defaultOptions = { width: 800, height: 600, webPreferences: { nodeIntegration: true } };

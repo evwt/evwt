@@ -62,20 +62,45 @@
   });
 
   const EvWindow = {};
+  const BOUNDS_AUTOSAVE_INTERVAL = 200;
+  const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
   EvWindow.startStoringOptions = (win, restoreId) => {
+    if (!win || !win.getNormalBounds) {
+      console.log('[EvWindow] Invalid window passed, not storing');
+      return;
+    }
+
+    if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
+      console.log('[EvWindow] Invalid restoreId passed, not storing');
+      return;
+    }
+
+    let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
+
     let saveBounds = debounce(() => {
-      console.log('Saving bounds...');
-      store.set(`evwt.bounds.${restoreId}`, win.getNormalBounds());
-    }, 200);
+      store.set(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`, win.getNormalBounds());
+    }, BOUNDS_AUTOSAVE_INTERVAL);
 
     win.on('resize', saveBounds);
     win.on('move', saveBounds);
   };
 
   EvWindow.getStoredOptions = (restoreId, defaultOptions) => {
+    if (!defaultOptions) {
+      console.log('[EvWindow] defaultOptions not passed, skipping');
+      return;
+    }
+
+    if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
+      console.log('[EvWindow] Invalid restoreId passed, skipping');
+      return;
+    }
+
     let sizeOptions = {};
-    let savedBounds = store.get(`evwt.bounds.${restoreId}`);
+
+    let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
+    let savedBounds = store.get(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`);
 
     if (savedBounds) {
       sizeOptions = getNonOverlappingBounds(defaultOptions, savedBounds);
@@ -109,7 +134,9 @@
 
     for (let idx = 0; idx < windows.length; idx++) {
       let win = windows[idx];
-      win.setPosition(sideOfWidest + (32 * idx), topOfTallest + (32 * idx), false);
+      let newX = Math.round(sideOfWidest + (32 * idx));
+      let newY = Math.round(topOfTallest + (32 * idx));
+      win.setPosition(newX, newY, false);
       win.focus();
     }
   };
@@ -144,7 +171,9 @@
         }
 
         win.setSize(newWidth, newHeight, false);
-        win.setPosition((widthOfEach * idxCol) + workArea.x, (heightOfEach * idxRow) + workArea.y, false);
+        let newX = Math.round((widthOfEach * idxCol) + workArea.x);
+        let newY = Math.round((heightOfEach * idxRow) + workArea.y);
+        win.setPosition(newX, newY, false);
       }
     }
   };
@@ -165,7 +194,8 @@
         win.setSize(workArea.width, heightOfEach, false);
       }
 
-      win.setPosition(workArea.x, (heightOfEach * idx) + workArea.y, false);
+      let newY = Math.round((heightOfEach * idx) + workArea.y);
+      win.setPosition(workArea.x, newY, false);
     }
   };
 
@@ -185,7 +215,8 @@
         win.setSize(widthOfEach, workArea.height, false);
       }
 
-      win.setPosition((widthOfEach * idx) + workArea.x, workArea.y, false);
+      let newX = Math.round((widthOfEach * idx) + workArea.x);
+      win.setPosition(newX, workArea.y, false);
     }
   };
 
@@ -2097,6 +2128,187 @@
     Vue.component(__vue_component__$5.name, __vue_component__$5);
   };
 
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+
+  var script$6 = {
+    name: 'EvDropZone',
+
+    props: {
+      radius: {
+        type: Number,
+        default: 10
+      },
+      stroke: {
+        type: String,
+        default: '#ccc'
+      },
+      strokeWidth: {
+        type: Number,
+        default: 10
+      },
+      strokeDashArray: {
+        type: String,
+        default: '10, 20'
+      },
+      strokeDashOffset: {
+        type: Number,
+        default: 35
+      }
+    },
+
+    data() {
+      return {
+        entered: false
+      };
+    },
+
+    computed: {
+      frameStyle() {
+        return `border-radius: ${this.radius}px`;
+      }
+    },
+
+    methods: {
+      handleDrop(ev) {
+        this.entered = false;
+
+        if (ev.dataTransfer.items) {
+          this.$emit('drop', ev.dataTransfer.items);
+        }
+      }
+    }
+  };
+
+  /* script */
+  const __vue_script__$6 = script$6;
+
+  /* template */
+  var __vue_render__$5 = function() {
+    var _vm = this;
+    var _h = _vm.$createElement;
+    var _c = _vm._self._c || _h;
+    return _c(
+      "div",
+      {
+        staticClass: "ev-drop-zone",
+        on: {
+          drop: function($event) {
+            $event.stopPropagation();
+            return _vm.handleDrop($event)
+          },
+          dragenter: function($event) {
+            _vm.entered = true;
+          },
+          dragover: function($event) {
+            $event.preventDefault();
+            $event.stopPropagation();
+            _vm.entered = true;
+          },
+          dragleave: function($event) {
+            _vm.entered = false;
+          }
+        }
+      },
+      [
+        _c(
+          "svg",
+          {
+            directives: [
+              {
+                name: "show",
+                rawName: "v-show",
+                value: _vm.entered,
+                expression: "entered"
+              }
+            ],
+            staticClass: "ev-drop-zone-frame",
+            style: _vm.frameStyle
+          },
+          [
+            _c("rect", {
+              attrs: {
+                width: "100%",
+                height: "100%",
+                fill: "none",
+                rx: _vm.radius,
+                ry: _vm.radius,
+                stroke: _vm.stroke,
+                "stroke-width": _vm.strokeWidth,
+                "stroke-dasharray": _vm.strokeDashArray,
+                "stroke-dashoffset": _vm.strokeDashOffset,
+                "stroke-linecap": "square"
+              }
+            })
+          ]
+        ),
+        _vm._v(" "),
+        _vm._t("default")
+      ],
+      2
+    )
+  };
+  var __vue_staticRenderFns__$5 = [];
+  __vue_render__$5._withStripped = true;
+
+    /* style */
+    const __vue_inject_styles__$6 = function (inject) {
+      if (!inject) return
+      inject("data-v-943ff410_0", { source: ".ev-drop-zone-frame[data-v-943ff410] {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-sizing: border-box;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  pointer-events: none;\n  z-index: 1;\n}\n.ev-drop-zone[data-v-943ff410] {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n\n/*# sourceMappingURL=EvDropZone.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvDropZone/src/EvDropZone.vue","EvDropZone.vue"],"names":[],"mappings":"AA4EA;EACA,kBAAA;EACA,WAAA;EACA,YAAA;EACA,sBAAA;EACA,MAAA;EACA,SAAA;EACA,OAAA;EACA,QAAA;EACA,oBAAA;EACA,UAAA;AC3EA;AD8EA;EACA,kBAAA;EACA,WAAA;EACA,YAAA;AC3EA;;AAEA,yCAAyC","file":"EvDropZone.vue","sourcesContent":["<template>\n  <div\n    class=\"ev-drop-zone\"\n    @drop.stop=\"handleDrop\"\n    @dragenter=\"entered = true\"\n    @dragover.prevent.stop=\"entered = true\"\n    @dragleave=\"entered = false\">\n    <svg v-show=\"entered\" class=\"ev-drop-zone-frame\" :style=\"frameStyle\">\n      <rect\n        width=\"100%\"\n        height=\"100%\"\n        fill=\"none\"\n        :rx=\"radius\"\n        :ry=\"radius\"\n        :stroke=\"stroke\"\n        :stroke-width=\"strokeWidth\"\n        :stroke-dasharray=\"strokeDashArray\"\n        :stroke-dashoffset=\"strokeDashOffset\"\n        stroke-linecap=\"square\" />\n    </svg>\n    <slot />\n  </div>\n</template>\n\n<script>\nexport default {\n  name: 'EvDropZone',\n\n  props: {\n    radius: {\n      type: Number,\n      default: 10\n    },\n    stroke: {\n      type: String,\n      default: '#ccc'\n    },\n    strokeWidth: {\n      type: Number,\n      default: 10\n    },\n    strokeDashArray: {\n      type: String,\n      default: '10, 20'\n    },\n    strokeDashOffset: {\n      type: Number,\n      default: 35\n    }\n  },\n\n  data() {\n    return {\n      entered: false\n    };\n  },\n\n  computed: {\n    frameStyle() {\n      return `border-radius: ${this.radius}px`;\n    }\n  },\n\n  methods: {\n    handleDrop(ev) {\n      this.entered = false;\n\n      if (ev.dataTransfer.items) {\n        this.$emit('drop', ev.dataTransfer.items);\n      }\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n.ev-drop-zone-frame {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-sizing: border-box;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  pointer-events: none;\n  z-index: 1;\n}\n\n.ev-drop-zone {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n</style>\n",".ev-drop-zone-frame {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  box-sizing: border-box;\n  top: 0;\n  bottom: 0;\n  left: 0;\n  right: 0;\n  pointer-events: none;\n  z-index: 1;\n}\n\n.ev-drop-zone {\n  position: relative;\n  width: 100%;\n  height: 100%;\n}\n\n/*# sourceMappingURL=EvDropZone.vue.map */"]}, media: undefined });
+
+    };
+    /* scoped */
+    const __vue_scope_id__$6 = "data-v-943ff410";
+    /* module identifier */
+    const __vue_module_identifier__$6 = undefined;
+    /* functional template */
+    const __vue_is_functional_template__$6 = false;
+    /* style inject SSR */
+    
+    /* style inject shadow dom */
+    
+
+    
+    const __vue_component__$6 = /*#__PURE__*/normalizeComponent(
+      { render: __vue_render__$5, staticRenderFns: __vue_staticRenderFns__$5 },
+      __vue_inject_styles__$6,
+      __vue_script__$6,
+      __vue_scope_id__$6,
+      __vue_is_functional_template__$6,
+      __vue_module_identifier__$6,
+      false,
+      createInjector,
+      undefined,
+      undefined
+    );
+
+  __vue_component__$6.install = function(Vue) {
+    Vue.component(__vue_component__$6.name, __vue_component__$6);
+  };
+
+  exports.EvDropZone = __vue_component__$6;
   exports.EvIcon = __vue_component__$2;
   exports.EvLayout = __vue_component__$1;
   exports.EvMenu = EvMenu;

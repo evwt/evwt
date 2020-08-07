@@ -1,0 +1,117 @@
+<template>
+  <div
+    class="ev-drop-zone"
+    @drop.stop="handleDrop"
+    @dragenter="entered = true"
+    @dragover.prevent.stop="entered = true"
+    @dragleave="entered = false">
+    <svg v-show="entered" class="ev-drop-zone-frame" :style="frameStyle">
+      <rect
+        width="100%"
+        height="100%"
+        fill="none"
+        :rx="radius"
+        :ry="radius"
+        :stroke="stroke"
+        :stroke-width="strokeWidth"
+        :stroke-dasharray="strokeDashArray"
+        :stroke-dashoffset="strokeDashOffset"
+        stroke-linecap="square" />
+    </svg>
+    <!-- Component to wrap -->
+    <slot />
+  </div>
+</template>
+
+<script>
+// @group EVWT
+// Simplest possible file drop component with a non-intrusive customizable overlay.
+export default {
+  name: 'EvDropZone',
+
+  props: {
+    // Border radius of overlay
+    radius: {
+      type: Number,
+      default: 10
+    },
+    // Color of overlay border
+    stroke: {
+      type: String,
+      default: '#ccc'
+    },
+    // Width of overlay border
+    strokeWidth: {
+      type: Number,
+      default: 10
+    },
+    // Dash array spacing
+    strokeDashArray: {
+      type: String,
+      default: '10, 20'
+    },
+    // Dash offset
+    strokeDashOffset: {
+      type: Number,
+      default: 35
+    }
+  },
+
+  data() {
+    return {
+      entered: false
+    };
+  },
+
+  computed: {
+    frameStyle() {
+      return `border-radius: ${this.radius}px`;
+    }
+  },
+
+  methods: {
+    handleDrop(ev) {
+      this.entered = false;
+
+      if (ev.dataTransfer.items) {
+        // Emits data transfer items when file is dropped
+        // @arg https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/items
+        this.$emit('drop', ev.dataTransfer.items);
+      }
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.ev-drop-zone-frame {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ev-drop-zone {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+<docs>
+## Discussion
+
+* Point 1
+* Point 2
+* Point 3
+
+### Images too
+<img src="https://pbs.twimg.com/ext_tw_video_thumb/1161677768393809920/pu/img/cBFL9AW48XCn-F72.jpg?format=jpg&name=small" height="220">
+
+</docs>

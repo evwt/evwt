@@ -24,11 +24,9 @@
   "main": "index.js",
   "module": "dist/evwt.esm.js",
   "dependencies": {
-    "builtin-modules": "^3.1.0",
     "core-js": "3.6.5",
     "electron-store": "^6.0.0",
     "lodash": "4.17.19",
-    "rollup-plugin-node-polyfills": "^0.2.1",
     "vue": "2.6.11"
   },
   "devDependencies": {
@@ -42,12 +40,14 @@
     "@vue/cli-service": "~4.4.0",
     "@vue/eslint-config-airbnb": "5.0.2",
     "babel-eslint": "10.1.0",
+    "builtin-modules": "^3.1.0",
     "eslint": "6.7.2",
     "eslint-plugin-import": "2.20.2",
     "eslint-plugin-vue": "6.2.2",
     "nodemon": "2.0.4",
     "rollup": "2.23.0",
     "rollup-plugin-css-only": "2.1.0",
+    "rollup-plugin-node-polyfills": "^0.2.1",
     "rollup-plugin-scss": "2.5.0",
     "rollup-plugin-vue": "5.1.9",
     "sass": "1.26.5",

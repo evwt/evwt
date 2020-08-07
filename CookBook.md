@@ -1,12 +1,93 @@
-# Cookbook
+# Cookbook 📒
 
-## Adding a feature to your app
+## Add window management
+
+This is a quick one that assumes EvMenu has been set up already.
+
+Add this to your menu definition:
+
+```js
+{
+  label: 'Arrange',
+  submenu: [
+    {
+      id: 'arrange-cascade',
+      label: 'Cascade'
+    },
+    {
+      id: 'arrange-tile',
+      label: 'Tile'
+    },
+    {
+      id: 'arrange-rows',
+      label: 'Rows'
+    },
+    {
+      id: 'arrange-columns',
+      label: 'Columns'
+    }
+  ]
+}
+```
+
+Then add this to your background script:
+
+```js
+app.on('evmenu:arrange-cascade', () => {
+  EvWindow.arrange.cascade();
+});
+
+app.on('evmenu:arrange-tile', () => {
+  EvWindow.arrange.tile();
+});
+
+app.on('evmenu:arrange-rows', () => {
+  EvWindow.arrange.rows();
+});
+
+app.on('evmenu:arrange-columns', () => {
+  EvWindow.arrange.columns();
+});
+```
+
+Done. 🎉
+
+---
+
+## Remember window positions
+
+New Electron apps don't remember their window positions out of the box. EVWT provides EVWindow to help with this and some other window management features. Let's add it to our app!
+
+You just need to pick a unique string for the restoration ID. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
+
+Now, create your BrowserWindow, adding calls to `getStoredOptions`/`startStoringOptions`
+```js
+import { EvWindow } from 'evwt';
+
+let restoreId = 'MyWindow';
+let defaultOptions = { width: 800, height: 600, webPreferences: { nodeIntegration: true } };
+let storedOptions = EvWindow.getStoredOptions(restoreId, defaultOptions);
+
+let win = new BrowserWindow({ ...defaultOptions, ...storedOptions });
+
+EvWindow.startStoringOptions(win, restoreId);
+```
+
+Now window positions will automatically be saved in your app. 🎉
+
+### Notes
+
+* Window positions are saved to a file `evwt-ui-state.json` in your app's working directory.
+
+---
+
+## Adding a feature
 
 Let's pretend we have an app that edits files, and want to add a save feature. What's the "EVWT way" to do this?
 
-> This recipe assumes [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) has been added to your app.
+> This recipe assumes [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) setup has been completed.
 
-### Plan it
+<!-- ### Plan it
 
 First, note all the places that this functionality can happen
 
@@ -18,9 +99,7 @@ You'll notice this pattern often that there's usually
 
 - A menu item
 - A keyboard shortcut
-- A UI/toolbar button
-
-Next, consider: is this functionality scoped to the individual window, or the entire app? In our case, the save command is specific to the document in the current window. App scoped commands work a little different and aren't covered here.
+- A UI/toolbar button -->
 
 ### Name it
 

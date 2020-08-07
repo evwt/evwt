@@ -1,6 +1,6 @@
 # Electron Vue Window Toolkit
 
-EVWT provides Vue components, plugins and other tools to assist in building great Electron/Vue apps.
+EVWT provides Vue components, plugins and other tools to assist in building great Electron apps.
 
 <img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="220">
 
@@ -41,8 +41,8 @@ Existing Electron/Vue app:
 #### Plugins
 
 * [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) - Work with native menus as easily as any Vue component.
-* [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md) - Simple persistent storage in your Vue components.
 * [EvWindow](https://github.com/evwt/evwt/blob/master/EvWindow.md) - Smarter windows out of the box.
+* [EvStore](https://github.com/evwt/evwt/blob/master/EvStore.md) - Simple persistent storage in your Vue components.
 
 #### Components
 
