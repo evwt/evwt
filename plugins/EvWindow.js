@@ -9,20 +9,45 @@ let store = new Store({
 });
 
 const EvWindow = {};
+const BOUNDS_AUTOSAVE_INTERVAL = 200;
+const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
 EvWindow.startStoringOptions = (win, restoreId) => {
+  if (!win || !win.getNormalBounds) {
+    console.log('[EvWindow] Invalid window passed, not storing');
+    return;
+  }
+
+  if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
+    console.log('[EvWindow] Invalid restoreId passed, not storing');
+    return;
+  }
+
+  let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
+
   let saveBounds = debounce(() => {
-    console.log('Saving bounds...');
-    store.set(`evwt.bounds.${restoreId}`, win.getNormalBounds());
-  }, 200);
+    store.set(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`, win.getNormalBounds());
+  }, BOUNDS_AUTOSAVE_INTERVAL);
 
   win.on('resize', saveBounds);
   win.on('move', saveBounds);
 };
 
 EvWindow.getStoredOptions = (restoreId, defaultOptions) => {
+  if (!defaultOptions) {
+    console.log('[EvWindow] defaultOptions not passed, skipping');
+    return;
+  }
+
+  if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
+    console.log('[EvWindow] Invalid restoreId passed, skipping');
+    return;
+  }
+
   let sizeOptions = {};
-  let savedBounds = store.get(`evwt.bounds.${restoreId}`);
+
+  let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
+  let savedBounds = store.get(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`);
 
   if (savedBounds) {
     sizeOptions = getNonOverlappingBounds(defaultOptions, savedBounds);
@@ -56,7 +81,9 @@ EvWindow.arrange.cascade = () => {
 
   for (let idx = 0; idx < windows.length; idx++) {
     let win = windows[idx];
-    win.setPosition(sideOfWidest + (32 * idx), topOfTallest + (32 * idx), false);
+    let newX = Math.round(sideOfWidest + (32 * idx));
+    let newY = Math.round(topOfTallest + (32 * idx));
+    win.setPosition(newX, newY, false);
     win.focus();
   }
 };
@@ -91,7 +118,9 @@ EvWindow.arrange.tile = () => {
       }
 
       win.setSize(newWidth, newHeight, false);
-      win.setPosition((widthOfEach * idxCol) + workArea.x, (heightOfEach * idxRow) + workArea.y, false);
+      let newX = Math.round((widthOfEach * idxCol) + workArea.x);
+      let newY = Math.round((heightOfEach * idxRow) + workArea.y);
+      win.setPosition(newX, newY, false);
     }
   }
 };
@@ -112,7 +141,8 @@ EvWindow.arrange.rows = () => {
       win.setSize(workArea.width, heightOfEach, false);
     }
 
-    win.setPosition(workArea.x, (heightOfEach * idx) + workArea.y, false);
+    let newY = Math.round((heightOfEach * idx) + workArea.y);
+    win.setPosition(workArea.x, newY, false);
   }
 };
 
@@ -132,7 +162,8 @@ EvWindow.arrange.columns = () => {
       win.setSize(widthOfEach, workArea.height, false);
     }
 
-    win.setPosition((widthOfEach * idx) + workArea.x, workArea.y, false);
+    let newX = Math.round((widthOfEach * idx) + workArea.x);
+    win.setPosition(newX, workArea.y, false);
   }
 };
 
