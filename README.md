@@ -2,7 +2,7 @@
 
 EVWT provides Vue components, plugins and other tools to assist in building great Electron/Vue apps.
 
-<img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="240">
+<img src="https://avatars2.githubusercontent.com/u/69093854?s=400&u=700c335218280e5a3bfd1d88f82bcc8c05714df6&v=4" align="right" height="220">
 
 ### Priorities
 * Productivity - Remove boilerplate and focus more on your app, less on Electron <-> Vue IPC wiring.
@@ -54,3 +54,7 @@ Existing Electron/Vue app:
 ### Additional docs
 
 * [EVWT CookBook](https://github.com/evwt/evwt/blob/master/CookBook.md)
+
+### Example apps
+
+* [Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor)
