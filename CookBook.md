@@ -70,7 +70,7 @@ let storedOptions = EvWindow.getStoredOptions(restoreId, defaultOptions);
 
 let win = new BrowserWindow({ ...defaultOptions, ...storedOptions });
 
-EvWindow.startStoringOptions(win, restoreId);
+EvWindow.startStoringOptions(restoreId, win);
 ```
 
 Now window positions will automatically be saved in your app. 🎉

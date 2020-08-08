@@ -158,12 +158,21 @@ function onIpcSet(e, definition) {
   return definition;
 }
 
+/**
+ *
+ *
+ * @param {BrowserWindow} win
+ */
 function attach(win) {
   win.on('focus', () => {
     Menu.setApplicationMenu(EvMenu.menu);
   });
 }
 
+/**
+ *
+ *
+ */
 function activate() {
   ipcMain.on('evmenu:ipc:click', onIpcClick);
   ipcMain.handle('evmenu:ipc:set', onIpcSet);

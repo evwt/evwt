@@ -16,7 +16,12 @@
     "email": "john@johnsolo.net"
   },
   "scripts": {
-    "watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
+    "docs:build:watch": "vuese gen",
+    "docs:watch": "nodemon --ignore docs/ --exec vuese gen -e scss,js,vue,md",
+    "docs:render": "node scripts/renderDocs.js",
+    "docs:render:watch": "nodemon --ignore docs/ --exec node scripts/renderDocs.js -e scss,js,vue,md",
+    "docs:deploy": "netlify deploy --prod --dir=docs",
+    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
     "build": "npm run build:umd & npm run build:es",
     "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/evwt.umd.js",
     "build:es": "rollup --config build/rollup.config.js --format es --file dist/evwt.esm.js"
@@ -44,6 +49,8 @@
     "eslint": "6.7.2",
     "eslint-plugin-import": "2.20.2",
     "eslint-plugin-vue": "6.2.2",
+    "glob": "^7.1.6",
+    "jsdoc-to-markdown": "^6.0.1",
     "nodemon": "2.0.4",
     "rollup": "2.23.0",
     "rollup-plugin-css-only": "2.1.0",

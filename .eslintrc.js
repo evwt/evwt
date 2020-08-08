@@ -47,12 +47,7 @@ module.exports = {
     'prefer-destructuring': 'off',
     'space-before-function-paren': 'off',
     'no-new': 'off',
-    'max-len': ['error', {
-      ignoreStrings: true,
-      ignorePattern: '<pre',
-      code: 200
-    }
-    ],
+    'max-len': 'off',
     'vue/require-v-for-key': 'off',
     'vue/require-prop-types': 'off',
     'vue/require-default-prop': 'off',

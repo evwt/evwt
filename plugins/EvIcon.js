@@ -8,6 +8,12 @@ let { upperFirst, camelCase } = require('lodash');
 // buildIconLibrary(context);
 //
 
+/**
+ *
+ *
+ * @param {*} Vue
+ * @param {*} requireComponent
+ */
 function buildIconLibrary(Vue, requireComponent) {
   requireComponent.keys().forEach(fileName => {
     let componentConfig = requireComponent(fileName);
@@ -32,6 +38,11 @@ function buildIconLibrary(Vue, requireComponent) {
 // Webpack portion of EvIcon
 //
 
+/**
+ *
+ *
+ * @param {*} config
+ */
 function useEvIcon(config) {
   const svgRule = config.module.rule('svg');
 
@@ -49,4 +60,3 @@ module.exports = {
   buildIconLibrary,
   useEvIcon
 };
-

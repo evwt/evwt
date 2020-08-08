@@ -37,12 +37,3 @@ Simplest possible file drop component with a non-intrusive customizable overlay.
 
 
 
-## Discussion
-
-* Point 1
-* Point 2
-* Point 3
-
-### Images too
-<img src="https://pbs.twimg.com/ext_tw_video_thumb/1161677768393809920/pu/img/cBFL9AW48XCn-F72.jpg?format=jpg&name=small" height="220">
-

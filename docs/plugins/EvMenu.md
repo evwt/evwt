@@ -96,7 +96,9 @@ this.$evmenu.$on('input:open-file', item => {
 this.$evmenu.$emit('click', 'open-file');
 ```
 
-## Event Reference
+## Notes
+
+### Events
 
 Understanding what EvMenu is doing can be a little tricky because of four event systems involved:
 - Electron App events (e.g. app.on('foo')...)
@@ -144,3 +146,28 @@ These are internal to EvMenu to link things together, you'll probably not want t
 
 * evmenu:ipc:input
   - IPC event to inform renderer that a menu item has been changed/activated
+
+## Reference
+
+### Functions
+
+<dl>
+<dt><a href="#attach">attach(win)</a></dt>
+<dd></dd>
+<dt><a href="#activate">activate()</a></dt>
+<dd></dd>
+</dl>
+
+<a name="attach"></a>
+
+### attach(win)
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| win | <code>BrowserWindow</code> | 
+
+<a name="activate"></a>
+
+### activate()
+**Kind**: global function  

@@ -17,6 +17,7 @@ import EvIcon from '../../EvIcon';
 
 const PADDING_XS = 5;
 
+// @group Components
 export default {
   name: 'EvToolbarItem',
 

@@ -13,6 +13,7 @@
 </template>
 
 <script>
+// @group Components
 export default {
   props: {
     items: Array,

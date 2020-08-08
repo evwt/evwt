@@ -67,6 +67,11 @@ EvStore.install = function (Vue) {
 // This is the Electron/main portion of EvStore
 //
 
+/**
+ *
+ *
+ * @param {Store} store - [electron-store Store](https://github.com/sindresorhus/electron-store#usage)
+ */
 function activate(store) {
   ipcMain.handle('evstore:ipc:store', () => store.store);
 

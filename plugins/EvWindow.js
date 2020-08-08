@@ -8,11 +8,20 @@ let store = new Store({
   name: 'evwt-ui-state'
 });
 
-const EvWindow = {};
+const EvWindow = {
+  startStoringOptions,
+  getStoredOptions
+};
 const BOUNDS_AUTOSAVE_INTERVAL = 200;
 const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
-EvWindow.startStoringOptions = (win, restoreId) => {
+/**
+ *
+ *
+ * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
+ * @param {BrowserWindow} win - https://www.electronjs.org/docs/api/browser-window
+ */
+function startStoringOptions(restoreId, win) {
   if (!win || !win.getNormalBounds) {
     console.log('[EvWindow] Invalid window passed, not storing');
     return;
@@ -31,9 +40,15 @@ EvWindow.startStoringOptions = (win, restoreId) => {
 
   win.on('resize', saveBounds);
   win.on('move', saveBounds);
-};
+}
 
-EvWindow.getStoredOptions = (restoreId, defaultOptions) => {
+/**
+ *
+ *
+ * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
+ * @param {Object} defaultOptions - https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
+ */
+function getStoredOptions(restoreId, defaultOptions) {
   if (!defaultOptions) {
     console.log('[EvWindow] defaultOptions not passed, skipping');
     return;
@@ -54,10 +69,14 @@ EvWindow.getStoredOptions = (restoreId, defaultOptions) => {
   }
 
   return sizeOptions;
-};
+}
 
 EvWindow.arrange = {};
 
+/**
+ *
+ *
+ */
 EvWindow.arrange.cascade = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
@@ -88,6 +107,10 @@ EvWindow.arrange.cascade = () => {
   }
 };
 
+/**
+ *
+ *
+ */
 EvWindow.arrange.tile = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
@@ -125,6 +148,10 @@ EvWindow.arrange.tile = () => {
   }
 };
 
+/**
+ *
+ *
+ */
 EvWindow.arrange.rows = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
@@ -146,6 +173,10 @@ EvWindow.arrange.rows = () => {
   }
 };
 
+/**
+ *
+ *
+ */
 EvWindow.arrange.columns = () => {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
