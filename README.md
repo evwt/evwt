@@ -32,11 +32,14 @@ Existing Electron/Vue app:
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 <br>
-_Working with native menus using reactive data_
+<p align="center">
+  <i>Working with native menus using reactive data</i>
+</p>
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89715852-55f57100-d96e-11ea-8070-55c4350f65fe.png)
 <br>
-_Markdown Editor example app editing the project README_
-
+<p align="center">
+  <i>Markdown Editor example app editing the project README</i>
+</p>
 
 
