@@ -24,6 +24,10 @@ Existing Electron/Vue app:
 
 #### * [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
 
+### Example Apps
+
+#### * [Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor)
+
 ### Screenshots
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
