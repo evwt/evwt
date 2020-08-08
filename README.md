@@ -34,9 +34,11 @@ Existing Electron/Vue app:
 <br>
 _Working with native menus using reactive data_
 
-<img width="912" alt="Screen Shot 2020-08-08 at 11 57 06 AM" src="https://user-images.githubusercontent.com/611996/89715852-55f57100-d96e-11ea-8070-55c4350f65fe.png">
+![evmenu-demo](https://user-images.githubusercontent.com/611996/89715852-55f57100-d96e-11ea-8070-55c4350f65fe.png)
 <br>
 _Markdown Editor example app editing the project README_
+
+<img width="800" alt="Screen Shot 2020-08-08 at 11 57 06 AM" src="https://user-images.githubusercontent.com/611996/89715852-55f57100-d96e-11ea-8070-55c4350f65fe.png">
 
 
 
