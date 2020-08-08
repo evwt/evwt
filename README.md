@@ -34,7 +34,7 @@ Existing Electron/Vue app:
 <br>
 <i>Working with native menus using reactive data</i>
 
-<img width="800" alt="Screen Shot 2020-08-08 at 12 07 07 PM" src="https://user-images.githubusercontent.com/611996/89716173-77eff300-d970-11ea-8119-e736a6b5671a.png">
+![markdown-demo](https://user-images.githubusercontent.com/611996/89716173-77eff300-d970-11ea-8119-e736a6b5671a.png)
+<br>
 <i>Markdown Editor example app editing the project README</i>
-
 
