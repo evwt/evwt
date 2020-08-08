@@ -85,7 +85,7 @@ Now window positions will automatically be saved in your app. 🎉
 
 Let's pretend we have an app that edits files, and want to add a save feature. What's the "EVWT way" to do this?
 
-> This recipe assumes [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) setup has been completed.
+> This recipe assumes [EvMenu](https://evwt.net/#/plugins/EvMenu) setup has been completed.
 
 <!-- ### Plan it
 
@@ -129,7 +129,7 @@ this.$evmenu.$on('input:save-file', () => {
 
 #### Menu definition
 
-Just add this to your [EvMenu](https://github.com/evwt/evwt/blob/master/EvMenu.md) definition to tie all the pieces together:
+Just add this to your [EvMenu](https://evwt.net/#/plugins/EvMenu) definition to tie all the pieces together:
 
 ```
 {
@@ -153,11 +153,11 @@ Click File -> Save or try Ctrl/Cmd+S, it should save the file. If you added a to
 
 ### Notes
 
-* You should add error handling around the file saving and invoke calls. The invoke call returns a promise, so will throw an error if something goes wrong.
+* You should add error handling around the file saving and invoke calls.
 * The IPC events can be named differently than the $evmenu events, I just used 'save-file' for both here for simplicity.
 
 ### References
 
 - https://www.electronjs.org/docs/api/ipc-renderer#ipcrendererinvokechannel-args
 - https://nodejs.org/api/fs.html#fs_fs_writefilesync_file_data_options
-- https://github.com/evwt/evwt/blob/master/EvMenu.md
+- https://evwt.net/#/plugins/EvMenu
