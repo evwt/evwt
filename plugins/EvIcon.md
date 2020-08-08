@@ -36,3 +36,6 @@ Then in your Vue `main.js` file:
 import '@/icons';
 ```
 
+## Usage
+
+See [EvIcon component reference](/components/EvIcon)

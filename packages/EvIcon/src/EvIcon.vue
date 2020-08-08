@@ -29,6 +29,10 @@ svg {
 
 <docs>
 
+## Setup
+
+See [EvIcon plugin reference](/plugins/EvIcon)
+
 ## Usage
 
 Assuming you have a file named folder-open.svg in /src/icons:

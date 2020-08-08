@@ -12,11 +12,11 @@ let { upperFirst, camelCase } = require('lodash');
  *
  *
  * @param {*} Vue
- * @param {*} requireComponent
+ * @param {Function} requireContext - https://webpack.js.org/api/module-methods/#requirecontext
  */
-function buildIconLibrary(Vue, requireComponent) {
-  requireComponent.keys().forEach(fileName => {
-    let componentConfig = requireComponent(fileName);
+function buildIconLibrary(Vue, requireContext) {
+  requireContext.keys().forEach(fileName => {
+    let componentConfig = requireContext(fileName);
 
     let componentName = `EvIcon${upperFirst(
       camelCase(
@@ -41,7 +41,7 @@ function buildIconLibrary(Vue, requireComponent) {
 /**
  *
  *
- * @param {*} config
+ * @param {Object} config - https://github.com/neutrinojs/webpack-chain#config
  */
 function useEvIcon(config) {
   const svgRule = config.module.rule('svg');

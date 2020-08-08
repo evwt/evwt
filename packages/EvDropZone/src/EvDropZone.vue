@@ -73,10 +73,20 @@ export default {
     handleDrop(ev) {
       this.entered = false;
 
-      if (ev.dataTransfer.items) {
-        // Emits data transfer items when file is dropped
-        // @arg https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/items
-        this.$emit('drop', ev.dataTransfer.items);
+      let files = [];
+      let items = ev.dataTransfer.items;
+
+      if (items && items.length) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].kind === 'file') {
+            let file = items[i].getAsFile();
+            files.push(file);
+          }
+        }
+
+        // Emits array of Files when one or more files are dropped
+        // @arg Array of https://developer.mozilla.org/en-US/docs/Web/API/File
+        this.$emit('drop', files);
       }
     }
   }

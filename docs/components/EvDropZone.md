@@ -21,7 +21,7 @@ Simplest possible file drop component with a non-intrusive customizable overlay.
 <!-- @vuese:EvDropZone:events:start -->
 |Event Name|Description|Parameters|
 |---|---|---|
-|drop|Emits data transfer items when file is dropped|https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/items|
+|drop|Emits array of Files when one or more files are dropped|Array of https://developer.mozilla.org/en-US/docs/Web/API/File|
 
 <!-- @vuese:EvDropZone:events:end -->
 

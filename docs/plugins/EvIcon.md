@@ -36,12 +36,15 @@ Then in your Vue `main.js` file:
 import '@/icons';
 ```
 
+## Usage
+
+See [EvIcon component reference](/components/EvIcon)
 ## Reference
 
 ### Functions
 
 <dl>
-<dt><a href="#buildIconLibrary">buildIconLibrary(Vue, requireComponent)</a></dt>
+<dt><a href="#buildIconLibrary">buildIconLibrary(Vue, requireContext)</a></dt>
 <dd></dd>
 <dt><a href="#useEvIcon">useEvIcon(config)</a></dt>
 <dd></dd>
@@ -49,20 +52,20 @@ import '@/icons';
 
 <a name="buildIconLibrary"></a>
 
-### buildIconLibrary(Vue, requireComponent)
+### buildIconLibrary(Vue, requireContext)
 **Kind**: global function  
 
-| Param | Type |
-| --- | --- |
-| Vue | <code>\*</code> | 
-| requireComponent | <code>\*</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| Vue | <code>\*</code> |  |
+| requireContext | <code>function</code> | https://webpack.js.org/api/module-methods/#requirecontext |
 
 <a name="useEvIcon"></a>
 
 ### useEvIcon(config)
 **Kind**: global function  
 
-| Param | Type |
-| --- | --- |
-| config | <code>\*</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| config | <code>Object</code> | https://github.com/neutrinojs/webpack-chain#config |
 

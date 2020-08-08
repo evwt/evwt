@@ -27,8 +27,10 @@ function render() {
       let filePath = path.parse(file);
 
       // Assumes there is a .md file with same name as the .js file
-      let baseDocPath = path.join(__dirname, `${filePath.dir}/${filePath.name}.md`);
+      // Also assumes this file is in a 'scripts' subdirectory ('..')
+      let baseDocPath = path.join(__dirname, '..', `${filePath.dir}/${filePath.name}.md`);
 
+      console.log(baseDocPath);
       let docContents = '';
 
       if (fs.existsSync(baseDocPath)) {
