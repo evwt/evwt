@@ -16,29 +16,11 @@ References:
 
 ## Window Management
 
-### Cascase
+EvWindow can arrange windows on the screen in various ways. Call it like this:
 
-`EvWindow.arrange.cascade()`
-
-Cascades windows in the center of the screen.
-
-### Tile
-
-`EvWindow.arrange.tile()`
-
-Tiles all windows across the screen.
-
-### Rows
-
-`EvWindow.arrange.rows()`
-
-Places windows into rows.
-
-### Columns
-
-`EvWindow.arrange.columns()`
-
-Places windows into columns.
+```js
+EvWindow.arrange('cascade');
+```
 ## Reference
 
 ### Functions
@@ -46,6 +28,9 @@ Places windows into columns.
 <dl>
 <dt><a href="#startStoringOptions">startStoringOptions(restoreId, win)</a></dt>
 <dd></dd>
+<dt><a href="#arrange">arrange(arrangement)</a></dt>
+<dd><p>Arranges windows on the screen.</p>
+</dd>
 <dt><a href="#getStoredOptions">getStoredOptions(restoreId, defaultOptions)</a></dt>
 <dd></dd>
 </dl>
@@ -59,6 +44,17 @@ Places windows into columns.
 | --- | --- | --- |
 | restoreId | <code>String</code> | A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID. |
 | win | <code>BrowserWindow</code> | https://www.electronjs.org/docs/api/browser-window |
+
+<a name="arrange"></a>
+
+### arrange(arrangement)
+Arranges windows on the screen.
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| arrangement | <code>String</code> | `tile`, `cascade`, `rows` or `columns` |
 
 <a name="getStoredOptions"></a>
 

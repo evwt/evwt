@@ -34,19 +34,19 @@ Then add this to your background script:
 
 ```js
 app.on('evmenu:arrange-cascade', () => {
-  EvWindow.arrange.cascade();
+  EvWindow.arrange('cascade');
 });
 
 app.on('evmenu:arrange-tile', () => {
-  EvWindow.arrange.tile();
+  EvWindow.arrange('tile');
 });
 
 app.on('evmenu:arrange-rows', () => {
-  EvWindow.arrange.rows();
+  EvWindow.arrange('rows');
 });
 
 app.on('evmenu:arrange-columns', () => {
-  EvWindow.arrange.columns();
+  EvWindow.arrange('columns');
 });
 ```
 

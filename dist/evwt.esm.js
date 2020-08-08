@@ -59,8 +59,10 @@ let store = new Store({
 
 const EvWindow = {
   startStoringOptions,
-  getStoredOptions
+  getStoredOptions,
+  arrange
 };
+
 const BOUNDS_AUTOSAVE_INTERVAL = 200;
 const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
@@ -93,6 +95,26 @@ function startStoringOptions(restoreId, win) {
 
 /**
  *
+ * Arranges windows on the screen.
+ * @param {String} arrangement - `tile`, `cascade`, `rows` or `columns`
+ */
+function arrange(arrangement) {
+  if (arrangement === 'tile') {
+    tile();
+  } else
+  if (arrangement === 'cascade') {
+    cascade();
+  } else
+  if (arrangement === 'rows') {
+    rows();
+  } else
+  if (arrangement === 'columns') {
+    columns();
+  }
+}
+
+/**
+ *
  *
  * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
  * @param {Object} defaultOptions - https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
@@ -120,13 +142,7 @@ function getStoredOptions(restoreId, defaultOptions) {
   return sizeOptions;
 }
 
-EvWindow.arrange = {};
-
-/**
- *
- *
- */
-EvWindow.arrange.cascade = () => {
+function cascade() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
   let maxWidth = 0;
@@ -154,13 +170,9 @@ EvWindow.arrange.cascade = () => {
     win.setPosition(newX, newY, false);
     win.focus();
   }
-};
+}
 
-/**
- *
- *
- */
-EvWindow.arrange.tile = () => {
+function tile() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
   let numRows = Math.ceil(Math.sqrt(windows.length));
@@ -195,13 +207,9 @@ EvWindow.arrange.tile = () => {
       win.setPosition(newX, newY, false);
     }
   }
-};
+}
 
-/**
- *
- *
- */
-EvWindow.arrange.rows = () => {
+function rows() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
   let heightOfEach = parseInt(workArea.height / windows.length);
@@ -220,13 +228,9 @@ EvWindow.arrange.rows = () => {
     let newY = Math.round((heightOfEach * idx) + workArea.y);
     win.setPosition(workArea.x, newY, false);
   }
-};
+}
 
-/**
- *
- *
- */
-EvWindow.arrange.columns = () => {
+function columns() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
   let windows = BrowserWindow.getAllWindows();
   let widthOfEach = parseInt(workArea.width / windows.length);
@@ -245,7 +249,7 @@ EvWindow.arrange.columns = () => {
     let newX = Math.round((widthOfEach * idx) + workArea.x);
     win.setPosition(newX, workArea.y, false);
   }
-};
+}
 
 const EvMenu = {
   activate,

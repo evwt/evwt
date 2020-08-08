@@ -16,26 +16,8 @@ References:
 
 ## Window Management
 
-### Cascase
+EvWindow can arrange windows on the screen in various ways. Call it like this:
 
-`EvWindow.arrange.cascade()`
-
-Cascades windows in the center of the screen.
-
-### Tile
-
-`EvWindow.arrange.tile()`
-
-Tiles all windows across the screen.
-
-### Rows
-
-`EvWindow.arrange.rows()`
-
-Places windows into rows.
-
-### Columns
-
-`EvWindow.arrange.columns()`
-
-Places windows into columns.
+```js
+EvWindow.arrange('cascade');
+```
