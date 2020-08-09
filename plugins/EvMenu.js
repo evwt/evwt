@@ -213,6 +213,7 @@ function handleNativeClick(menuItem, focusedWindow) {
 
 function addClickToItems(menu) {
   for (let idx = 0; idx < menu.length; idx++) {
+    if (!menu[idx]) return;
     menu[idx].click = handleNativeClick;
     if (menu[idx].submenu) {
       addClickToItems(menu[idx].submenu);
