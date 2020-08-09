@@ -2,20 +2,25 @@ let path = require('path');
 
 module.exports = {
   root: true,
+
   env: {
     node: true
   },
-  'globals': {
-    'BigInt': true,
-    'BigUint64Array': true
+
+  globals: {
+    BigInt: true,
+    BigUint64Array: true
   },
+
   extends: [
     'plugin:vue/recommended',
     '@vue/airbnb'
   ],
+
   parserOptions: {
     parser: 'babel-eslint'
   },
+
   rules: {
     'no-underscore-dangle': 'off',
     'no-extend-native': 'off',
@@ -79,16 +84,18 @@ module.exports = {
     'no-param-reassign': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off'
   },
-  'settings': {
+
+  settings: {
     'import/resolver': {
-      'alias': {
-        'map': [
+      alias: {
+        map: [
           ['@', path.resolve(__dirname, './src')]
         ],
-        'extensions': ['.js', '.vue', '.json', '.scss'],
-      },
-    },
+        extensions: ['.js', '.vue', '.json', '.scss']
+      }
+    }
   },
+
   settings: {
     'import/core-modules': ['electron']
   }

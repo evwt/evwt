@@ -2,29 +2,21 @@
   "name": "evwt",
   "version": "0.0.5",
   "description": "Electron Vue Window Toolkit",
-  "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/evwt/evwt.git"
-  },
-  "bugs": {
-    "url": "https://github.com/evwt/evwt/issues"
-  },
-  "homepage": "https://evwt.net",
   "author": {
     "name": "John Susek",
     "email": "john@johnsolo.net"
   },
   "scripts": {
+    "build": "npm run build:umd & npm run build:es",
+    "build:es": "rollup --config build/rollup.config.js --format es --file dist/evwt.esm.js",
+    "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/evwt.umd.js",
+    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
     "docs:build:watch": "vuese gen",
-    "docs:watch": "nodemon --ignore docs/ --exec vuese gen -e scss,js,vue,md",
+    "docs:deploy": "netlify deploy --prod --dir=docs",
     "docs:render": "node scripts/renderDocs.js",
     "docs:render:watch": "nodemon --ignore docs/ --exec node scripts/renderDocs.js -e scss,js,vue,md",
-    "docs:deploy": "netlify deploy --prod --dir=docs",
-    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
-    "build": "npm run build:umd & npm run build:es",
-    "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/evwt.umd.js",
-    "build:es": "rollup --config build/rollup.config.js --format es --file dist/evwt.esm.js"
+    "docs:watch": "nodemon --ignore docs/ --exec vuese gen -e scss,js,vue,md",
+    "test:declarative": "vue-test-declarative"
   },
   "main": "index.js",
   "module": "dist/evwt.esm.js",
@@ -42,15 +34,24 @@
     "@rollup/plugin-node-resolve": "8.4.0",
     "@vue/cli-plugin-babel": "~4.4.0",
     "@vue/cli-plugin-eslint": "~4.4.0",
+    "@vue/cli-plugin-unit-jest": "~4.4.0",
+    "@vue/cli-plugin-unit-mocha": "^4.4.6",
     "@vue/cli-service": "~4.4.0",
     "@vue/eslint-config-airbnb": "5.0.2",
+    "@vue/test-utils": "^1.0.3",
     "babel-eslint": "10.1.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
+    "browser-env": "^3.3.0",
     "builtin-modules": "^3.1.0",
+    "chai": "^4.1.2",
+    "electron": "^9.2.0",
     "eslint": "6.7.2",
     "eslint-plugin-import": "2.20.2",
     "eslint-plugin-vue": "6.2.2",
     "glob": "^7.1.6",
     "jsdoc-to-markdown": "^6.0.1",
+    "mocha": "^8.1.1",
     "nodemon": "2.0.4",
     "rollup": "2.23.0",
     "rollup-plugin-css-only": "2.1.0",
@@ -59,12 +60,15 @@
     "rollup-plugin-vue": "5.1.9",
     "sass": "1.26.5",
     "sass-loader": "8.0.2",
-    "vue-svg-loader": "0.16.0",
-    "vue-template-compiler": "2.6.11"
+    "vue-svg-loader": "^0.16.0",
+    "vue-template-compiler": "2.6.11",
+    "vue-test-declarative": "^1.2.0"
   },
-  "peerDependencies": {
-    "electron": "*"
+  "peerDependencies": {},
+  "bugs": {
+    "url": "https://github.com/evwt/evwt/issues"
   },
+  "homepage": "https://evwt.net",
   "keywords": [
     "electron",
     "vue",
@@ -76,5 +80,10 @@
     "native",
     "icon",
     "layout"
-  ]
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evwt/evwt.git"
+  }
 }

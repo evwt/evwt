@@ -1,0 +1,14 @@
+<tests for="@/../packages/EvIcon/src/EvIcon.vue">
+  <test name="Contains correct icon" :props="props">
+    <expect html-of=".ev-icon-folder-open" to-be-defined />
+    <expect html-of="svg" to-be-defined />
+  </test>
+</tests>
+
+<script>
+let context = {
+  props: {
+    name: 'folder-open'
+  }
+};
+</script>
