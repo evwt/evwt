@@ -119,6 +119,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/../style/reset.scss';
 @import '@/../style/utilities.scss';
 
 .ev-toolbar-item {

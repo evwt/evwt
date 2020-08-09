@@ -83,6 +83,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import '@/../style/reset.scss';
 @import '@/../style/utilities.scss';
 @import '@/../style/split-grid.scss';
 </style>
