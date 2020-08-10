@@ -5,7 +5,7 @@ _EVWT provides Vue components, plugins and other tools to assist in building gre
 
 | Unit Tests  | Testbed App  |
 |:-:|:-:|
-| <a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a>  | <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a>  |
+| <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a> | <a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a> |
 
 ## Installation
 
