@@ -1,5 +1,4 @@
-# Electron Vue Window Toolkit
-
+# Electron Vue Window Toolkit 
 EVWT provides Vue components, plugins and other tools to assist in building great Electron apps.
 
 ### Installation
@@ -26,7 +25,9 @@ Existing Electron/Vue app:
 
 ### Example Apps
 
-#### * [Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor)
+#### * [Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor)  [![Build Status](https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master)](https://travis-ci.org/evwt/evwt-example-markdown-editor)
+
+This app also serves as the official EVWT testbed. 
 
 ### Screenshots
 
