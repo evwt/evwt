@@ -25,8 +25,8 @@ Existing Electron/Vue app:
 
 ### Example Apps
 
-#### [Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor)<br>
-[![Build Status](https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master)](https://travis-ci.org/evwt/evwt-example-markdown-editor)
+[Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor) 
+<a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a>
 <br> This app also serves as the official EVWT [testbed](https://github.com/evwt/evwt-example-markdown-editor/tree/master/test). 
 
 ### Screenshots
