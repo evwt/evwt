@@ -16,6 +16,7 @@
     "docs:render": "node scripts/renderDocs.js",
     "docs:render:watch": "nodemon --ignore docs/ --exec node scripts/renderDocs.js -e scss,js,vue,md",
     "docs:watch": "nodemon --ignore docs/ --exec vuese gen -e scss,js,vue,md",
+    "test": "npm run test:declarative",
     "test:declarative": "vue-test-declarative"
   },
   "main": "index.js",
