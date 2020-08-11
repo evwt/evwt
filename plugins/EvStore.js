@@ -11,11 +11,13 @@ const EvStore = {
 //
 
 EvStore.install = function (Vue) {
-  let storeVm = new Vue({
+  let initialStore = ipcRenderer.sendSync('evstore:ipc:store');
 
+  let storeVm = new Vue({
     data() {
       return {
-        store: {},
+        store: initialStore,
+        storeProxy: null,
         isClean: false
       };
     },
@@ -30,28 +32,38 @@ EvStore.install = function (Vue) {
       }
     },
 
-    async created() {
-      this.store = await ipcRenderer.invoke('evstore:ipc:store');
-
-      this.watchStore();
-    },
-
-    methods: {
-      watchStore() {
-        // Send local changes to remote
-        this.$watch(() => this.store, async (newStore) => {
+    watch: {
+      store: {
+        handler(newStore) {
           if (this.isClean) {
             this.isClean = false;
             return;
           }
 
-          await ipcRenderer.invoke('evstore:ipc:write', newStore);
+          ipcRenderer.sendSync('evstore:ipc:write', newStore);
         },
-        {
-          deep: true
-        });
+        deep: true
+      },
+      storeProxy: {
+        handler() {
+          ipcRenderer.sendSync('evstore:ipc:write', { ...this.storeProxy });
+        },
+        deep: true
+      }
+    },
 
-        // Watch remote and update local
+    created() {
+      // Creating and then watching this proxy notices more changes on objects, so you can do this:
+      // this.$evstore.store.key = value;
+      // instead of this:
+      // this.$set(this.$evstore.store, key, value);
+      this.storeProxy = new Proxy(this.store, {});
+
+      this.watchRemote();
+    },
+
+    methods: {
+      watchRemote() {
         ipcRenderer.on('evstore:ipc:changed', (e, store) => {
           this.isClean = true;
           this.store = store;
@@ -70,13 +82,23 @@ EvStore.install = function (Vue) {
 /**
  *
  *
- * @param {Store} store - [electron-store Store](https://github.com/sindresorhus/electron-store#usage)
+ * @param {Object} options - [electron-store options](https://github.com/sindresorhus/electron-store#api)
  */
-function activate(store) {
-  ipcMain.handle('evstore:ipc:store', () => store.store);
+function activate(options = {}) {
+  let Store = require('electron-store');
 
-  ipcMain.handle('evstore:ipc:write', (e, newStore) => {
-    store.store = newStore;
+  let store = new Store({
+    name: 'evwt-store',
+    ...options
+  });
+
+  ipcMain.on('evstore:ipc:store', (event) => {
+    event.returnValue = store.store;
+  });
+
+  ipcMain.on('evstore:ipc:write', (event, newStore) => {
+    store.set(newStore);
+    event.returnValue = store.store;
   });
 
   store.onDidAnyChange((newStore) => {
@@ -84,6 +106,8 @@ function activate(store) {
       browserWindow.webContents.send('evstore:ipc:changed', newStore);
     }
   });
+
+  return store;
 }
 
 export default EvStore;

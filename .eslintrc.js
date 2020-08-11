@@ -39,6 +39,7 @@ module.exports = {
     'prefer-const': 'off',
     'no-console': 'off',
     'no-continue': 'off',
+    'global-require': 'off',
     'prefer-const': 'off',
     'comma-dangle': [
       'error', {
