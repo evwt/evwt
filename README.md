@@ -42,3 +42,6 @@ Existing Electron/Vue app:
 <br>
 <i>Markdown Editor example app editing the project README</i>
 
+![linux-screenshot](https://user-images.githubusercontent.com/611996/89851710-c6f57e00-db52-11ea-8c68-afb1b1e16187.png)
+<br>
+<i>On Linux Mint</i>
