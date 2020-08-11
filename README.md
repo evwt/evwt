@@ -1,9 +1,9 @@
 # Electron Vue Window Toolkit 
 _EVWT provides Vue components, plugins and other tools to assist in building great Electron apps._
 
-| Unit Tests  | Testbed App  |
-|:-:|:-:|
-| <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a> | <a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a> |
+| Unit Tests  | Test App - Linux  | Test App - Mac |
+|:-:|:-:|:-:|
+| <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a> | <a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a> | <a href="http://drone.evwt.net/evwt/evwt-example-markdown-editor"><img src="http://drone.evwt.net/api/badges/evwt/evwt-example-markdown-editor/status.svg" valign="middle" /></a> |
 
 ## Installation
 
