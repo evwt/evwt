@@ -1,7 +1,11 @@
 # Electron Vue Window Toolkit 
 _EVWT provides Vue components, plugins and other tools to assist in building great Electron apps._
 
-### Installation
+| Unit Tests  | Testbed App  |
+|:-:|:-:|
+| <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a> | <a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a> |
+
+## Installation
 
 New app:
 
@@ -17,7 +21,7 @@ Existing Electron/Vue app:
 
 `npm install evwt` (or `yarn add evwt`)
 
-### Docs
+## Docs
 
 #### 📖 [Documentation](https://evwt.net/)
 
@@ -26,10 +30,9 @@ Existing Electron/Vue app:
 ### Example Apps
 
 [Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor) 
-<a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a>
 <br> This app also serves as the official EVWT [testbed](https://github.com/evwt/evwt-example-markdown-editor/tree/master/test). 
 
-### Screenshots
+## Screenshots
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 <br>
