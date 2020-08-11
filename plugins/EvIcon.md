@@ -4,23 +4,27 @@
 
 `yarn add --dev vue-svg-loader`
 
-In your electronBuilder config (typically in `vue.config.js`):
+Chain your webpack config for the renderer process through `useEvIcon`.
+
+If you're using [vue-cli-plugin-electron-builder](https://github.com/nklayman/vue-cli-plugin-electron-builder), which all the EVWT examples use, the config will look like this:
 
 ```js
 let { useEvIcon } = require('evwt/plugins/EvIcon');
-```
 
-```js
-electronBuilder: {
-  chainWebpackRendererProcess: (config) => {
-    useEvIcon(config);
+module.exports = {
+  pluginOptions: {
+    electronBuilder: {
+      chainWebpackRendererProcess(config) {
+        useEvIcon(config);
+      }
+    }
   }
-}
+};
 ```
 
-### Icon Directory
+### Icon Library
 
-Assuming you have a folder of svgs in `/src/icons`, first create an `index.js` file in this folder:
+Create this `index.js` file in the folder with all your SVG icons:
 
 ```js
 import Vue from 'vue';
@@ -30,10 +34,10 @@ let context = require.context('.', true, /\.svg$/);
 buildIconLibrary(Vue, context);
 ```
 
-Then in your Vue `main.js` file:
+Assuming that folder is `/src/assets/icons`, then in your Vue `main.js` file:
 
 ```js
-import '@/icons';
+import '@/assets/icons';
 ```
 
 ## Usage

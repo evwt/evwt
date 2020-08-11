@@ -2,29 +2,14 @@
 
 A reactive persistent data store, based on [electron-store](https://github.com/sindresorhus/electron-store).
 
-## Usage
-
-Use `this.$evstore.store` to work with the store as you would any other reactive Vue data.
-
-Everything is magically synced across across your app and to disk. 🧙🏻‍♂️
-
-```vue
-<span>{{ $evstore.store.foo }}</span>
-<input v-model="$evstore.store.foo" />
-```
-
-> In your background script, you can work with `store` as usual per the [electron-store docs](https://github.com/sindresorhus/electron-store) and everything will still be automatically synced.
-
 ## Setup
 
 ### Background
 
 ```js
 import { EvStore } from 'evwt';
-import Store from 'electron-store';
 
-let store = new Store();
-EvStore.activate(store);
+let store = EvStore.activate();
 ```
 
 ### Vue
@@ -36,14 +21,51 @@ import { EvStore } from 'evwt';
 
 Vue.use(EvStore);
 ```
+
+## Usage
+
+### Background
+
+In your background script, work with `store` per the [electron-store docs](https://github.com/sindresorhus/electron-store).
+
+### Vue
+
+Use `this.$evstore.store` to work with the store as you would any other reactive Vue data. Everything is magically synced across across your app and to disk. 🧙🏻‍♂️
+
+```vue
+<span>{{ $evstore.store.foo }}</span>
+<input v-model="$evstore.store.foo" />
+```
+
+To set in code:
+
+```js
+this.$evstore.store.foo = 'bar';
+```
+
+Nested data works, just make sure it exists in the store before working with it:
+
+```vue
+<input v-model="$evstore.store.person.name">
+```
+
+```js
+created() {
+  if (!this.$evstore.store.person) {
+    this.$evstore.store.person = {};
+  }
+}
+```
+
+> State is saved to a file `evwt-store.json` in your app's working directory. This can be customized by passing options into `activate`. See reference below.
 ## Reference
 
 <a name="activate"></a>
 
-### activate(store)
+### activate(options)
 **Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| store | <code>Store</code> | [electron-store Store](https://github.com/sindresorhus/electron-store#usage) |
+| options | <code>Object</code> | [electron-store options](https://github.com/sindresorhus/electron-store#api) |
 
