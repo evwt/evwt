@@ -7,7 +7,7 @@ A reactive persistent data store, based on [electron-store](https://github.com/s
 ### Background
 
 ```js
-import { EvStore } from 'evwt';
+import { EvStore } from 'evwt/background';
 
 let store = EvStore.activate();
 ```

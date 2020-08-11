@@ -1,13 +1,24 @@
 # Development
 
+(To work on EVWT, not to build your own apps with it.)
+
 ## Setup
 
-### Linux - Ubuntu Desktop
+### Mac
 
 #### Prerequisites
-- Install node
-Here's a nice guide: https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-20-04#option-2-%E2%80%94-installing-node-js-with-apt-using-a-nodesource-ppa
+- Install node 12
+- Clone app repo
+- npm install or yarn
+- npm run electron:serve
 
-- Clone app repo, npm install
+### Linux
+
+#### Prerequisites
+- Install node 12
+- Clone app repo
+- npm install or yarn
 - npm run electron:build
 - ./node_modules/.bin/electron dist_electron/bundled/background.js
+
+Currently `npm run electron:serve` doesn't seem to work on Linux (Mint nor Ubuntu), this must be a bug in [vue-cli-plugin-electron-builder](https://github.com/nklayman/vue-cli-plugin-electron-builder), which is what provides the `electron:build` command.
