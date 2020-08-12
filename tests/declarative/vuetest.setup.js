@@ -1,7 +1,7 @@
 // import { createLocalVue } from '@vue/test-utils';
-import { buildIconLibrary } from '@/../plugins/EvIcon';
+import EvIcon from '@/../plugins/EvIcon';
 
 let localVue = createLocalVue();
 
 let requireContext = require.context('./fixtures/icons', true, /\.svg$/);
-buildIconLibrary(localVue, requireContext);
+EvIcon.build(localVue, requireContext);

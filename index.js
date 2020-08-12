@@ -1,4 +1,3 @@
-import EvWindow from './plugins/EvWindow';
 import EvMenu from './plugins/EvMenu';
 import EvStore from './plugins/EvStore';
 import EvLayout from './packages/EvLayout';
@@ -9,7 +8,6 @@ import EvVirtualScroll from './packages/EvVirtualScroll';
 import EvDropZone from './packages/EvDropZone';
 
 export {
-  EvWindow,
   EvMenu,
   EvStore,
   EvLayout,

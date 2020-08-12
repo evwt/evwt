@@ -1,4 +1,5 @@
-# EvLayout
+
+
 
 Flexible pane-based app layouts, using CSS grid. Supports collapsible panes and sizing by relative or absolute units.
 
@@ -117,4 +118,8 @@ export default {
 | sizes | Array: \[String] | Sizes of the child panes in [css grid units](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout/Basic_Concepts_of_Grid_Layout). 'auto' is valid only on non-resizable panes. | `['200px', '1fr']` |
 | direction | String: 'row'\|'column' | Direction of child panes. ||
 | resizable | Boolean | Whether the trailing edge of the pane can be dragged to resize the pane. ||
+
+
+undefined
+
 

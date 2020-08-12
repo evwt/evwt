@@ -7,8 +7,6 @@ import Store from 'electron-store';
  * @param {Object} options - [electron-store options](https://github.com/sindresorhus/electron-store#api)
  */
 function activate(options = {}) {
-  console.log(Store);
-
   let store = new Store({
     name: 'evwt-store',
     ...options
@@ -34,4 +32,4 @@ function activate(options = {}) {
 
 export default {
   activate
-}
+};

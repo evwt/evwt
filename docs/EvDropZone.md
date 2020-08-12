@@ -1,6 +1,15 @@
 # EvDropZone
 
-Simplest possible file drop component with a non-intrusive customizable overlay.
+Wraps a component and displays a file drop overlay when a file is dragged over it.
+
+## Usage
+
+```vue
+<ev-drop-zone @drop="handleDrop">
+  <div>Drop Here</div>
+</ev-drop-zone>
+```
+
 
 ## Props
 
@@ -35,5 +44,8 @@ Simplest possible file drop component with a non-intrusive customizable overlay.
 
 <!-- @vuese:EvDropZone:slots:end -->
 
+
+
+undefined
 
 

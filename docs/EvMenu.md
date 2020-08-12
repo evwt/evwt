@@ -9,7 +9,7 @@ Unified events and data bindings for native menus.
 ### Background script
 
 ```js
-import { EvMenu } from 'evwt';
+import { EvMenu } from 'evwt/background';
 
 EvMenu.activate();
 ```
@@ -87,7 +87,7 @@ Use `this.$evmenu.get(id)` to get a menu item. This can then be used for data bi
 
 ##### Events
 
-* Listen for menu events with `this.$evmenu.$on('input')`
+Listen for menu events with `this.$evmenu.$on('input')`
 
 ```js
 this.$evmenu.$on('input', item => {
@@ -99,7 +99,7 @@ this.$evmenu.$on('input:open-file', item => {
 });
 ```
 
-* Send native menu commands with `this.$evmenu.$emit`
+Send native menu commands with `this.$evmenu.$emit`
 
 ```js
 this.$evmenu.$emit('click', 'open-file');
@@ -129,9 +129,13 @@ app.on('evmenu:open-file', item => {
 });
 ```
 
-## Reference
 
-### Functions
+
+
+## Reference
+### Background
+
+#### Functions
 
 <dl>
 <dt><a href="#attach">attach(win)</a></dt>
@@ -142,7 +146,7 @@ app.on('evmenu:open-file', item => {
 
 <a name="attach"></a>
 
-### attach(win)
+#### attach(win)
 **Kind**: global function  
 
 | Param | Type |
@@ -151,5 +155,7 @@ app.on('evmenu:open-file', item => {
 
 <a name="activate"></a>
 
-### activate()
+#### activate()
 **Kind**: global function  
+
+

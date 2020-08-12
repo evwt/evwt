@@ -1,8 +1,8 @@
-let { useEvIcon } = require('./plugins/EvIcon');
+let EvIcon = require('./background/EvIcon');
 
 module.exports = {
   lintOnSave: false,
   chainWebpack: config => {
-    useEvIcon(config);
+    EvIcon.use(config);
   }
 };

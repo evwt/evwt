@@ -5,27 +5,36 @@
 EvWindow can automatically store BrowserWindow state across restarts, just pass a unique ID into `getStoredOptions`/`startStoringOptions`.
 
 ```js
+import { EvWindow } from 'evwt/background';
+
+// Get stored options based on unique window ID
 let storedOptions = EvWindow.getStoredOptions('MyWindow', defaultOptions);
+
+// Create your window like normal, passing in the stored options
 let win = new BrowserWindow({ width: 800, height: 600, /* ... */, ...storedOptions });
+
+// Start saving options on resize/move
 EvWindow.startStoringOptions(restoreId, win);
 ```
 
 Currently the automatically saved properties are `width`, `height`, `x` and `y`.
 
-References:
-- [BrowserWindow](https://www.electronjs.org/docs/api/browser-window) options
-
-
 ## Window Management
 
-EvWindow can arrange windows on the screen in various ways.
+EvWindow can arrange windows on the screen in various ways. See reference below for all options.
 
 ```js
-EvWindow.arrange('tile');
-```
-## Reference
+import { EvWindow } from 'evwt/background';
 
-### Functions
+EvWindow.arrange('tile'); // tile, cascade, rows or columns
+```
+
+
+
+## Reference
+### Background
+
+#### Functions
 
 <dl>
 <dt><a href="#startStoringOptions">startStoringOptions(restoreId, win)</a></dt>
@@ -39,7 +48,7 @@ EvWindow.arrange('tile');
 
 <a name="startStoringOptions"></a>
 
-### startStoringOptions(restoreId, win)
+#### startStoringOptions(restoreId, win)
 **Kind**: global function  
 
 | Param | Type | Description |
@@ -49,7 +58,7 @@ EvWindow.arrange('tile');
 
 <a name="arrange"></a>
 
-### arrange(arrangement)
+#### arrange(arrangement)
 Arranges windows on the screen.
 
 **Kind**: global function  
@@ -60,11 +69,13 @@ Arranges windows on the screen.
 
 <a name="getStoredOptions"></a>
 
-### getStoredOptions(restoreId, defaultOptions)
+#### getStoredOptions(restoreId, defaultOptions)
 **Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | restoreId | <code>String</code> | A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID. |
 | defaultOptions | <code>Object</code> | https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions |
+
+
 

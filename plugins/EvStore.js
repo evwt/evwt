@@ -1,8 +1,6 @@
 import { ipcRenderer } from 'electron';
 
-const EvStore = {
-  activate
-};
+const EvStore = {};
 
 EvStore.install = function (Vue) {
   let initialStore = ipcRenderer.sendSync('evstore:ipc:store');

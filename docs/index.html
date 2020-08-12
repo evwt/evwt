@@ -1,16 +1,42 @@
-<!DOCTYPE>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Electron Vue Window Toolkit</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docute@4/dist/docute.css">
-  </head>
-  <body>
-    <div id="docute"></div>
-    <script src="https://cdn.jsdelivr.net/npm/docute@4/dist/docute.js"></script>
-    <script>
-      new Docute(JSON.parse('{&#34;darkThemeToggler&#34;:true,&#34;sidebar&#34;:[{&#34;title&#34;:&#34;Plugins&#34;,&#34;links&#34;:[{&#34;title&#34;:&#34;EvIcon&#34;,&#34;link&#34;:&#34;/plugins/EvIcon&#34;},{&#34;title&#34;:&#34;EvMenu&#34;,&#34;link&#34;:&#34;/plugins/EvMenu&#34;},{&#34;title&#34;:&#34;EvStore&#34;,&#34;link&#34;:&#34;/plugins/EvStore&#34;},{&#34;title&#34;:&#34;EvWindow&#34;,&#34;link&#34;:&#34;/plugins/EvWindow&#34;}]},{&#34;title&#34;:&#34;Components&#34;,&#34;links&#34;:[{&#34;title&#34;:&#34;EvDropZone&#34;,&#34;link&#34;:&#34;/components/EvDropZone&#34;},{&#34;title&#34;:&#34;EvIcon&#34;,&#34;link&#34;:&#34;/components/EvIcon&#34;},{&#34;title&#34;:&#34;EvLayout&#34;,&#34;link&#34;:&#34;/components/EvLayout&#34;},{&#34;title&#34;:&#34;EvToolbar&#34;,&#34;link&#34;:&#34;/components/EvToolbar&#34;},{&#34;title&#34;:&#34;EvToolbarItem&#34;,&#34;link&#34;:&#34;/components/EvToolbarItem&#34;},{&#34;title&#34;:&#34;EvVirtualScroll&#34;,&#34;link&#34;:&#34;/components/EvVirtualScroll&#34;}]}],&#34;target&#34;:&#34;#docute&#34;}'.replace(/\&\#34\;/g, '"')))
-    </script>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Electron Vue Window Toolkit</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+  <style>
+    #functions,
+    #functions~dl {
+      display: none;
+    }
+
+    .app-sub-sidebar li {
+      margin: 0;
+    }
+
+    .app-sub-sidebar li:before {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'Electron Vue Window Toolkit',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      themeColor: '#4282b9',
+      search: {
+        placeholder: 'Search...'
+      }
+    }
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+</body>
 </html>

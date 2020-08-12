@@ -37,24 +37,8 @@ Use `this.$evstore.store` to work with the store as you would any other reactive
 <input v-model="$evstore.store.foo" />
 ```
 
-To set in code:
-
 ```js
 this.$evstore.store.foo = 'bar';
-```
-
-Nested data works, just make sure it exists in the store before working with it:
-
-```vue
-<input v-model="$evstore.store.person.name">
-```
-
-```js
-created() {
-  if (!this.$evstore.store.person) {
-    this.$evstore.store.person = {};
-  }
-}
 ```
 
 > State is saved to a file `evwt-store.json` in your app's working directory. This can be customized by passing options into `activate`. See reference below.

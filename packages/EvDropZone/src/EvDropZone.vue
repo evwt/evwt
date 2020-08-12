@@ -24,8 +24,6 @@
 </template>
 
 <script>
-// @group Components
-// Simplest possible file drop component with a non-intrusive customizable overlay.
 export default {
   name: 'EvDropZone',
 
@@ -113,6 +111,3 @@ export default {
   height: 100%;
 }
 </style>
-
-<docs>
-</docs>

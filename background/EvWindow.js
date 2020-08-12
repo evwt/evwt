@@ -1,5 +1,5 @@
 import { BrowserWindow, screen } from 'electron';
-import { getNonOverlappingBounds } from '@/../lib/bounds';
+import { getNonOverlappingBounds } from '../lib/bounds';
 
 const debounce = require('lodash/debounce');
 const Store = require('electron-store');
@@ -7,12 +7,6 @@ const Store = require('electron-store');
 let store = new Store({
   name: 'evwt-ui-state'
 });
-
-const EvWindow = {
-  startStoringOptions,
-  getStoredOptions,
-  arrange
-};
 
 const BOUNDS_AUTOSAVE_INTERVAL = 200;
 const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
@@ -23,7 +17,7 @@ const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
  * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
  * @param {BrowserWindow} win - https://www.electronjs.org/docs/api/browser-window
  */
-function startStoringOptions(restoreId, win) {
+export function startStoringOptions(restoreId, win) {
   if (!win || !win.getNormalBounds) {
     console.log('[EvWindow] Invalid window passed, not storing');
     return;
@@ -49,7 +43,7 @@ function startStoringOptions(restoreId, win) {
  * Arranges windows on the screen.
  * @param {String} arrangement - `tile`, `cascade`, `rows` or `columns`
  */
-function arrange(arrangement) {
+export function arrange(arrangement) {
   if (arrangement === 'tile') {
     tile();
   } else
@@ -70,7 +64,7 @@ function arrange(arrangement) {
  * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
  * @param {Object} defaultOptions - https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
  */
-function getStoredOptions(restoreId, defaultOptions) {
+export function getStoredOptions(restoreId, defaultOptions) {
   if (!defaultOptions) {
     console.log('[EvWindow] defaultOptions not passed, skipping');
     return;
@@ -202,4 +196,8 @@ function columns() {
   }
 }
 
-export default EvWindow;
+export default {
+  arrange,
+  getStoredOptions,
+  startStoringOptions
+};
