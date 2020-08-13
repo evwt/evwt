@@ -45,17 +45,6 @@ this.$evstore.store.foo = 'bar';
 
 
 
-## Reference
-### Background
-
-<a name="activate"></a>
-
-#### activate(options)
-**Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| options | <code>Object</code> | [electron-store options](https://github.com/sindresorhus/electron-store#api) |
 
 
 

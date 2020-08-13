@@ -132,30 +132,6 @@ app.on('evmenu:open-file', item => {
 
 
 
-## Reference
-### Background
 
-#### Functions
-
-<dl>
-<dt><a href="#attach">attach(win)</a></dt>
-<dd></dd>
-<dt><a href="#activate">activate()</a></dt>
-<dd></dd>
-</dl>
-
-<a name="attach"></a>
-
-#### attach(win)
-**Kind**: global function  
-
-| Param | Type |
-| --- | --- |
-| win | <code>BrowserWindow</code> | 
-
-<a name="activate"></a>
-
-#### activate()
-**Kind**: global function  
 
 

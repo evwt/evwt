@@ -1,5 +1,5 @@
 # Electron Vue Window Toolkit
-_EVWT provides Vue components, plugins and other tools to assist in building great Electron apps._
+_Bridging the gap between Electron and Vue to create a great desktop app development framework._
 
 | Unit Tests  | E2E Tests - Linux  | E2E Tests - Mac |
 |:-:|:-:|:-:|

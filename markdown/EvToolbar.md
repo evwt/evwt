@@ -29,26 +29,3 @@ export default {
     <ev-toolbar-item menu-id="save-file" icon="save" label="Save" tooltip="Save File" />
   </ev-toolbar>
 ```
-
-
-## Props
-
-<!-- @vuese:EvToolbar:props:start -->
-|Name|Description|Type|Required|Default|
-|---|---|---|---|---|
-|iconShow|Whether to display icons for items|`Boolean`|`false`|true|
-|iconSize|Size of the icons in px|`Number`|`false`|16|
-|iconPos|Position of icon in relation to the label|`'above'`/`'aside'`|`false`|above|
-|labels|Whether to display labels for items|`Boolean`|`false`|false|
-|fontSize|Font size of the labels in px|`Number`|`false`|11|
-|padding|Padding within the buttons in px|`Number`|`false`|3|
-|minWidth|Minimum width of items|`Number`|`false`|44|
-|height|Height of the toolbar in px|`Number`|`false`|-|
-
-<!-- @vuese:EvToolbar:props:end -->
-
-
-
-
-
-

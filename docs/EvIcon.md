@@ -82,29 +82,6 @@ export default {
 
 
 
-## Reference
-### Background
-
-<a name="use"></a>
-
-#### use(config)
-**Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| config | <code>Object</code> | https://github.com/neutrinojs/webpack-chain#config |
 
 
-
-### Plugin
-
-<a name="build"></a>
-
-#### build(Vue, requireContext)
-**Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| Vue | <code>\*</code> |  |
-| requireContext | <code>function</code> | https://webpack.js.org/api/module-methods/#requirecontext |
 
