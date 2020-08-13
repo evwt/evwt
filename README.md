@@ -22,9 +22,8 @@ Existing Electron/Vue app:
 
 ## Docs
 
-#### 📖 [Documentation](https://evwt.net/)
-
-#### 📒 [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
+- [Documentation](https://evwt.net/)
+- [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
 
 ### Example Apps
 
