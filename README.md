@@ -37,14 +37,19 @@ Existing Electron/Vue app:
 
 ## Screenshots
 
-![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
-<br>
 <i>Working with native menus using reactive data</i>
-
-![markdown-demo](https://user-images.githubusercontent.com/611996/89716173-77eff300-d970-11ea-8119-e736a6b5671a.png)
 <br>
+<img width="640" alt="Reactive Native Menus" src="https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif">
+
+<br>
+
 <i>Markdown Editor example app editing the project README</i>
-
-![linux-screenshot](https://user-images.githubusercontent.com/611996/89851710-c6f57e00-db52-11ea-8c68-afb1b1e16187.png)
 <br>
+<img width="800" alt="Markdown Editor Example - Mac" src="https://user-images.githubusercontent.com/611996/89716173-77eff300-d970-11ea-8119-e736a6b5671a.png">
+
+<br>
+
 <i>On Linux Mint</i>
+<br>
+<img width="800" alt="Markdown Editor Example - Linux" src="https://user-images.githubusercontent.com/611996/89851710-c6f57e00-db52-11ea-8c68-afb1b1e16187.png">
+
