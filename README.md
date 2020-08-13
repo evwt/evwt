@@ -3,7 +3,8 @@ _EVWT provides Vue components, plugins and other tools to assist in building gre
 
 | Unit Tests  | Test App - Linux  | Test App - Mac |
 |:-:|:-:|:-:|
-| <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a> | <a href="https://travis-ci.org/evwt/evwt-example-markdown-editor"><img src="https://travis-ci.org/evwt/evwt-example-markdown-editor.svg?branch=master" valign="middle"></a> | <a href="http://drone.evwt.net/evwt/evwt-example-markdown-editor"><img src="http://drone.evwt.net/api/badges/evwt/evwt-example-markdown-editor/status.svg" valign="middle" /></a> |
+| <a href="https://travis-ci.org/evwt/evwt"><img src="https://travis-ci.org/evwt/evwt.svg?branch=master" valign="middle"></a> | <a href="https://app.circleci.com/pipelines/github/evwt/evwt-example-markdown-editor"><img src="https://circleci.com/gh/evwt/evwt-example-markdown-editor.svg?style=shield" valign="middle"></a> | <a href="http://drone.evwt.net/evwt/evwt-example-markdown-editor"><img src="http://drone.evwt.net/api/badges/evwt/evwt-example-markdown-editor/status.svg" valign="middle" /></a> |
+
 
 ## Quick Start
 
