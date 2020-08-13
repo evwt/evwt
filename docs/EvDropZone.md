@@ -1,6 +1,6 @@
 # EvDropZone
 
-Wraps a component and displays a file drop overlay when a file is dragged over it.
+Wraps a component in an invisible overlay that allows file drops.
 
 ## Usage
 
@@ -46,6 +46,6 @@ Wraps a component and displays a file drop overlay when a file is dragged over i
 
 
 
-undefined
+
 
 

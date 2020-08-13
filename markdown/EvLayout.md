@@ -93,32 +93,3 @@ export default {
 | sizes | Array: \[String] | Sizes of the child panes in [css grid units](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout/Basic_Concepts_of_Grid_Layout). 'auto' is valid only on non-resizable panes. | `['200px', '1fr']` |
 | direction | String: 'row'\|'column' | Direction of child panes. ||
 | resizable | Boolean | Whether the trailing edge of the pane can be dragged to resize the pane. ||
-
-
-
-## Props
-
-<!-- @vuese:EvLayout:props:start -->
-|Name|Description|Type|Required|Default|
-|---|---|---|---|---|
-|layout|The top-level Pane|`Object`|`true`|-|
-
-<!-- @vuese:EvLayout:props:end -->
-
-
-## Events
-
-<!-- @vuese:EvLayout:events:start -->
-|Event Name|Description|Parameters|
-|---|---|---|
-|dragStart|Fired when any pane starts dragging|direction, track|
-|drag|Fired when any pane is dragging|direction, track, gridTemplateStyle|
-|dragEnd|Fired when any pane ends dragging|direction, track|
-
-<!-- @vuese:EvLayout:events:end -->
-
-
-
-
-
-

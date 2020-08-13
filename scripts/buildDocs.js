@@ -27,6 +27,7 @@ let path = require('path');
 (async () => {
   for (const name of documents) {
     let document = {
+      bottomHeader: '',
       vuese: '',
       manual: '',
       jsdocBg: '',

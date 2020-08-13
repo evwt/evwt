@@ -46,10 +46,10 @@ import '@/assets/icons';
 
 ## Usage
 
-Assuming you have a file named folder-open.svg in /src/icons:
+Assuming you have a file named `folder-open.svg` in `/src/assets/icons`:
 ```vue
 <template>
-  <ev-icon name="folder-open" :size="16" />
+  <ev-icon name="folder-open" />
 </template>
 
 <script>

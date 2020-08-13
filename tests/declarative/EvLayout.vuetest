@@ -1,0 +1,42 @@
+<tests for="@/../packages/EvLayout/src/EvLayout.vue">
+  <test name="Contains correct classes" :props="props">
+    <expect html-of=".ev-pane-sidebar" to-be-defined />
+    <expect html-of=".ev-pane-panel" to-be-defined />
+    <expect html-of=".ev-pane-editor" to-be-defined />
+    <expect html-of=".ev-pane-outer" to-be-defined />
+    <expect attributes-of=".ev-pane-main" attribute="style" to-equal="grid-template-rows: 3fr 0 1fr;" />
+    <expect attributes-of=".ev-pane-outer" attribute="style" to-equal="grid-template-columns: 250px 0 1fr;" />
+  </test>
+</tests>
+
+<script>
+let context = {
+  props: {
+    layout: {
+      name: 'outer',
+      direction: 'column',
+      sizes: ['250px', '1fr'],
+      panes: [
+        {
+          name: 'sidebar',
+          minSize: 50
+        },
+        {
+          name: 'main',
+          direction: 'row',
+          sizes: ['3fr', '1fr'],
+          panes: [
+            {
+              name: 'editor'
+            },
+            {
+              name: 'panel'
+            }
+          ]
+
+        }
+      ]
+    }
+  }
+};
+</script>

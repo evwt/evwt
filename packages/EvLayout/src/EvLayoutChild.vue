@@ -1,9 +1,9 @@
 <template>
   <div
-    :style="childStyle(child)"
+    :style="childStyle"
     :data-min-size="child.minSize"
     class="d-grid overflow-hidden h-100 w-100"
-    :class="`ev-pane-${child.name}`">
+    :class="classForChild">
     <div v-if="!child.panes" class="ev-layout-pane h-100 w-100 overflow-auto">
       <slot :name="child.name" class="overflow-auto" />
     </div>
@@ -34,6 +34,27 @@ export default {
     child: Object
   },
 
+  computed: {
+    classForChild() {
+      if (this.child && this.child.name) {
+        return `ev-pane-${this.child.name}`;
+      }
+
+      return '';
+    },
+
+    childStyle() {
+      if (!this.child.sizes || !this.child.sizes.length || !this.child.direction) {
+        return;
+      }
+
+      let sizes = this.child.sizes.map(s => [s, 0]).flat();
+      sizes.pop();
+
+      return `grid-template-${this.child.direction}s: ${sizes.join(' ')}`;
+    }
+  },
+
   methods: {
     gutterClass(child, direction) {
       let className = `ev-gutter ev-gutter-${child.name} ev-gutter-${direction}`;
@@ -43,18 +64,8 @@ export default {
       }
 
       return className;
-    },
-
-    childStyle(child) {
-      if (!child.sizes || !child.sizes.length || !child.direction) {
-        return;
-      }
-
-      let sizes = child.sizes.map(s => [s, 0]).flat();
-      sizes.pop();
-
-      return `grid-template-${child.direction}s: ${sizes.join(' ')}`;
     }
+
   }
 };
 </script>
