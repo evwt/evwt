@@ -37,7 +37,7 @@ EvWindow.arrange('tile'); // tile, cascade, rows or columns
 #### Functions
 
 <dl>
-<dt><a href="#startStoringOptions">startStoringOptions(restoreId, win)</a></dt>
+<dt><a href="#startStoringOptions">startStoringOptions(restoreId, win)</a> ⇒ <code>function</code></dt>
 <dd></dd>
 <dt><a href="#arrange">arrange(arrangement)</a></dt>
 <dd><p>Arranges windows on the screen.</p>
@@ -48,8 +48,9 @@ EvWindow.arrange('tile'); // tile, cascade, rows or columns
 
 <a name="startStoringOptions"></a>
 
-#### startStoringOptions(restoreId, win)
+#### startStoringOptions(restoreId, win) ⇒ <code>function</code>
 **Kind**: global function  
+**Returns**: <code>function</code> - Function that saves the window position/size to storage. Use after moving the window manually.  
 
 | Param | Type | Description |
 | --- | --- | --- |

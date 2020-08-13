@@ -11,11 +11,14 @@ let store = new Store({
 const BOUNDS_AUTOSAVE_INTERVAL = 200;
 const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
+let windows = new Map();
+
 /**
  *
  *
  * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
  * @param {BrowserWindow} win - https://www.electronjs.org/docs/api/browser-window
+ * @returns {Function} Function that saves the window position/size to storage. Use after moving the window manually.
  */
 export function startStoringOptions(restoreId, win) {
   if (!win || !win.getNormalBounds) {
@@ -30,12 +33,48 @@ export function startStoringOptions(restoreId, win) {
 
   let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
 
-  let saveBounds = debounce(() => {
-    store.set(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`, win.getNormalBounds());
+  // if the win already exists with a storageId reset everything
+  if (windows.has(win)) {
+    let existingWin = windows.get(win);
+    existingWin.cleanupEvents();
+  }
+
+  let handleSave = debounce(() => {
+    if (win.isDestroyed()) return;
+    let bounds = win.getNormalBounds();
+    let key = `${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`;
+
+    // For unit tests
+    process.env.evwtTestEvWindow1 = `${key} ${JSON.stringify(bounds)}`;
+
+    store.set(key, bounds);
   }, BOUNDS_AUTOSAVE_INTERVAL);
 
-  win.on('resize', saveBounds);
-  win.on('move', saveBounds);
+  handleSave();
+
+  let handleClose = () => {
+    let existingWin = windows.get(win);
+    existingWin.cleanupEvents();
+    windows.delete(win);
+  };
+
+  win.on('resize', handleSave);
+  win.on('move', handleSave);
+  win.on('close', handleClose);
+
+  let cleanupEvents = () => {
+    win.off('resize', handleSave);
+    win.off('move', handleSave);
+    win.off('close', handleClose);
+  };
+
+  windows.set(win, {
+    handleSave,
+    handleClose,
+    cleanupEvents
+  });
+
+  return handleSave;
 }
 
 /**
