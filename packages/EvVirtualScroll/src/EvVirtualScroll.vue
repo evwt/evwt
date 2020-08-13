@@ -3,6 +3,7 @@
     <div ref="viewport" class="viewport" :style="viewportStyle">
       <div ref="spacer" class="spacer" :style="spacerStyle">
         <div v-for="item in visibleItems" :key="item[keyField]" :style="itemStyle">
+          <!-- Slot for your item component. Slot scope of `item` available with item properties. -->
           <slot :item="item">
             {{ item }}
           </slot>
@@ -13,12 +14,23 @@
 </template>
 
 <script>
-// @group Components
 export default {
   props: {
-    items: Array,
-    keyField: String,
-    rowHeight: Number
+    // Array of objects with your data
+    items: {
+      type: Array,
+      required: true
+    },
+    // Unique identifying field within each item object
+    keyField: {
+      type: String,
+      default: 'id'
+    },
+    // The height of each item
+    rowHeight: {
+      type: Number,
+      default: 18
+    }
   },
 
   data() {

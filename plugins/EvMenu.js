@@ -1,5 +1,4 @@
 import { ipcRenderer } from 'electron';
-import log from '../lib/log';
 
 const EvMenu = {};
 
@@ -73,8 +72,6 @@ EvMenu.install = function (Vue, menuDefinition) {
       this.handleClick();
       this.handleFocus();
       this.listenIpc();
-
-      this.$emit('ready');
     },
 
     methods: {

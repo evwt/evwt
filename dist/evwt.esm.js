@@ -1,290 +1,5 @@
 import { ipcRenderer } from 'electron';
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function createCommonjsModule(fn, basedir, module) {
-	return module = {
-	  path: basedir,
-	  exports: {},
-	  require: function (path, base) {
-      return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
-    }
-	}, fn(module, module.exports), module.exports;
-}
-
-function commonjsRequire () {
-	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
-}
-
-var loglevel = createCommonjsModule(function (module) {
-/*
-* loglevel - https://github.com/pimterry/loglevel
-*
-* Copyright (c) 2013 Tim Perry
-* Licensed under the MIT license.
-*/
-(function (root, definition) {
-    if ( module.exports) {
-        module.exports = definition();
-    } else {
-        root.log = definition();
-    }
-}(commonjsGlobal, function () {
-
-    // Slightly dubious tricks to cut down minimized file size
-    var noop = function() {};
-    var undefinedType = "undefined";
-    var isIE = (typeof window !== undefinedType) && (typeof window.navigator !== undefinedType) && (
-        /Trident\/|MSIE /.test(window.navigator.userAgent)
-    );
-
-    var logMethods = [
-        "trace",
-        "debug",
-        "info",
-        "warn",
-        "error"
-    ];
-
-    // Cross-browser bind equivalent that works at least back to IE6
-    function bindMethod(obj, methodName) {
-        var method = obj[methodName];
-        if (typeof method.bind === 'function') {
-            return method.bind(obj);
-        } else {
-            try {
-                return Function.prototype.bind.call(method, obj);
-            } catch (e) {
-                // Missing bind shim or IE8 + Modernizr, fallback to wrapping
-                return function() {
-                    return Function.prototype.apply.apply(method, [obj, arguments]);
-                };
-            }
-        }
-    }
-
-    // Trace() doesn't print the message in IE, so for that case we need to wrap it
-    function traceForIE() {
-        if (console.log) {
-            if (console.log.apply) {
-                console.log.apply(console, arguments);
-            } else {
-                // In old IE, native console methods themselves don't have apply().
-                Function.prototype.apply.apply(console.log, [console, arguments]);
-            }
-        }
-        if (console.trace) console.trace();
-    }
-
-    // Build the best logging method possible for this env
-    // Wherever possible we want to bind, not wrap, to preserve stack traces
-    function realMethod(methodName) {
-        if (methodName === 'debug') {
-            methodName = 'log';
-        }
-
-        if (typeof console === undefinedType) {
-            return false; // No method possible, for now - fixed later by enableLoggingWhenConsoleArrives
-        } else if (methodName === 'trace' && isIE) {
-            return traceForIE;
-        } else if (console[methodName] !== undefined) {
-            return bindMethod(console, methodName);
-        } else if (console.log !== undefined) {
-            return bindMethod(console, 'log');
-        } else {
-            return noop;
-        }
-    }
-
-    // These private functions always need `this` to be set properly
-
-    function replaceLoggingMethods(level, loggerName) {
-        /*jshint validthis:true */
-        for (var i = 0; i < logMethods.length; i++) {
-            var methodName = logMethods[i];
-            this[methodName] = (i < level) ?
-                noop :
-                this.methodFactory(methodName, level, loggerName);
-        }
-
-        // Define log.log as an alias for log.debug
-        this.log = this.debug;
-    }
-
-    // In old IE versions, the console isn't present until you first open it.
-    // We build realMethod() replacements here that regenerate logging methods
-    function enableLoggingWhenConsoleArrives(methodName, level, loggerName) {
-        return function () {
-            if (typeof console !== undefinedType) {
-                replaceLoggingMethods.call(this, level, loggerName);
-                this[methodName].apply(this, arguments);
-            }
-        };
-    }
-
-    // By default, we use closely bound real methods wherever possible, and
-    // otherwise we wait for a console to appear, and then try again.
-    function defaultMethodFactory(methodName, level, loggerName) {
-        /*jshint validthis:true */
-        return realMethod(methodName) ||
-               enableLoggingWhenConsoleArrives.apply(this, arguments);
-    }
-
-    function Logger(name, defaultLevel, factory) {
-      var self = this;
-      var currentLevel;
-      var storageKey = "loglevel";
-      if (name) {
-        storageKey += ":" + name;
-      }
-
-      function persistLevelIfPossible(levelNum) {
-          var levelName = (logMethods[levelNum] || 'silent').toUpperCase();
-
-          if (typeof window === undefinedType) return;
-
-          // Use localStorage if available
-          try {
-              window.localStorage[storageKey] = levelName;
-              return;
-          } catch (ignore) {}
-
-          // Use session cookie as fallback
-          try {
-              window.document.cookie =
-                encodeURIComponent(storageKey) + "=" + levelName + ";";
-          } catch (ignore) {}
-      }
-
-      function getPersistedLevel() {
-          var storedLevel;
-
-          if (typeof window === undefinedType) return;
-
-          try {
-              storedLevel = window.localStorage[storageKey];
-          } catch (ignore) {}
-
-          // Fallback to cookies if local storage gives us nothing
-          if (typeof storedLevel === undefinedType) {
-              try {
-                  var cookie = window.document.cookie;
-                  var location = cookie.indexOf(
-                      encodeURIComponent(storageKey) + "=");
-                  if (location !== -1) {
-                      storedLevel = /^([^;]+)/.exec(cookie.slice(location))[1];
-                  }
-              } catch (ignore) {}
-          }
-
-          // If the stored level is not valid, treat it as if nothing was stored.
-          if (self.levels[storedLevel] === undefined) {
-              storedLevel = undefined;
-          }
-
-          return storedLevel;
-      }
-
-      /*
-       *
-       * Public logger API - see https://github.com/pimterry/loglevel for details
-       *
-       */
-
-      self.name = name;
-
-      self.levels = { "TRACE": 0, "DEBUG": 1, "INFO": 2, "WARN": 3,
-          "ERROR": 4, "SILENT": 5};
-
-      self.methodFactory = factory || defaultMethodFactory;
-
-      self.getLevel = function () {
-          return currentLevel;
-      };
-
-      self.setLevel = function (level, persist) {
-          if (typeof level === "string" && self.levels[level.toUpperCase()] !== undefined) {
-              level = self.levels[level.toUpperCase()];
-          }
-          if (typeof level === "number" && level >= 0 && level <= self.levels.SILENT) {
-              currentLevel = level;
-              if (persist !== false) {  // defaults to true
-                  persistLevelIfPossible(level);
-              }
-              replaceLoggingMethods.call(self, level, name);
-              if (typeof console === undefinedType && level < self.levels.SILENT) {
-                  return "No console available for logging";
-              }
-          } else {
-              throw "log.setLevel() called with invalid level: " + level;
-          }
-      };
-
-      self.setDefaultLevel = function (level) {
-          if (!getPersistedLevel()) {
-              self.setLevel(level, false);
-          }
-      };
-
-      self.enableAll = function(persist) {
-          self.setLevel(self.levels.TRACE, persist);
-      };
-
-      self.disableAll = function(persist) {
-          self.setLevel(self.levels.SILENT, persist);
-      };
-
-      // Initialize with the right level
-      var initialLevel = getPersistedLevel();
-      if (initialLevel == null) {
-          initialLevel = defaultLevel == null ? "WARN" : defaultLevel;
-      }
-      self.setLevel(initialLevel, false);
-    }
-
-    /*
-     *
-     * Top-level API
-     *
-     */
-
-    var defaultLogger = new Logger();
-
-    var _loggersByName = {};
-    defaultLogger.getLogger = function getLogger(name) {
-        if (typeof name !== "string" || name === "") {
-          throw new TypeError("You must supply a name when creating a logger.");
-        }
-
-        var logger = _loggersByName[name];
-        if (!logger) {
-          logger = _loggersByName[name] = new Logger(
-            name, defaultLogger.getLevel(), defaultLogger.methodFactory);
-        }
-        return logger;
-    };
-
-    // Grab the current global log variable in case of overwrite
-    var _log = (typeof window !== undefinedType) ? window.log : undefined;
-    defaultLogger.noConflict = function() {
-        if (typeof window !== undefinedType &&
-               window.log === defaultLogger) {
-            window.log = _log;
-        }
-
-        return defaultLogger;
-    };
-
-    defaultLogger.getLoggers = function getLoggers() {
-        return _loggersByName;
-    };
-
-    return defaultLogger;
-}));
-});
-
-loglevel.setLevel('trace');
-
 const EvMenu = {};
 
 // Walk the menu and find any submenus that contain only radio items
@@ -357,8 +72,6 @@ EvMenu.install = function (Vue, menuDefinition) {
       this.handleClick();
       this.handleFocus();
       this.listenIpc();
-
-      this.$emit('ready');
     },
 
     methods: {
@@ -1665,38 +1378,38 @@ __vue_component__$2.install = function(Vue) {
 
 var script$3 = {
   props: {
-    // Whether to display icons for items
+    // Whether to display icons for items by default
     iconShow: {
       type: Boolean,
       default: true
     },
-    // Size of the icons in px
+    // Default size of the icons in px
     iconSize: {
       type: Number,
       default: 16
     },
-    // Position of icon in relation to the label
+    // Default position of icon in relation to the label
     iconPos: {
       // `'above'`/`'aside'`
       type: String,
       default: 'above'
     },
-    // Whether to display labels for items
-    labels: {
+    // Whether to display labels for items by default
+    labelShow: {
       type: Boolean,
       default: false
     },
-    // Font size of the labels in px
+    // Default font size of the labels in px
     fontSize: {
       type: Number,
       default: 11
     },
-    // Padding within the buttons in px
+    // Default padding within the items in px
     padding: {
       type: Number,
       default: 3
     },
-    // Minimum width of items
+    // Default minimum width of items
     minWidth: {
       type: Number,
       default: 44
@@ -1718,9 +1431,18 @@ var script$3 = {
   },
 
   render(createElement) {
+    let attrs = {
+      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',
+      style: this.toolbarStyle
+    };
+
+    if (!this.$slots.default) {
+      return createElement('div', attrs);
+    }
+
     for (const vnode of this.$slots.default) {
       vnode.componentOptions.propsData = {
-        labels: this.labels,
+        labelShow: this.labelShow,
         iconPos: this.iconPos,
         iconSize: this.iconSize,
         fontSize: this.fontSize,
@@ -1730,11 +1452,6 @@ var script$3 = {
         ...vnode.componentOptions.propsData
       };
     }
-
-    let attrs = {
-      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',
-      style: this.toolbarStyle
-    };
 
     return createElement('div', attrs, this.$slots.default);
   }
@@ -1748,11 +1465,11 @@ const __vue_script__$3 = script$3;
   /* style */
   const __vue_inject_styles__$3 = function (inject) {
     if (!inject) return
-    inject("data-v-70f120da_0", { source: "*[data-v-70f120da] {\n  box-sizing: border-box;\n}\n*[data-v-70f120da]:before,\n*[data-v-70f120da]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-70f120da] {\n  height: 100%;\n}\n.vh-100[data-v-70f120da] {\n  height: 100vh;\n}\n.w-100[data-v-70f120da] {\n  width: 100%;\n}\n.vw-100[data-v-70f120da] {\n  width: 100vw;\n}\n.pre-line[data-v-70f120da] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-70f120da] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-70f120da] {\n  white-space: nowrap;\n}\n.d-block[data-v-70f120da] {\n  display: block;\n}\n.d-inline-block[data-v-70f120da] {\n  display: inline-block;\n}\n.d-flex[data-v-70f120da] {\n  display: flex;\n}\n.d-inline-flex[data-v-70f120da] {\n  display: inline-flex;\n}\n.d-grid[data-v-70f120da] {\n  display: grid;\n}\n.d-none[data-v-70f120da] {\n  display: none;\n}\n.hide[data-v-70f120da] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-70f120da] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-70f120da] {\n  overflow: auto;\n}\n.flex-center[data-v-70f120da] {\n  justify-content: center;\n}\n.flex-middle[data-v-70f120da] {\n  align-items: center;\n}\n.flex-grow[data-v-70f120da] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-70f120da] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-70f120da] {\n  flex-direction: column;\n}\n.flex-space[data-v-70f120da] {\n  justify-content: space-between;\n}\n.flex-end[data-v-70f120da] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-70f120da] {\n  justify-content: flex-start;\n}\n.text-center[data-v-70f120da] {\n  text-align: center;\n}\n.m-z[data-v-70f120da] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-70f120da] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-70f120da] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-70f120da] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-70f120da] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-70f120da] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-70f120da] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-70f120da] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-70f120da] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-70f120da] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-70f120da] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-70f120da] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-70f120da] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-70f120da] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-70f120da] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-70f120da] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-70f120da] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-70f120da] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-70f120da] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-70f120da] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-70f120da] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-70f120da] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-70f120da] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-70f120da] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-70f120da] {\n  margin-left: 5px;\n}\n.m-n-xxs[data-v-70f120da] {\n  margin-top: 2px;\n}\n.m-e-xxs[data-v-70f120da] {\n  margin-right: 2px;\n}\n.m-s-xxs[data-v-70f120da] {\n  margin-bottom: 2px;\n}\n.m-w-xxs[data-v-70f120da] {\n  margin-left: 2px;\n}\n.p-z[data-v-70f120da] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-70f120da] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-70f120da] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-70f120da] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-70f120da] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-70f120da] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-70f120da] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-70f120da] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-70f120da] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-70f120da] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-70f120da] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-70f120da] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-70f120da] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-70f120da] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-70f120da] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-70f120da] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-70f120da] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-70f120da] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-70f120da] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-70f120da] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-70f120da] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-70f120da] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-70f120da] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-70f120da] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-70f120da] {\n  padding-left: 5px;\n}\n.p-xs[data-v-70f120da] {\n  padding: 5px;\n}\n.p-n-xxs[data-v-70f120da] {\n  padding-top: 2px;\n}\n.p-e-xxs[data-v-70f120da] {\n  padding-right: 2px;\n}\n.p-s-xxs[data-v-70f120da] {\n  padding-bottom: 2px;\n}\n.p-w-xxs[data-v-70f120da] {\n  padding-left: 2px;\n}\n.p-xxs[data-v-70f120da] {\n  padding: 2px;\n}\n.p-xs[data-v-70f120da] {\n  padding: 5px;\n}\n.p-sm[data-v-70f120da] {\n  padding: 10px;\n}\n.p-med[data-v-70f120da] {\n  padding: 15px;\n}\n.p-lg[data-v-70f120da] {\n  padding: 20px;\n}\n.p-xl[data-v-70f120da] {\n  padding: 25px;\n}\n.m-xxs[data-v-70f120da] {\n  margin: 2px;\n}\n.m-xs[data-v-70f120da] {\n  margin: 5px;\n}\n.m-sm[data-v-70f120da] {\n  margin: 10px;\n}\n.m-med[data-v-70f120da] {\n  margin: 15px;\n}\n.m-lg[data-v-70f120da] {\n  margin: 20px;\n}\n.m-xl[data-v-70f120da] {\n  margin: 25px;\n}\n.ev-toolbar[data-v-70f120da] {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */", map: {"version":3,"sources":["EvToolbar.vue","/Users/john/Code/evwt/packages/EvToolbar/src/EvToolbar.vue"],"names":[],"mappings":"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","file":"EvToolbar.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.text-center {\n  text-align: center;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.m-n-xxs {\n  margin-top: 2px;\n}\n\n.m-e-xxs {\n  margin-right: 2px;\n}\n\n.m-s-xxs {\n  margin-bottom: 2px;\n}\n\n.m-w-xxs {\n  margin-left: 2px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-n-xxs {\n  padding-top: 2px;\n}\n\n.p-e-xxs {\n  padding-right: 2px;\n}\n\n.p-s-xxs {\n  padding-bottom: 2px;\n}\n\n.p-w-xxs {\n  padding-left: 2px;\n}\n\n.p-xxs {\n  padding: 2px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xxs {\n  margin: 2px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-toolbar {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */","<script>\nexport default {\n  props: {\n    // Whether to display icons for items\n    iconShow: {\n      type: Boolean,\n      default: true\n    },\n    // Size of the icons in px\n    iconSize: {\n      type: Number,\n      default: 16\n    },\n    // Position of icon in relation to the label\n    iconPos: {\n      // `'above'`/`'aside'`\n      type: String,\n      default: 'above'\n    },\n    // Whether to display labels for items\n    labels: {\n      type: Boolean,\n      default: false\n    },\n    // Font size of the labels in px\n    fontSize: {\n      type: Number,\n      default: 11\n    },\n    // Padding within the buttons in px\n    padding: {\n      type: Number,\n      default: 3\n    },\n    // Minimum width of items\n    minWidth: {\n      type: Number,\n      default: 44\n    },\n    // Height of the toolbar in px\n    height: {\n      type: Number\n    }\n  },\n\n  computed: {\n    toolbarStyle() {\n      if (this.height) {\n        return `height: ${this.height}px`;\n      }\n\n      return '';\n    }\n  },\n\n  render(createElement) {\n    for (const vnode of this.$slots.default) {\n      vnode.componentOptions.propsData = {\n        labels: this.labels,\n        iconPos: this.iconPos,\n        iconSize: this.iconSize,\n        fontSize: this.fontSize,\n        minWidth: this.minWidth,\n        padding: this.padding,\n        iconShow: this.iconShow,\n        ...vnode.componentOptions.propsData\n      };\n    }\n\n    let attrs = {\n      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',\n      style: this.toolbarStyle\n    };\n\n    return createElement('div', attrs, this.$slots.default);\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/reset.scss';\n@import '@/../style/utilities.scss';\n\n.ev-toolbar {\n  user-select: none;\n}\n</style>\n"]}, media: undefined });
+    inject("data-v-1e6336ec_0", { source: "*[data-v-1e6336ec] {\n  box-sizing: border-box;\n}\n*[data-v-1e6336ec]:before,\n*[data-v-1e6336ec]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-1e6336ec] {\n  height: 100%;\n}\n.vh-100[data-v-1e6336ec] {\n  height: 100vh;\n}\n.w-100[data-v-1e6336ec] {\n  width: 100%;\n}\n.vw-100[data-v-1e6336ec] {\n  width: 100vw;\n}\n.pre-line[data-v-1e6336ec] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-1e6336ec] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-1e6336ec] {\n  white-space: nowrap;\n}\n.d-block[data-v-1e6336ec] {\n  display: block;\n}\n.d-inline-block[data-v-1e6336ec] {\n  display: inline-block;\n}\n.d-flex[data-v-1e6336ec] {\n  display: flex;\n}\n.d-inline-flex[data-v-1e6336ec] {\n  display: inline-flex;\n}\n.d-grid[data-v-1e6336ec] {\n  display: grid;\n}\n.d-none[data-v-1e6336ec] {\n  display: none;\n}\n.hide[data-v-1e6336ec] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-1e6336ec] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-1e6336ec] {\n  overflow: auto;\n}\n.flex-center[data-v-1e6336ec] {\n  justify-content: center;\n}\n.flex-middle[data-v-1e6336ec] {\n  align-items: center;\n}\n.flex-grow[data-v-1e6336ec] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-1e6336ec] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-1e6336ec] {\n  flex-direction: column;\n}\n.flex-space[data-v-1e6336ec] {\n  justify-content: space-between;\n}\n.flex-end[data-v-1e6336ec] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-1e6336ec] {\n  justify-content: flex-start;\n}\n.text-center[data-v-1e6336ec] {\n  text-align: center;\n}\n.m-z[data-v-1e6336ec] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-1e6336ec] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-1e6336ec] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-1e6336ec] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-1e6336ec] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-1e6336ec] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-1e6336ec] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-1e6336ec] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-1e6336ec] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-1e6336ec] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-1e6336ec] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-1e6336ec] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-1e6336ec] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-1e6336ec] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-1e6336ec] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-1e6336ec] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-1e6336ec] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-1e6336ec] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-1e6336ec] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-1e6336ec] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-1e6336ec] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-1e6336ec] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-1e6336ec] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-1e6336ec] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-1e6336ec] {\n  margin-left: 5px;\n}\n.m-n-xxs[data-v-1e6336ec] {\n  margin-top: 2px;\n}\n.m-e-xxs[data-v-1e6336ec] {\n  margin-right: 2px;\n}\n.m-s-xxs[data-v-1e6336ec] {\n  margin-bottom: 2px;\n}\n.m-w-xxs[data-v-1e6336ec] {\n  margin-left: 2px;\n}\n.p-z[data-v-1e6336ec] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-1e6336ec] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-1e6336ec] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-1e6336ec] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-1e6336ec] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-1e6336ec] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-1e6336ec] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-1e6336ec] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-1e6336ec] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-1e6336ec] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-1e6336ec] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-1e6336ec] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-1e6336ec] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-1e6336ec] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-1e6336ec] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-1e6336ec] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-1e6336ec] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-1e6336ec] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-1e6336ec] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-1e6336ec] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-1e6336ec] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-1e6336ec] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-1e6336ec] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-1e6336ec] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-1e6336ec] {\n  padding-left: 5px;\n}\n.p-xs[data-v-1e6336ec] {\n  padding: 5px;\n}\n.p-n-xxs[data-v-1e6336ec] {\n  padding-top: 2px;\n}\n.p-e-xxs[data-v-1e6336ec] {\n  padding-right: 2px;\n}\n.p-s-xxs[data-v-1e6336ec] {\n  padding-bottom: 2px;\n}\n.p-w-xxs[data-v-1e6336ec] {\n  padding-left: 2px;\n}\n.p-xxs[data-v-1e6336ec] {\n  padding: 2px;\n}\n.p-xs[data-v-1e6336ec] {\n  padding: 5px;\n}\n.p-sm[data-v-1e6336ec] {\n  padding: 10px;\n}\n.p-med[data-v-1e6336ec] {\n  padding: 15px;\n}\n.p-lg[data-v-1e6336ec] {\n  padding: 20px;\n}\n.p-xl[data-v-1e6336ec] {\n  padding: 25px;\n}\n.m-xxs[data-v-1e6336ec] {\n  margin: 2px;\n}\n.m-xs[data-v-1e6336ec] {\n  margin: 5px;\n}\n.m-sm[data-v-1e6336ec] {\n  margin: 10px;\n}\n.m-med[data-v-1e6336ec] {\n  margin: 15px;\n}\n.m-lg[data-v-1e6336ec] {\n  margin: 20px;\n}\n.m-xl[data-v-1e6336ec] {\n  margin: 25px;\n}\n.ev-toolbar[data-v-1e6336ec] {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */", map: {"version":3,"sources":["EvToolbar.vue","/Users/john/Code/evwt/packages/EvToolbar/src/EvToolbar.vue"],"names":[],"mappings":"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","file":"EvToolbar.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.text-center {\n  text-align: center;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.m-n-xxs {\n  margin-top: 2px;\n}\n\n.m-e-xxs {\n  margin-right: 2px;\n}\n\n.m-s-xxs {\n  margin-bottom: 2px;\n}\n\n.m-w-xxs {\n  margin-left: 2px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-n-xxs {\n  padding-top: 2px;\n}\n\n.p-e-xxs {\n  padding-right: 2px;\n}\n\n.p-s-xxs {\n  padding-bottom: 2px;\n}\n\n.p-w-xxs {\n  padding-left: 2px;\n}\n\n.p-xxs {\n  padding: 2px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xxs {\n  margin: 2px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-toolbar {\n  user-select: none;\n}\n\n/*# sourceMappingURL=EvToolbar.vue.map */","<script>\nexport default {\n  props: {\n    // Whether to display icons for items by default\n    iconShow: {\n      type: Boolean,\n      default: true\n    },\n    // Default size of the icons in px\n    iconSize: {\n      type: Number,\n      default: 16\n    },\n    // Default position of icon in relation to the label\n    iconPos: {\n      // `'above'`/`'aside'`\n      type: String,\n      default: 'above'\n    },\n    // Whether to display labels for items by default\n    labelShow: {\n      type: Boolean,\n      default: false\n    },\n    // Default font size of the labels in px\n    fontSize: {\n      type: Number,\n      default: 11\n    },\n    // Default padding within the items in px\n    padding: {\n      type: Number,\n      default: 3\n    },\n    // Default minimum width of items\n    minWidth: {\n      type: Number,\n      default: 44\n    },\n    // Height of the toolbar in px\n    height: {\n      type: Number\n    }\n  },\n\n  computed: {\n    toolbarStyle() {\n      if (this.height) {\n        return `height: ${this.height}px`;\n      }\n\n      return '';\n    }\n  },\n\n  render(createElement) {\n    let attrs = {\n      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',\n      style: this.toolbarStyle\n    };\n\n    if (!this.$slots.default) {\n      return createElement('div', attrs);\n    }\n\n    for (const vnode of this.$slots.default) {\n      vnode.componentOptions.propsData = {\n        labelShow: this.labelShow,\n        iconPos: this.iconPos,\n        iconSize: this.iconSize,\n        fontSize: this.fontSize,\n        minWidth: this.minWidth,\n        padding: this.padding,\n        iconShow: this.iconShow,\n        ...vnode.componentOptions.propsData\n      };\n    }\n\n    return createElement('div', attrs, this.$slots.default);\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/reset.scss';\n@import '@/../style/utilities.scss';\n\n.ev-toolbar {\n  user-select: none;\n}\n</style>\n"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$3 = "data-v-70f120da";
+  const __vue_scope_id__$3 = "data-v-1e6336ec";
   /* module identifier */
   const __vue_module_identifier__$3 = undefined;
   /* functional template */
@@ -1782,9 +1499,6 @@ __vue_component__$3.install = function(Vue) {
 
 //
 
-const PADDING_XS = 5;
-
-// @group Components
 var script$4 = {
   name: 'EvToolbarItem',
 
@@ -1793,25 +1507,57 @@ var script$4 = {
   },
 
   props: {
-    menuId: String,
+    // Name of EvIcon to use for the icon
     icon: String,
-    iconPos: String,
-    fontSize: Number,
-    iconSize: Number,
+    // Text to show above/aside icon
     label: String,
-    labels: Boolean,
-    iconShow: Boolean,
-    minWidth: Number,
+    // Text to display when hovering over item
     tooltip: String,
-    padding: Number,
-    disabled: Boolean
+    // Whether the item is disabled and cannot receive clicks
+    disabled: Boolean,
+    // A menu item id to trigger when the item is clicked
+    menuId: String,
+    // Position of icon in relation to the label
+    iconPos: {
+      // `'above'`/`'aside'`
+      type: String,
+      default: 'above'
+    },
+    // Font size of the label in px
+    fontSize: {
+      type: Number,
+      default: 11
+    },
+    // Size of the icon in px
+    iconSize: {
+      type: Number,
+      default: 16
+    },
+    // Whether to display label
+    labelShow: {
+      type: Boolean,
+      default: false
+    },
+    // Whether to display an icon
+    iconShow: {
+      type: Boolean,
+      default: true
+    },
+    // Minimum width of item
+    minWidth: {
+      type: Number,
+      default: 44
+    },
+    // Padding within the item in px
+    padding: {
+      type: Number,
+      default: 3
+    }
   },
 
   computed: {
     labelStyle() {
-      let style = {
-        lineHeight: 1
-      };
+      let style = {};
 
       if (this.fontSize) {
         style.fontSize = `${this.fontSize}px`;
@@ -1822,7 +1568,7 @@ var script$4 = {
 
     itemStyle() {
       let style = {
-        padding: `${this.padding || PADDING_XS}px`
+        padding: `${this.padding}px`
       };
 
       if (this.minWidth) {
@@ -1853,12 +1599,16 @@ var script$4 = {
         classes += ' flex-vertical p-n-xs p-s-xs';
       }
 
-      if (this.menuItem.enabled === false) {
-        classes += ' ev-disabled';
-      }
+      if (this.menuItem) {
+        classes += ` ev-toolbar-item-${this.menuItem.id}`;
 
-      if (this.menuItem.checked === true) {
-        classes += ' ev-selected';
+        if (this.menuItem.enabled === false) {
+          classes += ' ev-disabled';
+        }
+
+        if (this.menuItem.checked === true) {
+          classes += ' ev-selected';
+        }
       }
 
       return classes;
@@ -1873,6 +1623,8 @@ var script$4 = {
 
   methods: {
     handleClick() {
+      this.$emit('click');
+
       if (!this.$evmenu) return;
 
       let menuItem = this.$evmenu.get(this.menuId);
@@ -1886,6 +1638,10 @@ var script$4 = {
         if (menuItem.type === 'checkbox') {
           menuItem.checked = !menuItem.checked;
         }
+
+        this.$evmenu.$emit(`input:${this.menuId}`, menuItem);
+        this.$evmenu.$emit('input', menuItem);
+        ipcRenderer.send('evmenu:ipc:click', menuItem);
       }
     }
   }
@@ -1917,7 +1673,7 @@ var __vue_render__$3 = function() {
           })
         : _vm._e(),
       _vm._v(" "),
-      _vm.labels
+      _vm.labelShow
         ? _c("label", { class: _vm.labelClass, style: _vm.labelStyle }, [
             _vm._v("\n    " + _vm._s(_vm.label) + "\n  ")
           ])
@@ -1932,11 +1688,11 @@ __vue_render__$3._withStripped = true;
   /* style */
   const __vue_inject_styles__$4 = function (inject) {
     if (!inject) return
-    inject("data-v-16c7b98e_0", { source: "*[data-v-16c7b98e] {\n  box-sizing: border-box;\n}\n*[data-v-16c7b98e]:before,\n*[data-v-16c7b98e]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-16c7b98e] {\n  height: 100%;\n}\n.vh-100[data-v-16c7b98e] {\n  height: 100vh;\n}\n.w-100[data-v-16c7b98e] {\n  width: 100%;\n}\n.vw-100[data-v-16c7b98e] {\n  width: 100vw;\n}\n.pre-line[data-v-16c7b98e] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-16c7b98e] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-16c7b98e] {\n  white-space: nowrap;\n}\n.d-block[data-v-16c7b98e] {\n  display: block;\n}\n.d-inline-block[data-v-16c7b98e] {\n  display: inline-block;\n}\n.d-flex[data-v-16c7b98e] {\n  display: flex;\n}\n.d-inline-flex[data-v-16c7b98e] {\n  display: inline-flex;\n}\n.d-grid[data-v-16c7b98e] {\n  display: grid;\n}\n.d-none[data-v-16c7b98e] {\n  display: none;\n}\n.hide[data-v-16c7b98e] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-16c7b98e] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-16c7b98e] {\n  overflow: auto;\n}\n.flex-center[data-v-16c7b98e] {\n  justify-content: center;\n}\n.flex-middle[data-v-16c7b98e] {\n  align-items: center;\n}\n.flex-grow[data-v-16c7b98e] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-16c7b98e] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-16c7b98e] {\n  flex-direction: column;\n}\n.flex-space[data-v-16c7b98e] {\n  justify-content: space-between;\n}\n.flex-end[data-v-16c7b98e] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-16c7b98e] {\n  justify-content: flex-start;\n}\n.text-center[data-v-16c7b98e] {\n  text-align: center;\n}\n.m-z[data-v-16c7b98e] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-16c7b98e] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-16c7b98e] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-16c7b98e] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-16c7b98e] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-16c7b98e] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-16c7b98e] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-16c7b98e] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-16c7b98e] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-16c7b98e] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-16c7b98e] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-16c7b98e] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-16c7b98e] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-16c7b98e] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-16c7b98e] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-16c7b98e] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-16c7b98e] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-16c7b98e] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-16c7b98e] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-16c7b98e] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-16c7b98e] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-16c7b98e] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-16c7b98e] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-16c7b98e] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-16c7b98e] {\n  margin-left: 5px;\n}\n.m-n-xxs[data-v-16c7b98e] {\n  margin-top: 2px;\n}\n.m-e-xxs[data-v-16c7b98e] {\n  margin-right: 2px;\n}\n.m-s-xxs[data-v-16c7b98e] {\n  margin-bottom: 2px;\n}\n.m-w-xxs[data-v-16c7b98e] {\n  margin-left: 2px;\n}\n.p-z[data-v-16c7b98e] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-16c7b98e] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-16c7b98e] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-16c7b98e] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-16c7b98e] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-16c7b98e] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-16c7b98e] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-16c7b98e] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-16c7b98e] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-16c7b98e] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-16c7b98e] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-16c7b98e] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-16c7b98e] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-16c7b98e] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-16c7b98e] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-16c7b98e] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-16c7b98e] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-16c7b98e] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-16c7b98e] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-16c7b98e] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-16c7b98e] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-16c7b98e] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-16c7b98e] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-16c7b98e] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-16c7b98e] {\n  padding-left: 5px;\n}\n.p-xs[data-v-16c7b98e] {\n  padding: 5px;\n}\n.p-n-xxs[data-v-16c7b98e] {\n  padding-top: 2px;\n}\n.p-e-xxs[data-v-16c7b98e] {\n  padding-right: 2px;\n}\n.p-s-xxs[data-v-16c7b98e] {\n  padding-bottom: 2px;\n}\n.p-w-xxs[data-v-16c7b98e] {\n  padding-left: 2px;\n}\n.p-xxs[data-v-16c7b98e] {\n  padding: 2px;\n}\n.p-xs[data-v-16c7b98e] {\n  padding: 5px;\n}\n.p-sm[data-v-16c7b98e] {\n  padding: 10px;\n}\n.p-med[data-v-16c7b98e] {\n  padding: 15px;\n}\n.p-lg[data-v-16c7b98e] {\n  padding: 20px;\n}\n.p-xl[data-v-16c7b98e] {\n  padding: 25px;\n}\n.m-xxs[data-v-16c7b98e] {\n  margin: 2px;\n}\n.m-xs[data-v-16c7b98e] {\n  margin: 5px;\n}\n.m-sm[data-v-16c7b98e] {\n  margin: 10px;\n}\n.m-med[data-v-16c7b98e] {\n  margin: 15px;\n}\n.m-lg[data-v-16c7b98e] {\n  margin: 20px;\n}\n.m-xl[data-v-16c7b98e] {\n  margin: 25px;\n}\n.ev-toolbar-item[data-v-16c7b98e] {\n  user-select: none;\n}\n.ev-toolbar-item[data-v-16c7b98e]:active, .ev-toolbar-item.ev-active[data-v-16c7b98e] {\n  transform: scale(0.94);\n}\n.ev-toolbar-item.ev-disabled[data-v-16c7b98e] {\n  pointer-events: none;\n  opacity: 0.5;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */", map: {"version":3,"sources":["EvToolbarItem.vue","/Users/john/Code/evwt/packages/EvToolbarItem/src/EvToolbarItem.vue"],"names":[],"mappings":"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","file":"EvToolbarItem.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.text-center {\n  text-align: center;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.m-n-xxs {\n  margin-top: 2px;\n}\n\n.m-e-xxs {\n  margin-right: 2px;\n}\n\n.m-s-xxs {\n  margin-bottom: 2px;\n}\n\n.m-w-xxs {\n  margin-left: 2px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-n-xxs {\n  padding-top: 2px;\n}\n\n.p-e-xxs {\n  padding-right: 2px;\n}\n\n.p-s-xxs {\n  padding-bottom: 2px;\n}\n\n.p-w-xxs {\n  padding-left: 2px;\n}\n\n.p-xxs {\n  padding: 2px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xxs {\n  margin: 2px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-toolbar-item {\n  user-select: none;\n}\n.ev-toolbar-item:active, .ev-toolbar-item.ev-active {\n  transform: scale(0.94);\n}\n.ev-toolbar-item.ev-disabled {\n  pointer-events: none;\n  opacity: 0.5;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */","<template>\n  <div\n    class=\"ev-toolbar-item d-flex h-100 m-e-xs\"\n    :title=\"tooltip\"\n    :class=\"itemClass\"\n    :style=\"itemStyle\"\n    @click=\"handleClick\">\n    <ev-icon v-if=\"iconShow\" class=\"h-100\" :name=\"icon\" :style=\"iconStyle\" />\n    <label v-if=\"labels\" :class=\"labelClass\" :style=\"labelStyle\">\n      {{ label }}\n    </label>\n  </div>\n</template>\n\n<script>\nimport EvIcon from '../../EvIcon';\n\nconst PADDING_XS = 5;\n\n// @group Components\nexport default {\n  name: 'EvToolbarItem',\n\n  components: {\n    EvIcon\n  },\n\n  props: {\n    menuId: String,\n    icon: String,\n    iconPos: String,\n    fontSize: Number,\n    iconSize: Number,\n    label: String,\n    labels: Boolean,\n    iconShow: Boolean,\n    minWidth: Number,\n    tooltip: String,\n    padding: Number,\n    disabled: Boolean\n  },\n\n  computed: {\n    labelStyle() {\n      let style = {\n        lineHeight: 1\n      };\n\n      if (this.fontSize) {\n        style.fontSize = `${this.fontSize}px`;\n      }\n\n      return style;\n    },\n\n    itemStyle() {\n      let style = {\n        padding: `${this.padding || PADDING_XS}px`\n      };\n\n      if (this.minWidth) {\n        style.minWidth = `${this.minWidth}px`;\n      }\n\n      return style;\n    },\n\n    iconStyle() {\n      return `height: ${this.iconSize}px`;\n    },\n\n    labelClass() {\n      if (this.iconPos === 'aside') {\n        return 'p-w-xs';\n      }\n\n      if (this.iconShow) return 'p-n-xxs';\n\n      return '';\n    },\n\n    itemClass() {\n      let classes = 'flex-center flex-middle';\n\n      if (this.iconPos === 'above') {\n        classes += ' flex-vertical p-n-xs p-s-xs';\n      }\n\n      if (this.menuItem.enabled === false) {\n        classes += ' ev-disabled';\n      }\n\n      if (this.menuItem.checked === true) {\n        classes += ' ev-selected';\n      }\n\n      return classes;\n    },\n\n    menuItem() {\n      if (!this.$evmenu) return {};\n\n      return this.$evmenu.get(this.menuId) || {};\n    }\n  },\n\n  methods: {\n    handleClick() {\n      if (!this.$evmenu) return;\n\n      let menuItem = this.$evmenu.get(this.menuId);\n\n      if (menuItem) {\n        if (menuItem.type === 'radio') {\n          menuItem.lastChecked = true;\n          menuItem.checked = true;\n        }\n\n        if (menuItem.type === 'checkbox') {\n          menuItem.checked = !menuItem.checked;\n        }\n      }\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/reset.scss';\n@import '@/../style/utilities.scss';\n\n.ev-toolbar-item {\n  user-select: none;\n\n  &:active,\n  &.ev-active {\n    transform: scale(0.94);\n  }\n\n  &.ev-disabled {\n    pointer-events: none;\n    opacity: 0.5;\n  }\n}\n</style>\n"]}, media: undefined });
+    inject("data-v-b2993b96_0", { source: "*[data-v-b2993b96] {\n  box-sizing: border-box;\n}\n*[data-v-b2993b96]:before,\n*[data-v-b2993b96]:after {\n  box-sizing: border-box;\n}\n.h-100[data-v-b2993b96] {\n  height: 100%;\n}\n.vh-100[data-v-b2993b96] {\n  height: 100vh;\n}\n.w-100[data-v-b2993b96] {\n  width: 100%;\n}\n.vw-100[data-v-b2993b96] {\n  width: 100vw;\n}\n.pre-line[data-v-b2993b96] {\n  white-space: pre-line;\n}\n.pre-wrap[data-v-b2993b96] {\n  white-space: pre-wrap;\n}\n.no-wrap[data-v-b2993b96] {\n  white-space: nowrap;\n}\n.d-block[data-v-b2993b96] {\n  display: block;\n}\n.d-inline-block[data-v-b2993b96] {\n  display: inline-block;\n}\n.d-flex[data-v-b2993b96] {\n  display: flex;\n}\n.d-inline-flex[data-v-b2993b96] {\n  display: inline-flex;\n}\n.d-grid[data-v-b2993b96] {\n  display: grid;\n}\n.d-none[data-v-b2993b96] {\n  display: none;\n}\n.hide[data-v-b2993b96] {\n  visibility: hidden;\n}\n.overflow-hidden[data-v-b2993b96] {\n  overflow: hidden;\n}\n.overflow-auto[data-v-b2993b96] {\n  overflow: auto;\n}\n.flex-center[data-v-b2993b96] {\n  justify-content: center;\n}\n.flex-middle[data-v-b2993b96] {\n  align-items: center;\n}\n.flex-grow[data-v-b2993b96] {\n  flex-grow: 1;\n}\n.flex-shrink[data-v-b2993b96] {\n  flex-shrink: 1;\n}\n.flex-vertical[data-v-b2993b96] {\n  flex-direction: column;\n}\n.flex-space[data-v-b2993b96] {\n  justify-content: space-between;\n}\n.flex-end[data-v-b2993b96] {\n  justify-content: flex-end;\n}\n.flex-start[data-v-b2993b96] {\n  justify-content: flex-start;\n}\n.text-center[data-v-b2993b96] {\n  text-align: center;\n}\n.m-z[data-v-b2993b96] {\n  margin: 0 !important;\n}\n.m-n-z[data-v-b2993b96] {\n  margin-top: 0 !important;\n}\n.m-e-z[data-v-b2993b96] {\n  margin-right: 0 !important;\n}\n.m-s-z[data-v-b2993b96] {\n  margin-bottom: 0 !important;\n}\n.m-w-z[data-v-b2993b96] {\n  margin-left: 0 !important;\n}\n.m-n-xl[data-v-b2993b96] {\n  margin-top: 25px;\n}\n.m-e-xl[data-v-b2993b96] {\n  margin-right: 25px;\n}\n.m-s-xl[data-v-b2993b96] {\n  margin-bottom: 25px;\n}\n.m-w-xl[data-v-b2993b96] {\n  margin-left: 25px;\n}\n.m-n-lg[data-v-b2993b96] {\n  margin-top: 20px;\n}\n.m-e-lg[data-v-b2993b96] {\n  margin-right: 20px;\n}\n.m-s-lg[data-v-b2993b96] {\n  margin-bottom: 20px;\n}\n.m-w-lg[data-v-b2993b96] {\n  margin-left: 20px;\n}\n.m-n-med[data-v-b2993b96] {\n  margin-top: 15px;\n}\n.m-e-med[data-v-b2993b96] {\n  margin-right: 15px;\n}\n.m-s-med[data-v-b2993b96] {\n  margin-bottom: 15px;\n}\n.m-w-med[data-v-b2993b96] {\n  margin-left: 15px;\n}\n.m-n-sm[data-v-b2993b96] {\n  margin-top: 10px;\n}\n.m-e-sm[data-v-b2993b96] {\n  margin-right: 10px;\n}\n.m-s-sm[data-v-b2993b96] {\n  margin-bottom: 10px;\n}\n.m-w-sm[data-v-b2993b96] {\n  margin-left: 10px;\n}\n.m-n-xs[data-v-b2993b96] {\n  margin-top: 5px;\n}\n.m-e-xs[data-v-b2993b96] {\n  margin-right: 5px;\n}\n.m-s-xs[data-v-b2993b96] {\n  margin-bottom: 5px;\n}\n.m-w-xs[data-v-b2993b96] {\n  margin-left: 5px;\n}\n.m-n-xxs[data-v-b2993b96] {\n  margin-top: 2px;\n}\n.m-e-xxs[data-v-b2993b96] {\n  margin-right: 2px;\n}\n.m-s-xxs[data-v-b2993b96] {\n  margin-bottom: 2px;\n}\n.m-w-xxs[data-v-b2993b96] {\n  margin-left: 2px;\n}\n.p-z[data-v-b2993b96] {\n  padding: 0 !important;\n}\n.p-n-z[data-v-b2993b96] {\n  padding-top: 0 !important;\n}\n.p-e-z[data-v-b2993b96] {\n  padding-right: 0 !important;\n}\n.p-s-z[data-v-b2993b96] {\n  padding-bottom: 0 !important;\n}\n.p-w-z[data-v-b2993b96] {\n  padding-left: 0 !important;\n}\n.p-n-xl[data-v-b2993b96] {\n  padding-top: 25px;\n}\n.p-e-xl[data-v-b2993b96] {\n  padding-right: 25px;\n}\n.p-s-xl[data-v-b2993b96] {\n  padding-bottom: 25px;\n}\n.p-w-xl[data-v-b2993b96] {\n  padding-left: 25px;\n}\n.p-n-lg[data-v-b2993b96] {\n  padding-top: 20px;\n}\n.p-e-lg[data-v-b2993b96] {\n  padding-right: 20px;\n}\n.p-s-lg[data-v-b2993b96] {\n  padding-bottom: 20px;\n}\n.p-w-lg[data-v-b2993b96] {\n  padding-left: 20px;\n}\n.p-n-med[data-v-b2993b96] {\n  padding-top: 15px;\n}\n.p-e-med[data-v-b2993b96] {\n  padding-right: 15px;\n}\n.p-s-med[data-v-b2993b96] {\n  padding-bottom: 15px;\n}\n.p-w-med[data-v-b2993b96] {\n  padding-left: 15px;\n}\n.p-n-sm[data-v-b2993b96] {\n  padding-top: 10px;\n}\n.p-e-sm[data-v-b2993b96] {\n  padding-right: 10px;\n}\n.p-s-sm[data-v-b2993b96] {\n  padding-bottom: 10px;\n}\n.p-w-sm[data-v-b2993b96] {\n  padding-left: 10px;\n}\n.p-n-xs[data-v-b2993b96] {\n  padding-top: 5px;\n}\n.p-e-xs[data-v-b2993b96] {\n  padding-right: 5px;\n}\n.p-s-xs[data-v-b2993b96] {\n  padding-bottom: 5px;\n}\n.p-w-xs[data-v-b2993b96] {\n  padding-left: 5px;\n}\n.p-xs[data-v-b2993b96] {\n  padding: 5px;\n}\n.p-n-xxs[data-v-b2993b96] {\n  padding-top: 2px;\n}\n.p-e-xxs[data-v-b2993b96] {\n  padding-right: 2px;\n}\n.p-s-xxs[data-v-b2993b96] {\n  padding-bottom: 2px;\n}\n.p-w-xxs[data-v-b2993b96] {\n  padding-left: 2px;\n}\n.p-xxs[data-v-b2993b96] {\n  padding: 2px;\n}\n.p-xs[data-v-b2993b96] {\n  padding: 5px;\n}\n.p-sm[data-v-b2993b96] {\n  padding: 10px;\n}\n.p-med[data-v-b2993b96] {\n  padding: 15px;\n}\n.p-lg[data-v-b2993b96] {\n  padding: 20px;\n}\n.p-xl[data-v-b2993b96] {\n  padding: 25px;\n}\n.m-xxs[data-v-b2993b96] {\n  margin: 2px;\n}\n.m-xs[data-v-b2993b96] {\n  margin: 5px;\n}\n.m-sm[data-v-b2993b96] {\n  margin: 10px;\n}\n.m-med[data-v-b2993b96] {\n  margin: 15px;\n}\n.m-lg[data-v-b2993b96] {\n  margin: 20px;\n}\n.m-xl[data-v-b2993b96] {\n  margin: 25px;\n}\n.ev-toolbar-item[data-v-b2993b96] {\n  user-select: none;\n}\n.ev-toolbar-item label[data-v-b2993b96] {\n  line-height: 1.15;\n}\n.ev-toolbar-item[data-v-b2993b96]:active, .ev-toolbar-item.ev-active[data-v-b2993b96] {\n  transform: scale(0.94);\n}\n.ev-toolbar-item.ev-disabled[data-v-b2993b96] {\n  pointer-events: none;\n  opacity: 0.5;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */", map: {"version":3,"sources":["EvToolbarItem.vue","/Users/john/Code/evwt/packages/EvToolbarItem/src/EvToolbarItem.vue"],"names":[],"mappings":"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","file":"EvToolbarItem.vue","sourcesContent":["* {\n  box-sizing: border-box;\n}\n\n*:before,\n*:after {\n  box-sizing: border-box;\n}\n\n.h-100 {\n  height: 100%;\n}\n\n.vh-100 {\n  height: 100vh;\n}\n\n.w-100 {\n  width: 100%;\n}\n\n.vw-100 {\n  width: 100vw;\n}\n\n.pre-line {\n  white-space: pre-line;\n}\n\n.pre-wrap {\n  white-space: pre-wrap;\n}\n\n.no-wrap {\n  white-space: nowrap;\n}\n\n.d-block {\n  display: block;\n}\n\n.d-inline-block {\n  display: inline-block;\n}\n\n.d-flex {\n  display: flex;\n}\n\n.d-inline-flex {\n  display: inline-flex;\n}\n\n.d-grid {\n  display: grid;\n}\n\n.d-none {\n  display: none;\n}\n\n.hide {\n  visibility: hidden;\n}\n\n.overflow-hidden {\n  overflow: hidden;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n\n.flex-center {\n  justify-content: center;\n}\n\n.flex-middle {\n  align-items: center;\n}\n\n.flex-grow {\n  flex-grow: 1;\n}\n\n.flex-shrink {\n  flex-shrink: 1;\n}\n\n.flex-vertical {\n  flex-direction: column;\n}\n\n.flex-space {\n  justify-content: space-between;\n}\n\n.flex-end {\n  justify-content: flex-end;\n}\n\n.flex-start {\n  justify-content: flex-start;\n}\n\n.text-center {\n  text-align: center;\n}\n\n.m-z {\n  margin: 0 !important;\n}\n\n.m-n-z {\n  margin-top: 0 !important;\n}\n\n.m-e-z {\n  margin-right: 0 !important;\n}\n\n.m-s-z {\n  margin-bottom: 0 !important;\n}\n\n.m-w-z {\n  margin-left: 0 !important;\n}\n\n.m-n-xl {\n  margin-top: 25px;\n}\n\n.m-e-xl {\n  margin-right: 25px;\n}\n\n.m-s-xl {\n  margin-bottom: 25px;\n}\n\n.m-w-xl {\n  margin-left: 25px;\n}\n\n.m-n-lg {\n  margin-top: 20px;\n}\n\n.m-e-lg {\n  margin-right: 20px;\n}\n\n.m-s-lg {\n  margin-bottom: 20px;\n}\n\n.m-w-lg {\n  margin-left: 20px;\n}\n\n.m-n-med {\n  margin-top: 15px;\n}\n\n.m-e-med {\n  margin-right: 15px;\n}\n\n.m-s-med {\n  margin-bottom: 15px;\n}\n\n.m-w-med {\n  margin-left: 15px;\n}\n\n.m-n-sm {\n  margin-top: 10px;\n}\n\n.m-e-sm {\n  margin-right: 10px;\n}\n\n.m-s-sm {\n  margin-bottom: 10px;\n}\n\n.m-w-sm {\n  margin-left: 10px;\n}\n\n.m-n-xs {\n  margin-top: 5px;\n}\n\n.m-e-xs {\n  margin-right: 5px;\n}\n\n.m-s-xs {\n  margin-bottom: 5px;\n}\n\n.m-w-xs {\n  margin-left: 5px;\n}\n\n.m-n-xxs {\n  margin-top: 2px;\n}\n\n.m-e-xxs {\n  margin-right: 2px;\n}\n\n.m-s-xxs {\n  margin-bottom: 2px;\n}\n\n.m-w-xxs {\n  margin-left: 2px;\n}\n\n.p-z {\n  padding: 0 !important;\n}\n\n.p-n-z {\n  padding-top: 0 !important;\n}\n\n.p-e-z {\n  padding-right: 0 !important;\n}\n\n.p-s-z {\n  padding-bottom: 0 !important;\n}\n\n.p-w-z {\n  padding-left: 0 !important;\n}\n\n.p-n-xl {\n  padding-top: 25px;\n}\n\n.p-e-xl {\n  padding-right: 25px;\n}\n\n.p-s-xl {\n  padding-bottom: 25px;\n}\n\n.p-w-xl {\n  padding-left: 25px;\n}\n\n.p-n-lg {\n  padding-top: 20px;\n}\n\n.p-e-lg {\n  padding-right: 20px;\n}\n\n.p-s-lg {\n  padding-bottom: 20px;\n}\n\n.p-w-lg {\n  padding-left: 20px;\n}\n\n.p-n-med {\n  padding-top: 15px;\n}\n\n.p-e-med {\n  padding-right: 15px;\n}\n\n.p-s-med {\n  padding-bottom: 15px;\n}\n\n.p-w-med {\n  padding-left: 15px;\n}\n\n.p-n-sm {\n  padding-top: 10px;\n}\n\n.p-e-sm {\n  padding-right: 10px;\n}\n\n.p-s-sm {\n  padding-bottom: 10px;\n}\n\n.p-w-sm {\n  padding-left: 10px;\n}\n\n.p-n-xs {\n  padding-top: 5px;\n}\n\n.p-e-xs {\n  padding-right: 5px;\n}\n\n.p-s-xs {\n  padding-bottom: 5px;\n}\n\n.p-w-xs {\n  padding-left: 5px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-n-xxs {\n  padding-top: 2px;\n}\n\n.p-e-xxs {\n  padding-right: 2px;\n}\n\n.p-s-xxs {\n  padding-bottom: 2px;\n}\n\n.p-w-xxs {\n  padding-left: 2px;\n}\n\n.p-xxs {\n  padding: 2px;\n}\n\n.p-xs {\n  padding: 5px;\n}\n\n.p-sm {\n  padding: 10px;\n}\n\n.p-med {\n  padding: 15px;\n}\n\n.p-lg {\n  padding: 20px;\n}\n\n.p-xl {\n  padding: 25px;\n}\n\n.m-xxs {\n  margin: 2px;\n}\n\n.m-xs {\n  margin: 5px;\n}\n\n.m-sm {\n  margin: 10px;\n}\n\n.m-med {\n  margin: 15px;\n}\n\n.m-lg {\n  margin: 20px;\n}\n\n.m-xl {\n  margin: 25px;\n}\n\n.ev-toolbar-item {\n  user-select: none;\n}\n.ev-toolbar-item label {\n  line-height: 1.15;\n}\n.ev-toolbar-item:active, .ev-toolbar-item.ev-active {\n  transform: scale(0.94);\n}\n.ev-toolbar-item.ev-disabled {\n  pointer-events: none;\n  opacity: 0.5;\n}\n\n/*# sourceMappingURL=EvToolbarItem.vue.map */","<template>\n  <div\n    class=\"ev-toolbar-item d-flex h-100 m-e-xs\"\n    :title=\"tooltip\"\n    :class=\"itemClass\"\n    :style=\"itemStyle\"\n    @click=\"handleClick\">\n    <ev-icon v-if=\"iconShow\" class=\"h-100\" :name=\"icon\" :style=\"iconStyle\" />\n    <label v-if=\"labelShow\" :class=\"labelClass\" :style=\"labelStyle\">\n      {{ label }}\n    </label>\n  </div>\n</template>\n\n<script>\nimport { ipcRenderer } from 'electron';\nimport EvIcon from '../../EvIcon';\n\nexport default {\n  name: 'EvToolbarItem',\n\n  components: {\n    EvIcon\n  },\n\n  props: {\n    // Name of EvIcon to use for the icon\n    icon: String,\n    // Text to show above/aside icon\n    label: String,\n    // Text to display when hovering over item\n    tooltip: String,\n    // Whether the item is disabled and cannot receive clicks\n    disabled: Boolean,\n    // A menu item id to trigger when the item is clicked\n    menuId: String,\n    // Position of icon in relation to the label\n    iconPos: {\n      // `'above'`/`'aside'`\n      type: String,\n      default: 'above'\n    },\n    // Font size of the label in px\n    fontSize: {\n      type: Number,\n      default: 11\n    },\n    // Size of the icon in px\n    iconSize: {\n      type: Number,\n      default: 16\n    },\n    // Whether to display label\n    labelShow: {\n      type: Boolean,\n      default: false\n    },\n    // Whether to display an icon\n    iconShow: {\n      type: Boolean,\n      default: true\n    },\n    // Minimum width of item\n    minWidth: {\n      type: Number,\n      default: 44\n    },\n    // Padding within the item in px\n    padding: {\n      type: Number,\n      default: 3\n    }\n  },\n\n  computed: {\n    labelStyle() {\n      let style = {};\n\n      if (this.fontSize) {\n        style.fontSize = `${this.fontSize}px`;\n      }\n\n      return style;\n    },\n\n    itemStyle() {\n      let style = {\n        padding: `${this.padding}px`\n      };\n\n      if (this.minWidth) {\n        style.minWidth = `${this.minWidth}px`;\n      }\n\n      return style;\n    },\n\n    iconStyle() {\n      return `height: ${this.iconSize}px`;\n    },\n\n    labelClass() {\n      if (this.iconPos === 'aside') {\n        return 'p-w-xs';\n      }\n\n      if (this.iconShow) return 'p-n-xxs';\n\n      return '';\n    },\n\n    itemClass() {\n      let classes = 'flex-center flex-middle';\n\n      if (this.iconPos === 'above') {\n        classes += ' flex-vertical p-n-xs p-s-xs';\n      }\n\n      if (this.menuItem) {\n        classes += ` ev-toolbar-item-${this.menuItem.id}`;\n\n        if (this.menuItem.enabled === false) {\n          classes += ' ev-disabled';\n        }\n\n        if (this.menuItem.checked === true) {\n          classes += ' ev-selected';\n        }\n      }\n\n      return classes;\n    },\n\n    menuItem() {\n      if (!this.$evmenu) return {};\n\n      return this.$evmenu.get(this.menuId) || {};\n    }\n  },\n\n  methods: {\n    handleClick() {\n      this.$emit('click');\n\n      if (!this.$evmenu) return;\n\n      let menuItem = this.$evmenu.get(this.menuId);\n\n      if (menuItem) {\n        if (menuItem.type === 'radio') {\n          menuItem.lastChecked = true;\n          menuItem.checked = true;\n        }\n\n        if (menuItem.type === 'checkbox') {\n          menuItem.checked = !menuItem.checked;\n        }\n\n        this.$evmenu.$emit(`input:${this.menuId}`, menuItem);\n        this.$evmenu.$emit('input', menuItem);\n        ipcRenderer.send('evmenu:ipc:click', menuItem);\n      }\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n@import '@/../style/reset.scss';\n@import '@/../style/utilities.scss';\n\n.ev-toolbar-item {\n  user-select: none;\n\n  label {\n    line-height: 1.15;\n  }\n\n  &:active,\n  &.ev-active {\n    transform: scale(0.94);\n  }\n\n  &.ev-disabled {\n    pointer-events: none;\n    opacity: 0.5;\n  }\n}\n</style>\n"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$4 = "data-v-16c7b98e";
+  const __vue_scope_id__$4 = "data-v-b2993b96";
   /* module identifier */
   const __vue_module_identifier__$4 = undefined;
   /* functional template */
@@ -1978,13 +1734,25 @@ __vue_component__$4.install = function(Vue) {
 //
 //
 //
+//
 
-// @group Components
 var script$5 = {
   props: {
-    items: Array,
-    keyField: String,
-    rowHeight: Number
+    // Array of objects with your data
+    items: {
+      type: Array,
+      required: true
+    },
+    // Unique identifying field within each item object
+    keyField: {
+      type: String,
+      default: 'id'
+    },
+    // The height of each item
+    rowHeight: {
+      type: Number,
+      default: 18
+    }
   },
 
   data() {
@@ -2129,11 +1897,11 @@ __vue_render__$4._withStripped = true;
   /* style */
   const __vue_inject_styles__$5 = function (inject) {
     if (!inject) return
-    inject("data-v-673476b4_0", { source: ".root[data-v-673476b4] {\n  min-height: 100%;\n}\n.viewport[data-v-673476b4] {\n  overflow-y: auto;\n}\n\n/*# sourceMappingURL=EvVirtualScroll.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvVirtualScroll/src/EvVirtualScroll.vue","EvVirtualScroll.vue"],"names":[],"mappings":"AA6HA;EACA,gBAAA;AC5HA;AD+HA;EACA,gBAAA;AC5HA;;AAEA,8CAA8C","file":"EvVirtualScroll.vue","sourcesContent":["<template>\n  <div ref=\"root\" class=\"root\" :style=\"rootStyle\">\n    <div ref=\"viewport\" class=\"viewport\" :style=\"viewportStyle\">\n      <div ref=\"spacer\" class=\"spacer\" :style=\"spacerStyle\">\n        <div v-for=\"item in visibleItems\" :key=\"item[keyField]\" :style=\"itemStyle\">\n          <slot :item=\"item\">\n            {{ item }}\n          </slot>\n        </div>\n      </div>\n    </div>\n  </div>\n</template>\n\n<script>\n// @group Components\nexport default {\n  props: {\n    items: Array,\n    keyField: String,\n    rowHeight: Number\n  },\n\n  data() {\n    return {\n      rootHeight: window.innerHeight,\n      scrollTop: 0,\n      nodePadding: 10\n    };\n  },\n\n  computed: {\n    viewportHeight() {\n      return this.itemCount * this.rowHeight;\n    },\n\n    startIndex() {\n      let startNode = Math.floor(this.scrollTop / this.rowHeight) - this.nodePadding;\n      startNode = Math.max(0, startNode);\n      return startNode;\n    },\n\n    visibleNodeCount() {\n      let count = Math.ceil(this.rootHeight / this.rowHeight) + 2 * this.nodePadding;\n      count = Math.min(this.itemCount - this.startIndex, count);\n      return count;\n    },\n\n    visibleItems() {\n      return this.items.slice(\n        this.startIndex,\n        this.startIndex + this.visibleNodeCount\n      );\n    },\n\n    itemCount() {\n      return this.items.length;\n    },\n\n    offsetY() {\n      return this.startIndex * this.rowHeight;\n    },\n\n    spacerStyle() {\n      return {\n        transform: `translateY(${this.offsetY}px)`\n      };\n    },\n\n    viewportStyle() {\n      return {\n        overflow: 'hidden',\n        height: `${this.viewportHeight}px`,\n        position: 'relative'\n      };\n    },\n\n    rootStyle() {\n      return {\n        height: `${this.rootHeight}px`,\n        overflow: 'auto'\n      };\n    },\n\n    itemStyle() {\n      return {\n        height: `${this.rowHeight}px`\n      };\n    }\n  },\n\n  mounted() {\n    this.$refs.root.addEventListener(\n      'scroll',\n      this.handleScroll,\n      { passive: true }\n    );\n\n    this.observeSize();\n  },\n\n  beforeDestroy() {\n    this.$refs.root.removeEventListener('scroll', this.handleScroll);\n  },\n\n  methods: {\n    handleScroll() {\n      this.scrollTop = this.$refs.root.scrollTop;\n    },\n\n    observeSize() {\n      let rootSizeObserver = new ResizeObserver(entries => {\n        for (let entry of entries) {\n          let { contentRect } = entry;\n          this.rootHeight = contentRect.height;\n        }\n      });\n\n      rootSizeObserver.observe(this.$refs.root.parentElement);\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n.root {\n  min-height: 100%;\n}\n\n.viewport {\n  overflow-y: auto;\n}\n</style>\n",".root {\n  min-height: 100%;\n}\n\n.viewport {\n  overflow-y: auto;\n}\n\n/*# sourceMappingURL=EvVirtualScroll.vue.map */"]}, media: undefined });
+    inject("data-v-502cfb71_0", { source: ".root[data-v-502cfb71] {\n  min-height: 100%;\n}\n.viewport[data-v-502cfb71] {\n  overflow-y: auto;\n}\n\n/*# sourceMappingURL=EvVirtualScroll.vue.map */", map: {"version":3,"sources":["/Users/john/Code/evwt/packages/EvVirtualScroll/src/EvVirtualScroll.vue","EvVirtualScroll.vue"],"names":[],"mappings":"AAyIA;EACA,gBAAA;ACxIA;AD2IA;EACA,gBAAA;ACxIA;;AAEA,8CAA8C","file":"EvVirtualScroll.vue","sourcesContent":["<template>\n  <div ref=\"root\" class=\"root\" :style=\"rootStyle\">\n    <div ref=\"viewport\" class=\"viewport\" :style=\"viewportStyle\">\n      <div ref=\"spacer\" class=\"spacer\" :style=\"spacerStyle\">\n        <div v-for=\"item in visibleItems\" :key=\"item[keyField]\" :style=\"itemStyle\">\n          <!-- Slot for your item component. Slot scope of `item` available with item properties. -->\n          <slot :item=\"item\">\n            {{ item }}\n          </slot>\n        </div>\n      </div>\n    </div>\n  </div>\n</template>\n\n<script>\nexport default {\n  props: {\n    // Array of objects with your data\n    items: {\n      type: Array,\n      required: true\n    },\n    // Unique identifying field within each item object\n    keyField: {\n      type: String,\n      default: 'id'\n    },\n    // The height of each item\n    rowHeight: {\n      type: Number,\n      default: 18\n    }\n  },\n\n  data() {\n    return {\n      rootHeight: window.innerHeight,\n      scrollTop: 0,\n      nodePadding: 10\n    };\n  },\n\n  computed: {\n    viewportHeight() {\n      return this.itemCount * this.rowHeight;\n    },\n\n    startIndex() {\n      let startNode = Math.floor(this.scrollTop / this.rowHeight) - this.nodePadding;\n      startNode = Math.max(0, startNode);\n      return startNode;\n    },\n\n    visibleNodeCount() {\n      let count = Math.ceil(this.rootHeight / this.rowHeight) + 2 * this.nodePadding;\n      count = Math.min(this.itemCount - this.startIndex, count);\n      return count;\n    },\n\n    visibleItems() {\n      return this.items.slice(\n        this.startIndex,\n        this.startIndex + this.visibleNodeCount\n      );\n    },\n\n    itemCount() {\n      return this.items.length;\n    },\n\n    offsetY() {\n      return this.startIndex * this.rowHeight;\n    },\n\n    spacerStyle() {\n      return {\n        transform: `translateY(${this.offsetY}px)`\n      };\n    },\n\n    viewportStyle() {\n      return {\n        overflow: 'hidden',\n        height: `${this.viewportHeight}px`,\n        position: 'relative'\n      };\n    },\n\n    rootStyle() {\n      return {\n        height: `${this.rootHeight}px`,\n        overflow: 'auto'\n      };\n    },\n\n    itemStyle() {\n      return {\n        height: `${this.rowHeight}px`\n      };\n    }\n  },\n\n  mounted() {\n    this.$refs.root.addEventListener(\n      'scroll',\n      this.handleScroll,\n      { passive: true }\n    );\n\n    this.observeSize();\n  },\n\n  beforeDestroy() {\n    this.$refs.root.removeEventListener('scroll', this.handleScroll);\n  },\n\n  methods: {\n    handleScroll() {\n      this.scrollTop = this.$refs.root.scrollTop;\n    },\n\n    observeSize() {\n      let rootSizeObserver = new ResizeObserver(entries => {\n        for (let entry of entries) {\n          let { contentRect } = entry;\n          this.rootHeight = contentRect.height;\n        }\n      });\n\n      rootSizeObserver.observe(this.$refs.root.parentElement);\n    }\n  }\n};\n</script>\n\n<style lang=\"scss\" scoped>\n.root {\n  min-height: 100%;\n}\n\n.viewport {\n  overflow-y: auto;\n}\n</style>\n",".root {\n  min-height: 100%;\n}\n\n.viewport {\n  overflow-y: auto;\n}\n\n/*# sourceMappingURL=EvVirtualScroll.vue.map */"]}, media: undefined });
 
   };
   /* scoped */
-  const __vue_scope_id__$5 = "data-v-673476b4";
+  const __vue_scope_id__$5 = "data-v-502cfb71";
   /* module identifier */
   const __vue_module_identifier__$5 = undefined;
   /* functional template */

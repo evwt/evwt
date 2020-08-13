@@ -40,31 +40,3 @@ export default {
 };
 </script>
 ```
-
-
-## Props
-
-<!-- @vuese:EvVirtualScroll:props:start -->
-|Name|Description|Type|Required|Default|
-|---|---|---|---|---|
-|items|Array of objects with your data|`Array`|`true`|-|
-|keyField|Unique identifying field within each item object|`String`|`false`|id|
-|rowHeight|The height of each item|`Number`|`false`|18|
-
-<!-- @vuese:EvVirtualScroll:props:end -->
-
-
-## Slots
-
-<!-- @vuese:EvVirtualScroll:slots:start -->
-|Name|Description|Default Slot Content|
-|---|---|---|
-|default|Slot for your item component. Slot scope of `item` available with item properties.|-|
-
-<!-- @vuese:EvVirtualScroll:slots:end -->
-
-
-
-
-
-

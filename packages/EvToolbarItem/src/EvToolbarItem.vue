@@ -6,18 +6,16 @@
     :style="itemStyle"
     @click="handleClick">
     <ev-icon v-if="iconShow" class="h-100" :name="icon" :style="iconStyle" />
-    <label v-if="labels" :class="labelClass" :style="labelStyle">
+    <label v-if="labelShow" :class="labelClass" :style="labelStyle">
       {{ label }}
     </label>
   </div>
 </template>
 
 <script>
+import { ipcRenderer } from 'electron';
 import EvIcon from '../../EvIcon';
 
-const PADDING_XS = 5;
-
-// @group Components
 export default {
   name: 'EvToolbarItem',
 
@@ -26,25 +24,57 @@ export default {
   },
 
   props: {
-    menuId: String,
+    // Name of EvIcon to use for the icon
     icon: String,
-    iconPos: String,
-    fontSize: Number,
-    iconSize: Number,
+    // Text to show above/aside icon
     label: String,
-    labels: Boolean,
-    iconShow: Boolean,
-    minWidth: Number,
+    // Text to display when hovering over item
     tooltip: String,
-    padding: Number,
-    disabled: Boolean
+    // Whether the item is disabled and cannot receive clicks
+    disabled: Boolean,
+    // A menu item id to trigger when the item is clicked
+    menuId: String,
+    // Position of icon in relation to the label
+    iconPos: {
+      // `'above'`/`'aside'`
+      type: String,
+      default: 'above'
+    },
+    // Font size of the label in px
+    fontSize: {
+      type: Number,
+      default: 11
+    },
+    // Size of the icon in px
+    iconSize: {
+      type: Number,
+      default: 16
+    },
+    // Whether to display label
+    labelShow: {
+      type: Boolean,
+      default: false
+    },
+    // Whether to display an icon
+    iconShow: {
+      type: Boolean,
+      default: true
+    },
+    // Minimum width of item
+    minWidth: {
+      type: Number,
+      default: 44
+    },
+    // Padding within the item in px
+    padding: {
+      type: Number,
+      default: 3
+    }
   },
 
   computed: {
     labelStyle() {
-      let style = {
-        lineHeight: 1
-      };
+      let style = {};
 
       if (this.fontSize) {
         style.fontSize = `${this.fontSize}px`;
@@ -55,7 +85,7 @@ export default {
 
     itemStyle() {
       let style = {
-        padding: `${this.padding || PADDING_XS}px`
+        padding: `${this.padding}px`
       };
 
       if (this.minWidth) {
@@ -86,12 +116,16 @@ export default {
         classes += ' flex-vertical p-n-xs p-s-xs';
       }
 
-      if (this.menuItem.enabled === false) {
-        classes += ' ev-disabled';
-      }
+      if (this.menuItem) {
+        classes += ` ev-toolbar-item-${this.menuItem.id}`;
 
-      if (this.menuItem.checked === true) {
-        classes += ' ev-selected';
+        if (this.menuItem.enabled === false) {
+          classes += ' ev-disabled';
+        }
+
+        if (this.menuItem.checked === true) {
+          classes += ' ev-selected';
+        }
       }
 
       return classes;
@@ -106,6 +140,8 @@ export default {
 
   methods: {
     handleClick() {
+      this.$emit('click');
+
       if (!this.$evmenu) return;
 
       let menuItem = this.$evmenu.get(this.menuId);
@@ -119,6 +155,10 @@ export default {
         if (menuItem.type === 'checkbox') {
           menuItem.checked = !menuItem.checked;
         }
+
+        this.$evmenu.$emit(`input:${this.menuId}`, menuItem);
+        this.$evmenu.$emit('input', menuItem);
+        ipcRenderer.send('evmenu:ipc:click', menuItem);
       }
     }
   }
@@ -131,6 +171,10 @@ export default {
 
 .ev-toolbar-item {
   user-select: none;
+
+  label {
+    line-height: 1.15;
+  }
 
   &:active,
   &.ev-active {

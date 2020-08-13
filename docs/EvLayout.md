@@ -83,6 +83,8 @@ export default {
 </style>
 ```
 
+> Tip: For dividers, put a border on one side of a pane.
+
 ### Pane definition
 
 | Property | Type | Description | Example
