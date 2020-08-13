@@ -1,5 +1,5 @@
 import { BrowserWindow, screen } from 'electron';
-import log from '@/../lib/log';
+import log from '../lib/log';
 import { getNonOverlappingBounds } from '../lib/bounds';
 
 const debounce = require('lodash/debounce');
