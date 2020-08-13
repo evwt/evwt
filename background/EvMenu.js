@@ -1,6 +1,7 @@
 import {
   ipcMain, Menu, app, BrowserWindow
 } from 'electron';
+import log from '../lib/log';
 
 let menu = {};
 
@@ -35,7 +36,7 @@ function onIpcClick(e, payload) {
 
 function onIpcSet(e, definition) {
   if (!definition) {
-    console.log('[EvMenu] No definition to build menu from');
+    log.warn('[EvMenu] No definition to build menu from');
     return;
   }
 
@@ -89,7 +90,7 @@ function addClickToItems(menuToAttach) {
 
 function handleNativeClick(menuItem, focusedWindow) {
   if (!menuItem.id) {
-    console.log(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
+    log.warn(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
     return;
   }
 

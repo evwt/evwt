@@ -1,4 +1,5 @@
 import { BrowserWindow, screen } from 'electron';
+import log from '@/../lib/log';
 import { getNonOverlappingBounds } from '../lib/bounds';
 
 const debounce = require('lodash/debounce');
@@ -22,12 +23,12 @@ let windows = new Map();
  */
 export function startStoringOptions(restoreId, win) {
   if (!win || !win.getNormalBounds) {
-    console.log('[EvWindow] Invalid window passed, not storing');
+    log.warn('[EvWindow] Invalid window passed, not storing');
     return;
   }
 
   if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
-    console.log('[EvWindow] Invalid restoreId passed, not storing');
+    log.warn('[EvWindow] Invalid restoreId passed, not storing');
     return;
   }
 
@@ -105,12 +106,12 @@ export function arrange(arrangement) {
  */
 export function getStoredOptions(restoreId, defaultOptions) {
   if (!defaultOptions) {
-    console.log('[EvWindow] defaultOptions not passed, skipping');
+    log.warn('[EvWindow] defaultOptions not passed, skipping');
     return;
   }
 
   if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
-    console.log('[EvWindow] Invalid restoreId passed, skipping');
+    log.warn('[EvWindow] Invalid restoreId passed, skipping');
     return;
   }
 
