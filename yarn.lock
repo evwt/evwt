@@ -12577,10 +12577,10 @@ vue-template-es2015-compiler@^1.6.0, vue-template-es2015-compiler@^1.9.0:
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha512-4gDntzrifFnCEvyoO8PqyJDmguXgVPxKiIxrBKjIowvL9l+N66196+72XVYR8BBf1Uv1Fgt3bGevJ+sEmxfZzw==
 
-vue-test-declarative@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/vue-test-declarative/-/vue-test-declarative-1.2.0.tgz#d8b2a6b78230037c33aec97c5c4fb138fb3e03eb"
-  integrity sha512-abIY1mhzEpfdXFJeK9eDL7VuPOI9UySLRUY4zDQXlmo4Xz6vzB6dgK2i9LqeCC7hHoSbV+9mpUllpXpS88OQNQ==
+vue-test-declarative@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/vue-test-declarative/-/vue-test-declarative-1.2.1.tgz#50833e9ed803bcf5f67493a43ff9a3fb536c2a8f"
+  integrity sha512-A6z2/L+3svXqgrdHPzTiFOk6OQe1rJlOx2dkRhPhbbRyYbNgM7Xe4E3Px12oCVlSthe7Rx2UJAqiaSTMWV9mMg==
   dependencies:
     glob "^7.1.4"
     uuid "^3.3.2"
