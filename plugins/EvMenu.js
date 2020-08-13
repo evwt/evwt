@@ -1,20 +1,65 @@
 import { ipcRenderer } from 'electron';
+import log from '../lib/log';
 
 const EvMenu = {};
+
+// Walk the menu and find any submenus that contain only radio items
+// Then apply the mutually-exclusive logic to these items
+function setRadioMenus(menu) {
+  for (let idx = 0; idx < menu.length; idx++) {
+    let submenu = menu[idx];
+    if (!submenu) return;
+
+    if (submenu.submenu && submenu.submenu.length) {
+      let isRadioMenu = submenu.submenu.every(item => item.type === 'radio');
+
+      if (isRadioMenu) {
+        for (let jdx = 0; jdx < submenu.submenu.length; jdx++) {
+          if (submenu.submenu[jdx].lastChecked) {
+            // This was the last checked item, set it to true
+            submenu.submenu[jdx].checked = true;
+            submenu.submenu[jdx].lastChecked = false;
+          } else {
+            // Everything else, set to false
+            submenu.submenu[jdx].checked = false;
+          }
+        }
+      }
+    }
+
+    if (submenu.submenu) {
+      setRadioMenus(submenu.submenu);
+    }
+  }
+}
 
 EvMenu.install = function (Vue, menuDefinition) {
   let menuVm = new Vue({
     data() {
       return {
-        menu: Vue.observable(menuDefinition)
+        menu: Vue.observable(menuDefinition),
+        initialLoad: true,
+        isDirty: false
       };
     },
 
     watch: {
       menu: {
         deep: true,
-        immediate: true,
         handler(newMenu) {
+          if (this.isDirty) {
+            this.isDirty = false;
+            return;
+          }
+
+          if (this.initialLoad) {
+            this.initialLoad = false;
+          } else {
+            this.isDirty = true;
+
+            setRadioMenus(newMenu);
+          }
+
           ipcRenderer.invoke('evmenu:ipc:set', newMenu);
         }
       }
@@ -60,6 +105,10 @@ EvMenu.install = function (Vue, menuDefinition) {
         this.$on('click', command => {
           let menuItem = this.get(command);
 
+          if (menuItem.type === 'radio') {
+            menuItem.lastChecked = true;
+          }
+
           this.$emit(`input:${command}`, menuItem);
           this.$emit('input', menuItem);
           ipcRenderer.send('evmenu:ipc:click', menuItem);
@@ -72,6 +121,10 @@ EvMenu.install = function (Vue, menuDefinition) {
 
           for (let key of Object.keys(payload)) {
             menuItem[key] = payload[key];
+          }
+
+          if (menuItem.type === 'radio') {
+            menuItem.lastChecked = true;
           }
 
           this.$emit('input', payload);

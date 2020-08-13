@@ -98,6 +98,8 @@ export default {
     },
 
     menuItem() {
+      if (!this.$evmenu) return {};
+
       return this.$evmenu.get(this.menuId) || {};
     }
   },
@@ -109,6 +111,11 @@ export default {
       let menuItem = this.$evmenu.get(this.menuId);
 
       if (menuItem) {
+        if (menuItem.type === 'radio') {
+          menuItem.lastChecked = true;
+          menuItem.checked = true;
+        }
+
         if (menuItem.type === 'checkbox') {
           menuItem.checked = !menuItem.checked;
         }
