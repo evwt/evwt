@@ -1,20 +1,45 @@
 <script>
-// @group Components
 export default {
   props: {
+    // Whether to display icons for items
     iconShow: {
       type: Boolean,
       default: true
     },
-    labels: Boolean,
-    minWidth: Number,
-    height: Number,
-    fontSize: Number,
-    iconSize: Number,
-    padding: Number,
+    // Size of the icons in px
+    iconSize: {
+      type: Number,
+      default: 16
+    },
+    // Position of icon in relation to the label
     iconPos: {
+      // `'above'`/`'aside'`
       type: String,
-      default: 'aside'
+      default: 'above'
+    },
+    // Whether to display labels for items
+    labels: {
+      type: Boolean,
+      default: false
+    },
+    // Font size of the labels in px
+    fontSize: {
+      type: Number,
+      default: 11
+    },
+    // Padding within the buttons in px
+    padding: {
+      type: Number,
+      default: 3
+    },
+    // Minimum width of items
+    minWidth: {
+      type: Number,
+      default: 44
+    },
+    // Height of the toolbar in px
+    height: {
+      type: Number
     }
   },
 
@@ -44,11 +69,7 @@ export default {
 
     let attrs = {
       class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',
-      style: this.toolbarStyle,
-      props: {
-        iconPos: this.iconPos,
-        iconSize: this.iconSize
-      }
+      style: this.toolbarStyle
     };
 
     return createElement('div', attrs, this.$slots.default);
@@ -64,28 +85,3 @@ export default {
   user-select: none;
 }
 </style>
-
-<docs>
-
-## Setup
-
-```js
-import { EvToolbar, EvToolbarItem } from 'evwt';
-
-export default {
-  components: {
-    EvToolbar,
-    EvToolbarItem
-  }
-}
-```
-
-## Usage
-```vue
-  <ev-toolbar :icon-size="16" icon-pos="above" :icon-show="true" :labels="true" :min-width="32" :font-size="11" :padding="5">
-    <ev-toolbar-item menu-id="new-file" icon="file-plus" label="New" tooltip="New File" />
-    <ev-toolbar-item menu-id="open-file" icon="folder-open" label="Open" tooltip="Open File" @click.native="handleOpenFile" />
-    <ev-toolbar-item menu-id="save-file" icon="save" label="Save" tooltip="Save File" />
-  </ev-toolbar>
-```
-</docs>
