@@ -27,8 +27,13 @@ Existing Electron/Vue app:
 
 ### Example Apps
 
-[Markdown Editor](https://github.com/evwt/evwt-example-markdown-editor)
-<br> This app also serves as the official EVWT [testbed](https://github.com/evwt/evwt-example-markdown-editor/tree/master/test).
+<ul>
+  <li>
+  <a href="https://github.com/evwt/evwt-example-markdown-editor">Markdown Editor</a>
+  <br>
+  This app also serves as the official EVWT <a href="https://github.com/evwt/evwt-example-markdown-editor/tree/master/test">testbed</a>.
+  </li>
+</ul>
 
 ## Screenshots
 
