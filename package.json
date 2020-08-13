@@ -1,6 +1,6 @@
 {
   "name": "evwt",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Electron Vue Window Toolkit",
   "author": {
     "name": "John Susek",
