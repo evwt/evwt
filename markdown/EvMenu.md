@@ -1,6 +1,6 @@
 # EvMenu
 
-Unified events and data bindings for native menus.
+Reactive native menus.
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 

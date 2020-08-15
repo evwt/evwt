@@ -1,7 +1,7 @@
 let { upperFirst, camelCase } = require('lodash');
 
 /**
- *
+ * Build icon library
  *
  * @param {*} Vue
  * @param {Function} requireContext - https://webpack.js.org/api/module-methods/#requirecontext

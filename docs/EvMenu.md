@@ -1,6 +1,6 @@
 # EvMenu
 
-Unified events and data bindings for native menus.
+Reactive native menus.
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 
@@ -158,4 +158,17 @@ app.on('evmenu:open-file', item => {
 #### activate()
 **Kind**: global function  
 
+
+### Plugin
+
+<a name="get"></a>
+
+#### get(id) ⇒ <code>MenuItem</code>
+Get menu by id
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| id | <code>String</code> | 
 

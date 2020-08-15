@@ -101,6 +101,8 @@ export default {
 <a name="build"></a>
 
 #### build(Vue, requireContext)
+Build icon library
+
 **Kind**: global function  
 
 | Param | Type | Description |

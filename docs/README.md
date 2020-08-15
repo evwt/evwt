@@ -22,10 +22,10 @@ Existing Electron/Vue app:
 
 ## Docs
 
-- [Documentation](https://evwt.net/)
+- **[Documentation](https://evwt.net/)**
 - [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
 
-### Example Apps
+## Example Apps
 
 <ul>
   <li>
