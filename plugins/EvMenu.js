@@ -32,6 +32,16 @@ function setRadioMenus(menu) {
   }
 }
 
+/**
+ * Get menu by id
+ *
+ * @param {String} id
+ * @returns {MenuItem}
+ */
+function get(id) {
+  return this.findMenuItem(this.menu, id);
+}
+
 EvMenu.install = function (Vue, menuDefinition) {
   let menuVm = new Vue({
     data() {
@@ -75,9 +85,7 @@ EvMenu.install = function (Vue, menuDefinition) {
     },
 
     methods: {
-      get(id) {
-        return this.findMenuItem(this.menu, id);
-      },
+      get,
 
       findMenuItem(items, id) {
         if (!items) { return; }

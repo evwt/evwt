@@ -1,15 +1,9 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable no-await-in-loop */
 
-// This assumes vuese was run first and docs exist in docs/components
-// For each item in the document index [], search background/plugins for the js (glob)
-// then also search markdown/ for the intro text
-// then also search for a .vue file with the same name
-// (EvIcon good test, all three)
-// then just store all this shit and dump it out later .. just get file contents rendered first
-// sidebar built from document index[]
 let documents = [
   'EvIcon',
+  'EvContextMenu',
   'EvMenu',
   'EvStore',
   'EvWindow',

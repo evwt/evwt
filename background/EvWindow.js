@@ -46,7 +46,9 @@ export function startStoringOptions(restoreId, win) {
     let key = `${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`;
 
     // For unit tests
-    process.env.evwtTestEvWindow1 = `${key} ${JSON.stringify(bounds)}`;
+    if (process.env.npm_lifecycle_event === 'test') {
+      process.env.evwtTestEvWindow1 = `${key} ${JSON.stringify(bounds)}`;
+    }
 
     store.set(key, bounds);
   }, BOUNDS_AUTOSAVE_INTERVAL);
