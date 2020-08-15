@@ -23,9 +23,11 @@
   "module": "dist/evwt.esm.js",
   "dependencies": {
     "core-js": "3.6.5",
+    "deep-diff": "^1.0.2",
     "electron-store": "^6.0.0",
     "lodash": "4.17.19",
     "loglevel": "^1.6.8",
+    "observable-slim": "^0.1.5",
     "vue": "2.6.11"
   },
   "devDependencies": {
