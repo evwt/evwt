@@ -13,8 +13,16 @@
 </template>
 
 <script>
-import { ipcRenderer } from 'electron';
 import EvIcon from './EvIcon';
+
+let ipc;
+
+try {
+  let { ipcRenderer } = require('electron');
+  ipc = ipcRenderer;
+} catch (error) {
+  console.log('No electron available.');
+}
 
 export default {
   name: 'EvToolbarItem',
@@ -158,7 +166,8 @@ export default {
 
         this.$evmenu.$emit(`input:${this.menuId}`, menuItem);
         this.$evmenu.$emit('input', menuItem);
-        ipcRenderer.send('evmenu:ipc:click', menuItem);
+
+        ipc.send('evmenu:ipc:click', menuItem);
       }
     }
   }
