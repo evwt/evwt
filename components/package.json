@@ -1,6 +1,6 @@
 {
   "name": "evwt-components",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Web-compatible versions of EVWT components. Currently EvDropZone, EvLayout and EvVirtualScroll.",
   "scripts": {
     "build": "npm run build:umd & npm run build:es",
