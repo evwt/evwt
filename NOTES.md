@@ -1,5 +1,8 @@
 ## Notes
 
+### NiM
+This [extension](https://chrome.google.com/webstore/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj) is really helpful for autmatically relaunching _background_ dev tools during development of apps.
+
 ### EvMenu Events
 
 Understanding what EvMenu is doing can be a little tricky because of four event systems involved:

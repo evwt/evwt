@@ -139,14 +139,18 @@ app.on('evmenu:open-file', item => {
 
 <dl>
 <dt><a href="#attach">attach(win)</a></dt>
-<dd></dd>
+<dd><p>Start using EvMenu with this BrowserWindow</p>
+</dd>
 <dt><a href="#activate">activate()</a></dt>
-<dd></dd>
+<dd><p>Set up IPC event handlers</p>
+</dd>
 </dl>
 
 <a name="attach"></a>
 
 #### attach(win)
+Start using EvMenu with this BrowserWindow
+
 **Kind**: global function  
 
 | Param | Type |
@@ -156,6 +160,8 @@ app.on('evmenu:open-file', item => {
 <a name="activate"></a>
 
 #### activate()
+Set up IPC event handlers
+
 **Kind**: global function  
 
 

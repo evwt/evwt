@@ -2,11 +2,12 @@ import {
   ipcMain, Menu, app, BrowserWindow
 } from 'electron';
 import log from '../lib/log';
+import { findMenuFromItem, serializableProperties } from '../lib/menus';
 
 let menu = {};
 
 /**
- *
+ * Start using EvMenu with this BrowserWindow
  *
  * @param {BrowserWindow} win
  */
@@ -17,7 +18,7 @@ export function attach(win) {
 }
 
 /**
- *
+ * Set up IPC event handlers
  *
  */
 export function activate() {
@@ -35,103 +36,64 @@ function onIpcClick(e, payload) {
 }
 
 function onIpcSet(e, definition) {
-  if (!definition) {
-    log.warn('[EvMenu] No definition to build menu from');
-    return;
-  }
-
-  menu = Menu.buildFromTemplate(buildMenuTemplate(definition));
-
-  for (let item of definition) {
-    decorateMenu(item, menu);
-  }
-
-  Menu.setApplicationMenu(menu);
-
-  return definition;
-}
-
-function decorateMenu(menuItem, builtMenu) {
-  // This removes the click handler which can't be serialized for IPC
-  delete menuItem.click;
-
-  if (menuItem.id) {
-    let builtMenuItem = findBuiltMenuItem(builtMenu.items, menuItem.id);
-
-    // This adds properties from the built menu onto the menu definition
-    for (let key of Object.keys(builtMenuItem)) {
-      if (['string', 'number', 'boolean'].includes(typeof builtMenuItem[key])) {
-        menuItem[key] = builtMenuItem[key];
-      }
-    }
-  }
-
-  if (menuItem.submenu) {
-    for (let item of menuItem.submenu) {
-      decorateMenu(item, builtMenu);
-    }
-  }
-}
-
-function buildMenuTemplate(definition) {
+  if (!definition || !definition.length) return;
   addClickToItems(definition);
-  return definition;
+  menu = Menu.buildFromTemplate(definition);
+  Menu.setApplicationMenu(menu);
 }
 
 function addClickToItems(menuToAttach) {
   for (let idx = 0; idx < menuToAttach.length; idx++) {
     if (!menuToAttach[idx]) return;
-    menuToAttach[idx].click = handleNativeClick;
+
+    menuToAttach[idx].click = handleNativeInput;
+
     if (menuToAttach[idx].submenu) {
       addClickToItems(menuToAttach[idx].submenu);
     }
   }
 }
 
-function handleNativeClick(menuItem, focusedWindow) {
-  if (!menuItem.id) {
+function handleNativeInput(menuItem, focusedWindow) {
+  if (!menuItem || !menuItem.id) {
     log.warn(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
     return;
   }
 
-  let payload = payloadFromMenuItem(menuItem);
+  let ipcPayloads = [];
 
+  // If this is a radio item, send down all the sibling items too
+  if (menuItem.type === 'radio') {
+    let radioMenu = findMenuFromItem(menuItem, menu);
+
+    if (radioMenu && radioMenu.length) {
+      for (let radioMenuItem of radioMenu) {
+        let payload = serializableProperties(radioMenuItem);
+        ipcPayloads.push(payload);
+      }
+    }
+  } else {
+    let payload = serializableProperties(menuItem);
+    ipcPayloads.push(payload);
+  }
+
+  for (let payload of ipcPayloads) {
+    emitPayload(payload, focusedWindow);
+  }
+}
+
+function emitPayload(payload, window) {
   app.emit('evmenu', payload);
   app.emit(`evmenu:${payload.id}`, payload);
 
-  if (focusedWindow) {
-    focusedWindow.emit('evmenu', payload);
-    focusedWindow.emit(`evmenu:${payload.id}`, payload);
+  if (window) {
+    window.emit('evmenu', payload);
+    window.emit(`evmenu:${payload.id}`, payload);
 
-    if (focusedWindow.webContents) {
-      focusedWindow.webContents.send('evmenu:ipc:input', payload);
+    if (window.webContents) {
+      window.webContents.send('evmenu:ipc:input', payload);
     }
   }
-}
-
-function findBuiltMenuItem(items, id) {
-  if (!items) { return; }
-
-  for (let item of items) {
-    if (item.id === id) return item;
-
-    if (item.submenu && item.submenu.items) {
-      let child = findBuiltMenuItem(item.submenu.items, id);
-      if (child) return child;
-    }
-  }
-}
-
-function payloadFromMenuItem(menuItem) {
-  let payload = {};
-
-  for (let key of Object.keys(menuItem)) {
-    if (['string', 'number', 'boolean'].includes(typeof menuItem[key])) {
-      payload[key] = menuItem[key];
-    }
-  }
-
-  return payload;
 }
 
 export default {
