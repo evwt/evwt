@@ -116,6 +116,8 @@ app.on('evcontextmenu:my-context-menu:item-1', item => {
 <a name="activate"></a>
 
 #### activate()
+Activate event handlers for setting/showing menus
+
 **Kind**: global function  
 
 

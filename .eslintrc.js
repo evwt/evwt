@@ -34,6 +34,7 @@ module.exports = {
     'no-restricted-syntax': 'off',
     'consistent-return': 'off',
     'func-names': 'off',
+    'no-await-in-loop': 'off',
     'arrow-parens': 'off',
     camelcase: 'off',
     'prefer-const': 'off',

@@ -2,30 +2,61 @@ import {
   Menu, ipcMain, app, BrowserWindow
 } from 'electron';
 import log from '../lib/log';
+import { serializableProperties, findMenuFromItem } from '../lib/menus';
 
-function payloadFromMenuItem(menuItem) {
-  let payload = {};
+let contextMenus = {};
 
-  for (let key of Object.keys(menuItem)) {
-    if (['string', 'number', 'boolean'].includes(typeof menuItem[key])) {
-      payload[key] = menuItem[key];
-    }
-  }
-
-  return payload;
+/**
+ * Activate event handlers for setting/showing menus
+ *
+ */
+export function activate() {
+  ipcMain.handle('evcontextmenu:set', onIpcSet);
+  ipcMain.handle('evcontextmenu:show', onIpcShow);
+  ipcMain.handle('evcontextmenu:emit', onIpcEmit);
 }
 
-function addClickToItems(menuToAttach, id) {
-  for (let idx = 0; idx < menuToAttach.length; idx++) {
-    if (!menuToAttach[idx]) return;
-    menuToAttach[idx].click = (menuItem, focusedWindow) => handleNativeClick(menuItem, focusedWindow, id);
-    if (menuToAttach[idx].submenu) {
-      addClickToItems(menuToAttach[idx].submenu);
+function onIpcSet(e, { id, menu }) {
+  if (!id || !menu) return;
+  addClickToItems(menu, id);
+  contextMenus[id] = Menu.buildFromTemplate(menu);
+}
+
+function onIpcShow(e, id) {
+  if (!id) return;
+
+  if (!contextMenus[id]) {
+    log.debug('[EvContextMenu] Menu not found with that ID, not showing.');
+    return;
+  }
+
+  contextMenus[id].popup({ window: e.sender });
+}
+
+function onIpcEmit(e, { id, item }) {
+  if (!id || !item) return;
+
+  let sender = BrowserWindow.fromWebContents(e.sender);
+
+  app.emit('evcontextmenu', { item, id });
+  app.emit(`evcontextmenu:${id}:${item.id}`, { item, id });
+  sender.emit('evcontextmenu', { item, id });
+  sender.emit(`evcontextmenu:${id}:${item.id}`, { item, id });
+}
+
+function addClickToItems(items, id) {
+  if (!id || !items || !items.length) return;
+
+  for (const item of items) {
+    if (!item) return;
+    item.click = (menuItem, focusedWindow) => handleNativeInput(menuItem, focusedWindow, id);
+    if (item.submenu) {
+      addClickToItems(item.submenu, id);
     }
   }
 }
 
-function handleNativeClick(menuItem, focusedWindow, id) {
+function handleNativeInput(menuItem, focusedWindow, id) {
   if (!id) {
     log.debug('[EvContextMenu] No context menu id, not sending events.');
     return;
@@ -36,130 +67,29 @@ function handleNativeClick(menuItem, focusedWindow, id) {
     return;
   }
 
-  let payload = payloadFromMenuItem(menuItem);
+  let ipcPayloads = [];
 
-  app.emit('evcontextmenu', { item: payload, id });
-  app.emit(`evcontextmenu:${id}:${payload.id}`, { item: payload, id });
+  // If this is a radio item, send down all the sibling items too
+  if (menuItem.type === 'radio') {
+    let radioMenu = findMenuFromItem(menuItem, contextMenus[id]);
 
-  if (focusedWindow) {
-    focusedWindow.emit('evcontextmenu', { item: payload, id });
-    focusedWindow.emit(`evcontextmenu:${id}:${payload.id}`, { item: payload, id });
+    if (radioMenu && radioMenu.length) {
+      for (let radioMenuItem of radioMenu) {
+        let payload = serializableProperties(radioMenuItem);
+        ipcPayloads.push(payload);
+      }
+    }
+  } else {
+    let payload = serializableProperties(menuItem);
+    ipcPayloads.push(payload);
+  }
 
-    if (focusedWindow.webContents) {
+  for (let payload of ipcPayloads) {
+    if (focusedWindow && focusedWindow.webContents) {
+      onIpcEmit({ sender: focusedWindow }, { id, item: payload });
       focusedWindow.webContents.send('evcontextmenu:ipc:input', { item: payload, id });
     }
   }
-}
-
-function buildMenuTemplate(definition, id) {
-  addClickToItems(definition, id);
-  return definition;
-}
-
-function decorateMenuItem(menuItem, builtMenu) {
-  // This removes the click handler which can't be serialized for IPC
-  delete menuItem.click;
-
-  if (menuItem.id) {
-    let builtMenuItem = findBuiltMenuItem(builtMenu.items, menuItem.id);
-
-    // This adds properties from the built menu onto the menu definition
-    for (let key of Object.keys(builtMenuItem)) {
-      if (['string', 'number', 'boolean'].includes(typeof builtMenuItem[key])) {
-        menuItem[key] = builtMenuItem[key];
-      }
-    }
-  }
-
-  if (menuItem.submenu) {
-    for (let item of menuItem.submenu) {
-      decorateMenuItem(item, builtMenu);
-    }
-  }
-}
-
-function findBuiltMenuItem(items, id) {
-  if (!items) { return; }
-
-  for (let item of items) {
-    if (item.id === id) return item;
-
-    if (item.submenu && item.submenu.items) {
-      let child = findBuiltMenuItem(item.submenu.items, id);
-      if (child) return child;
-    }
-  }
-}
-
-let menus = {};
-
-/**
- *
- *
- */
-export function activate() {
-  ipcMain.handle('evcontextmenu:build', onIpcBuild);
-  ipcMain.handle('evcontextmenu:set', onIpcSet);
-  ipcMain.handle('evcontextmenu:show', onIpcShow);
-  ipcMain.handle('evcontextmenu:emit', onIpcEmit);
-}
-
-function onIpcBuild(e, { id, menu }) {
-  let builtMenu = Menu.buildFromTemplate(buildMenuTemplate(menu, id));
-  menus[id] = builtMenu;
-
-  let payload = [];
-
-  for (let item of menu) {
-    decorateMenuItem(item, builtMenu);
-    payload.push(payloadFromMenuItem(item));
-  }
-
-  log.debug('Built menu - ', id);
-
-  return payload;
-}
-
-function onIpcEmit(e, { id, item }) {
-  let sender = BrowserWindow.fromWebContents(e.sender);
-
-  app.emit('evcontextmenu', { item, id });
-  app.emit(`evcontextmenu:${id}:${item.id}`, { item, id });
-  sender.emit('evcontextmenu', { item, id });
-  sender.emit(`evcontextmenu:${id}:${item.id}`, { item, id });
-}
-
-function onIpcSet(e, { id, menu }) {
-  let sender = BrowserWindow.fromWebContents(e.sender);
-
-  let builtMenu = Menu.buildFromTemplate(buildMenuTemplate(menu, id));
-  menus[id] = builtMenu;
-
-  let payload = [];
-
-  for (let item of menu) {
-    decorateMenuItem(item, builtMenu);
-    payload.push(payloadFromMenuItem(item));
-  }
-
-  if (sender.webContents) {
-    sender.webContents.send('evcontextmenu:ipc:set-done', { menu: payload, id });
-  }
-
-  log.debug('Set menu - ', id);
-
-  return payload;
-}
-
-function onIpcShow(e, id) {
-  log.debug('Got menu show request - ', id);
-
-  if (!menus[id]) {
-    log.debug('[EvContextMenu] Menu not found with that ID, not showing.');
-    return;
-  }
-
-  menus[id].popup({ window: e.sender });
 }
 
 export default {

@@ -1,7 +1,5 @@
 import { ipcRenderer } from 'electron';
 import ObservableSlim from 'observable-slim';
-import diff from 'deep-diff';
-import log from '../lib/log';
 
 const EvContextMenu = {};
 
@@ -39,7 +37,7 @@ function get(menuId) {
  * @param {String} itemId
  */
 function getItem(menuId, itemId) {
-  return this.findMenuItem(this.menus[menuId], itemId);
+  return this.findMenuItemDeep(this.menus[menuId], itemId);
 }
 
 /**
@@ -64,7 +62,7 @@ EvContextMenu.install = function (Vue) {
     created() {
       this.handleBuild();
       this.handleShow();
-      this.handleInput();
+      this.handleNativeInput();
     },
 
     methods: {
@@ -74,46 +72,51 @@ EvContextMenu.install = function (Vue) {
       show,
       get,
 
+      // We are using ObservableSlim because Vue watchers have a limitation [1]
+      // where the old and new values are the same for mutations of
+      // objects, so there's no way to tell which menu changed, and
+      // therefore no way to know which input event to send.
+      //
+      // [1] See the note here https://vuejs.org/v2/api/#vm-watch
+      //
+      createObservableMenuItem(menuItem, id) {
+        return ObservableSlim.create(menuItem, false, async (changes) => {
+          for (const change of changes) {
+            if (change.type === 'update') {
+              if (change.newValue === change.previousValue) continue;
+              if (!change.target.id) continue;
+
+              let item = change.target;
+
+              await ipcRenderer.invoke('evcontextmenu:emit', { item, id });
+              this.$emit(`input:${id}`, item);
+              this.$emit(`input:${id}:${item.id}`, item);
+            }
+          }
+        });
+      },
+
       handleBuild() {
         this.$on('build', async ({ id, menu }) => {
-          // Send it to the background first of all so it has it stored in its collection,
-          // and we'll get back a built menu with additional properties
-          let builtMenu = await ipcRenderer.invoke('evcontextmenu:build', { id, menu });
+          await ipcRenderer.invoke('evcontextmenu:set', { id, menu });
 
-          let menuItems = [];
+          // We use a proxy here to watch for new items added to the menu
+          // dynamically and make them observable, just like the initial items
+          let menuItems = new Proxy([], {
+            set: (obj, key, value) => {
+              // If we're dealing with an array index (i.e. not the length property)
+              if (!Number.isNaN(parseInt(key))) {
+                // Make the new menu item observable like the initial ones
+                return Reflect.set(obj, key, this.createObservableMenuItem(value, id));
+              }
+
+              return Reflect.set(obj, key, value);
+            }
+          });
 
           // Build observable menu items so we can send changes to the background
-          for (const menuItem of builtMenu) {
-            // We are using ObservableSlim because Vue watchers have a limitation [1]
-            // where the old and new values are the same for mutations of
-            // objects, so there's no way to tell which menu changed, and
-            // therefore no way to know which input event to send.
-            //
-            // [1] See the note here https://vuejs.org/v2/api/#vm-watch
-            //
-            let observableMenuItem = ObservableSlim.create(menuItem, false, async (changes) => {
-              for (const change of changes) {
-                if (change.type === 'update') {
-                  if (!change.target.id) continue;
-
-                  let item = change.target;
-
-                  // eslint-disable-next-line no-await-in-loop
-                  await this.syncMenu(id, this.menus[id]);
-
-                  // eslint-disable-next-line no-await-in-loop
-                  await ipcRenderer.invoke('evcontextmenu:emit', { item, id });
-
-                  this.$emit(`input:${id}`, item);
-                  this.$emit(`input:${id}:${item.id}`, item);
-
-                  //   // setRadioMenus(newMenu);
-                } else {
-                  log.debug(change);
-                }
-              }
-            });
-
+          for (const menuItem of menu) {
+            let observableMenuItem = this.createObservableMenuItem(menuItem, id);
             menuItems.push(observableMenuItem);
           }
 
@@ -122,92 +125,46 @@ EvContextMenu.install = function (Vue) {
           // user calls .get(id)
           this.$set(this.menus, id, menuItems);
 
-          // Watch for changes and send IPC events to background,
-          // so that everything stays in sync. This will watch for additions,
-          // the ObservableSlim stuff above watches for changes to items
-          this.$watch(() => this.menus[id], async (newMenu) => {
-            // This prevents an infinte loop where the watcher keeps
-            // calling itself from the evcontextmenu:set call
-            if (this.isDirty[id]) {
-              this.isDirty[id] = false;
-              return;
-            }
-
-            this.isDirty[id] = true;
-
-            log.debug(`Change! sending evcontextmenu:set ${id}`);
-
-            // setRadioMenus(newMenu);
-
-            this.syncMenu(id, newMenu);
-          }, { deep: true });
+          // Watch for changes and send IPC events to background
+          this.$watch(() => this.menus[id], m => this.syncMenu(m, id), { deep: true });
         });
       },
 
-      async syncMenu(id, newMenu) {
-        let serializedNewMenu = JSON.parse(JSON.stringify(newMenu));
-        log.trace(serializedNewMenu);
-
-        let setMenu = await ipcRenderer.invoke('evcontextmenu:set', { id, menu: serializedNewMenu });
-
-        // `setMenu` refers to the menu that was built in the background, and will have additional
-        // properties, so we add those to the local object. This happens when dynamically adding new
-        // menu items.
-        let changes = diff(this.menus[id], setMenu) || [];
-        for (const { kind, path, rhs } of changes) {
-          if (kind === 'N') {
-            log.debug('Setting new property from background onto menu item');
-            this.$set(this.menus[id][path[0]], path[1], rhs);
-          }
-        }
+      async syncMenu(menu, id) {
+        // Turns out JSON.stringify is the best way to serialize something.
+        // In this case we're removing all the observer/proxy stuff from the
+        // object so it can be sent over IPC
+        let serializedNewMenu = JSON.parse(JSON.stringify(menu));
+        await ipcRenderer.invoke('evcontextmenu:set', { id, menu: serializedNewMenu });
       },
 
       handleShow() {
-        this.$on('show', async id => {
-          await ipcRenderer.invoke('evcontextmenu:show', id);
-        });
+        this.$on('show', async id => ipcRenderer.invoke('evcontextmenu:show', id));
       },
 
-      handleInput() {
+      handleNativeInput() {
         ipcRenderer.on('evcontextmenu:ipc:input', (e, { id, item }) => {
           let menu = this.menus[id];
+          if (!menu) return;
 
-          if (!menu) {
-            log.warn(`[EvContextMenu] Could not find menu from id ${id}`);
-            return;
-          }
-
-          log.debug('Got menu', menu);
-
-          // Get the menu item in our collection
           let menuItem = this.getItem(id, item.id);
 
-          log.debug('Got menu item', menuItem);
-
-          // set the item's properties from the payload
-          for (let key of Object.keys(item)) {
-            log.debug(`setting ${key} to ${item[key]}`);
+          // Apply properties from the event onto our reactive data
+          for (let key of Object.keys(menuItem)) {
             this.$set(menuItem, key, item[key]);
           }
-
-          // if (menuItem.type === 'radio') {
-          //   menuItem.lastChecked = true;
-          // }
-
-          this.$emit(`input:${id}`, item);
-          this.$emit(`input:${id}:${item.id}`, item);
         });
       },
 
-      findMenuItem(items, id) {
+      findMenuItemDeep(items, id) {
         if (!items) { return; }
 
         for (let item of items) {
           if (item.id === id) return item;
 
           if (item.submenu) {
-            let child = this.findMenuItem(item.submenu, id);
-            if (child) return child;
+            let found = this.findMenuItemDeep(item.submenu, id);
+            if (found) return found;
           }
         }
       }
