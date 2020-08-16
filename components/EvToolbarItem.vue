@@ -14,7 +14,7 @@
 
 <script>
 import { ipcRenderer } from 'electron';
-import EvIcon from '../../EvIcon';
+import EvIcon from './EvIcon';
 
 export default {
   name: 'EvToolbarItem',
@@ -166,8 +166,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '@/../style/reset.scss';
-@import '@/../style/utilities.scss';
+@import '../style/reset.scss';
+@import '../style/utilities.scss';
 
 .ev-toolbar-item {
   user-select: none;

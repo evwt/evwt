@@ -15,7 +15,7 @@ EvContextMenu.activate();
 ### Vue
 
 ```js
-import { EvContextMenu } from 'evwt';
+import { EvContextMenu } from 'evwt/plugins';
 
 Vue.use(EvContextMenu);
 ```

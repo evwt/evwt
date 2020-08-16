@@ -53,7 +53,7 @@ Assuming you have a file named `folder-open.svg` in `/src/assets/icons`:
 </template>
 
 <script>
-import { EvIcon } from 'evwt';
+import { EvIcon } from 'evwt/components';
 
 export default {
   components: {

@@ -11,7 +11,7 @@ A horizontal container of [toolbar items](/EvToolbarItem).
 ## Setup
 
 ```js
-import { EvToolbar, EvToolbarItem } from 'evwt';
+import { EvToolbar, EvToolbarItem } from 'evwt/components';
 
 export default {
   components: {

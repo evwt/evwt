@@ -62,7 +62,7 @@ You just need to pick a unique string for the restoration ID. For single-window 
 
 Now, create your BrowserWindow, adding calls to `getStoredOptions`/`startStoringOptions`
 ```js
-import { EvWindow } from 'evwt';
+import { EvWindow } from 'evwt/background';
 
 let restoreId = 'MyWindow';
 let defaultOptions = { width: 800, height: 600, webPreferences: { nodeIntegration: true } };

@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import Split from '@/../vendor/split-grid';
+import Split from '../vendor/split-grid';
 import EvLayoutChild from './EvLayoutChild.vue';
 
 export default {
@@ -81,7 +81,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '@/../style/reset.scss';
-@import '@/../style/utilities.scss';
-@import '@/../style/split-grid.scss';
+@import '../style/reset.scss';
+@import '../style/utilities.scss';
+@import '../style/split-grid.scss';
 </style>

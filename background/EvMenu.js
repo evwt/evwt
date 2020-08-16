@@ -13,7 +13,11 @@ let menu = {};
  */
 export function attach(win) {
   win.on('focus', () => {
-    Menu.setApplicationMenu(menu);
+    try {
+      Menu.setApplicationMenu(menu);
+    } catch (error) {
+      log.error('[EvMenu] Invalid menu passed to attach.');
+    }
   });
 }
 
@@ -39,7 +43,11 @@ function onIpcSet(e, definition) {
   if (!definition || !definition.length) return;
   addClickToItems(definition);
   menu = Menu.buildFromTemplate(definition);
-  Menu.setApplicationMenu(menu);
+  try {
+    Menu.setApplicationMenu(menu);
+  } catch (error) {
+    log.error('[EvMenu] Error: Invalid menu passed to attach.');
+  }
 }
 
 function addClickToItems(menuToAttach) {

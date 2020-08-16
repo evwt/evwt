@@ -16,7 +16,7 @@ Display long lists of items without keeping all the components in memory.
 </template>
 
 <script>
-import { EvVirtualScroll } from 'evwt';
+import { EvVirtualScroll } from 'evwt/components';
 
 export default {
   components: {

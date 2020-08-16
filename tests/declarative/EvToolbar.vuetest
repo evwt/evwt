@@ -1,4 +1,4 @@
-<tests for="@/../packages/EvToolbar/src/EvToolbar.vue">
+<tests for="../../components/EvToolbar.vue">
   <test name="Populates correct classes">
     <expect html-of=".ev-toolbar" to-be-defined />
   </test>

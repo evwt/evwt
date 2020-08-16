@@ -5,7 +5,7 @@ Flexible app-centric layouts, using CSS grid. Supports collapsible panes and siz
 ## Setup
 
 ```js
-import { EvLayout } from 'evwt';
+import { EvLayout } from 'evwt/components';
 
 export default {
   components: {
@@ -34,7 +34,7 @@ Provide a definition of your UI layout and EvLayout will build it and provide sl
 </template>
 
 <script>
-import { EvLayout } from 'evwt';
+import { EvLayout } from 'evwt/components';
 
 export default {
   components: {

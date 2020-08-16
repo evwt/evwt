@@ -17,7 +17,7 @@ let store = EvStore.activate();
 In your main.js file:
 
 ```js
-import { EvStore } from 'evwt';
+import { EvStore } from 'evwt/plugins';
 
 Vue.use(EvStore);
 ```

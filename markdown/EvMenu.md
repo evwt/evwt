@@ -65,7 +65,7 @@ export default menu;
 </details>
 
 ```js
-import { EvMenu } from 'evwt';
+import { EvMenu } from 'evwt/plugins';
 
 Vue.use(EvMenu, template);
 ```
