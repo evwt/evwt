@@ -25,6 +25,10 @@ Existing Electron/Vue app:
 - **[Documentation](https://evwt.net/)**
 - [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
 
+## Playground
+
+- [EvLayout Playground](https://evwt-layout-playground.netlify.app/)
+
 ## Example Apps
 
 <ul>
