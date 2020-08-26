@@ -113,9 +113,9 @@ export default {
 <!-- @vuese:EvLayout:events:start -->
 |Event Name|Description|Parameters|
 |---|---|---|
-|dragStart|Fired when any pane starts dragging|direction, track|
-|drag|Fired when any pane is dragging|direction, track, gridTemplateStyle|
-|dragEnd|Fired when any pane ends dragging|direction, track|
+|dragStart|Fired when any pane starts dragging|direction, track, gutter element|
+|drag|Fired when any pane is dragging|direction, track, gutter element, gridTemplateStyle|
+|dragEnd|Fired when any pane ends dragging|direction, track, gutter element|
 
 <!-- @vuese:EvLayout:events:end -->
 

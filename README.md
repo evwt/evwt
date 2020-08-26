@@ -7,15 +7,11 @@ _Bridging the gap between Electron and Vue to create a great desktop app develop
 
 ```
 npm install -g @vue/cli
-vue create my-evwt-app
-cd my-evwt-app
-vue add electron-builder
-npm install evwt
+vue create my-app
+cd my-app
+vue add evwt
+yarn run electron:serve
 ```
-
-Existing Electron/Vue app:
-
-`npm install evwt` (or `yarn add evwt`)
 
 ## Docs
 
@@ -37,7 +33,7 @@ Existing Electron/Vue app:
   </li>
 </ul>
 
-## Tests 
+## Tests
 
 | Unit Tests  | E2E Tests - Linux  | E2E Tests - Mac |
 |:-:|:-:|:-:|
