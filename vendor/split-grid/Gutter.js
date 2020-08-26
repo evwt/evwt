@@ -261,7 +261,7 @@ class Gutter {
     this.grid.style.cursor = this.cursor;
     window.document.body.style.cursor = this.cursor;
 
-    this.onDragStart(this.direction, this.track);
+    this.onDragStart(this.direction, this.track, this.element);
   }
 
   stopDragging() {
@@ -270,7 +270,7 @@ class Gutter {
     // Remove the stored event listeners. This is why we store them.
     this.cleanup();
 
-    this.onDragEnd(this.direction, this.track);
+    this.onDragEnd(this.direction, this.track, this.element);
 
     if (this.needsDestroy) {
       if (this.element) {
@@ -372,7 +372,7 @@ class Gutter {
 
     const style = this.tracks.join(' ');
     this.writeStyle(this.grid, this.gridTemplateProp, style);
-    this.onDrag(this.direction, this.track, style);
+    this.onDrag(this.direction, this.track, this.element, style);
   }
 
   cleanup() {
