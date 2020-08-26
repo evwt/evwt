@@ -1,4 +1,4 @@
-<tests for="../../components/EvLayout.vue">
+<tests for="../../components/src/EvLayout/EvLayout.vue">
   <test name="Contains correct classes" :props="props">
     <expect html-of=".ev-pane-sidebar" to-be-defined />
     <expect html-of=".ev-pane-panel" to-be-defined />
