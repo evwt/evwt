@@ -53,9 +53,9 @@ function onIpcSet(e, definition, initialSet) {
 
   if (initialSet) {
     loadUiState(e.sender, definition);
+  } else {
+    storeUiState(e.sender, definition);
   }
-
-  storeUiState(e.sender, definition);
 
   menu = Menu.buildFromTemplate(addClickToItems(cloneDeep(definition)));
 
@@ -84,6 +84,7 @@ function loadUiState(webContents, definition) {
   let key = `${MENU_STORE_PREFIX}.${evWindow.sanitizedRestoreId}`;
   let menuState = uiState.get(key);
 
+  console.log('Loading UI state with menuState', menuState);
   definition = applyUiState(definition, menuState);
 
   return definition;
@@ -129,6 +130,7 @@ function applyUiState(definition, state = {}) {
     if (!item) continue;
 
     if (state[item.id]) {
+      console.log('setting item.checked', item);
       item.checked = state[item.id].checked;
     }
 

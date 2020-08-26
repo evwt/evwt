@@ -55,8 +55,9 @@ EvMenu.install = function (Vue, menuDefinition) {
       },
 
       handleFocus() {
-        window.addEventListener('focus', () => {
-          ipcRenderer.invoke('evmenu:ipc:set', this.menu);
+        window.addEventListener('focus', async () => {
+          let newMenu = await ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
+          this.menu = Vue.observable(newMenu);
         });
       },
 
