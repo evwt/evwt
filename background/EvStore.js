@@ -1,6 +1,10 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import Store from 'electron-store';
 
+export const uiState = new Store({
+  name: 'evwt-ui-state'
+});
+
 /**
  *
  *
@@ -31,5 +35,6 @@ function activate(options = {}) {
 }
 
 export default {
-  activate
+  activate,
+  uiState
 };

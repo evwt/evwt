@@ -1,10 +1,15 @@
 import {
   ipcMain, Menu, app, BrowserWindow
 } from 'electron';
+import { cloneDeep } from 'lodash';
 import log from '../lib/log';
 import { findMenuFromItem, serializableProperties } from '../lib/menus';
+import EvWindow from './EvWindow';
+import { uiState } from './EvStore';
 
 let menu = {};
+
+const MENU_STORE_PREFIX = 'evmenu.state';
 
 /**
  * Start using EvMenu with this BrowserWindow
@@ -14,7 +19,9 @@ let menu = {};
 export function attach(win) {
   win.on('focus', () => {
     try {
-      Menu.setApplicationMenu(menu);
+      if (menu && Object.keys(menu).length) {
+        Menu.setApplicationMenu(menu);
+      }
     } catch (error) {
       log.error('[EvMenu] Invalid menu passed to attach.');
     }
@@ -39,30 +46,115 @@ function onIpcClick(e, payload) {
   sender.emit(`evmenu:${payload.id}`, payload);
 }
 
-function onIpcSet(e, definition) {
+function onIpcSet(e, definition, initialSet) {
+  console.log(definition, initialSet);
+
   if (!definition || !definition.length) return;
-  addClickToItems(definition);
-  menu = Menu.buildFromTemplate(definition);
+
+  if (initialSet) {
+    loadUiState(e.sender, definition);
+  }
+
+  storeUiState(e.sender, definition);
+
+  menu = Menu.buildFromTemplate(addClickToItems(cloneDeep(definition)));
+
   try {
-    Menu.setApplicationMenu(menu);
+    if (menu && Object.keys(menu).length) {
+      Menu.setApplicationMenu(menu);
+    }
   } catch (error) {
     log.error('[EvMenu] Error: Invalid menu passed to attach.');
   }
+
+  return definition;
 }
 
-function addClickToItems(menuToAttach) {
-  for (let idx = 0; idx < menuToAttach.length; idx++) {
-    if (!menuToAttach[idx]) return;
+function storeUiState(webContents, definition) {
+  let sender = BrowserWindow.fromWebContents(webContents);
+  let evWindow = EvWindow.fromBrowserWindow(sender);
+  let key = `${MENU_STORE_PREFIX}.${evWindow.sanitizedRestoreId}`;
 
-    menuToAttach[idx].click = handleNativeInput;
+  uiState.set(key, buildUiState(definition));
+}
 
-    if (menuToAttach[idx].submenu) {
-      addClickToItems(menuToAttach[idx].submenu);
+function loadUiState(webContents, definition) {
+  let browserWindow = BrowserWindow.fromWebContents(webContents);
+  let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+  let key = `${MENU_STORE_PREFIX}.${evWindow.sanitizedRestoreId}`;
+  let menuState = uiState.get(key);
+
+  definition = applyUiState(definition, menuState);
+
+  return definition;
+}
+
+/**
+ * Build a key/value object of menu items' state (currently just the `checked` property).
+ *
+ * Later, we'll use this to restore the state of these menu items on launch.
+ *
+ * @param {*} defintion
+ */
+function buildUiState(definition, state = {}) {
+  for (let idx = 0; idx < definition.length; idx++) {
+    let item = definition[idx];
+    if (!item) continue;
+
+    if (item.type === 'checkbox' || item.type === 'radio') {
+      state[item.id] = {
+        checked: !!item.checked
+      };
+    }
+
+    if (item.submenu) {
+      buildUiState(item.submenu, state);
     }
   }
+
+  return state;
 }
 
-function handleNativeInput(menuItem, focusedWindow) {
+/**
+ * Apply stored state to the menu definition
+ *
+ * @param {*} definition
+ * @param {*} [state={}]
+ * @returns
+ */
+
+function applyUiState(definition, state = {}) {
+  for (let idx = 0; idx < definition.length; idx++) {
+    let item = definition[idx];
+    if (!item) continue;
+
+    if (state[item.id]) {
+      item.checked = state[item.id].checked;
+    }
+
+    if (item.submenu) {
+      applyUiState(item.submenu, state);
+    }
+  }
+
+  return definition;
+}
+
+function addClickToItems(definition) {
+  for (let idx = 0; idx < definition.length; idx++) {
+    if (!definition[idx]) return;
+
+    definition[idx].click = emitPayloadsForMenuItem;
+
+    if (definition[idx].submenu) {
+      addClickToItems(definition[idx].submenu);
+    }
+  }
+
+  return definition;
+}
+
+function emitPayloadsForMenuItem(menuItem, browserWindow) {
   if (!menuItem || !menuItem.id) {
     log.warn(`[EvMenu] Menu item "${menuItem.label}" has no ID, not sending events.`);
     return;
@@ -86,7 +178,7 @@ function handleNativeInput(menuItem, focusedWindow) {
   }
 
   for (let payload of ipcPayloads) {
-    emitPayload(payload, focusedWindow);
+    emitPayload(payload, browserWindow);
   }
 }
 

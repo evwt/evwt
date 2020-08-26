@@ -1,83 +1,145 @@
 import { BrowserWindow, screen } from 'electron';
+import debounce from 'lodash/debounce';
 import log from '../lib/log';
 import { getNonOverlappingBounds } from '../lib/bounds';
-
-const debounce = require('lodash/debounce');
-const Store = require('electron-store');
-
-let store = new Store({
-  name: 'evwt-ui-state'
-});
+import { uiState } from './EvStore';
 
 const BOUNDS_AUTOSAVE_INTERVAL = 200;
 const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
-let windows = new Map();
+let windowSaveHandlers = new Map();
+let evWindows = new Set();
 
-/**
- *
- *
- * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
- * @param {BrowserWindow} win - https://www.electronjs.org/docs/api/browser-window
- * @returns {Function} Function that saves the window position/size to storage. Use after moving the window manually.
- */
-export function startStoringOptions(restoreId, win) {
-  if (!win || !win.getNormalBounds) {
-    log.warn('[EvWindow] Invalid window passed, not storing');
-    return;
+class EvWindow {
+  constructor(restoreId, options) {
+    this.restoreId = restoreId;
+    this.sanitizedRestoreId = Buffer.from(this.restoreId, 'binary').toString('base64');
+
+    let storedOptions = this.getStoredUiState(options);
+    this.win = new BrowserWindow({ ...options, ...storedOptions });
+    this.startStoringUiState();
+
+    EvWindow.addWindowToCollection(this);
   }
 
-  if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
-    log.warn('[EvWindow] Invalid restoreId passed, not storing');
-    return;
+  /**
+   * Add window to our collection of windows, so it can be retrieved with fromBrowserWindow
+   *
+   * @static
+   * @memberof EvWindow
+   */
+  static addWindowToCollection(evWindow) {
+    evWindows.add(evWindow);
+    evWindow.win.on('close', () => evWindows.delete(evWindow));
   }
 
-  let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
-
-  // if the win already exists with a storageId reset everything
-  if (windows.has(win)) {
-    let existingWin = windows.get(win);
-    existingWin.cleanupEvents();
+  /**
+   * Return the EvWindow associated with the passed BrowserWindow
+   *
+   * @param {*} win
+   * @returns EvWindow
+   * @memberof EvWindow
+   */
+  static fromBrowserWindow(win) {
+    for (const evWindow of evWindows) {
+      if (evWindow.win === win) {
+        return evWindow;
+      }
+    }
   }
 
-  let handleSave = debounce(() => {
-    if (win.isDestroyed()) return;
-    let bounds = win.getNormalBounds();
-    let key = `${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`;
-
-    // For unit tests
-    if (process.env.npm_lifecycle_event === 'test') {
-      process.env.evwtTestEvWindow1 = `${key} ${JSON.stringify(bounds)}`;
+  /**
+   *
+   *
+   * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
+   * @param {BrowserWindow} win - https://www.electronjs.org/docs/api/browser-window
+   * @returns {Function} Function that saves the window position/size to storage. Use after moving the window manually.
+   */
+  startStoringUiState() {
+    if (!this.win || !this.win.getNormalBounds) {
+      log.warn('[EvWindow] Invalid window passed, not storing');
+      return;
     }
 
-    store.set(key, bounds);
-  }, BOUNDS_AUTOSAVE_INTERVAL);
+    if (!this.restoreId || typeof this.restoreId !== 'string' || !this.restoreId.length) {
+      log.warn('[EvWindow] Invalid restoreId passed, not storing');
+      return;
+    }
 
-  handleSave();
+    // if the win already exists with a storageId reset everything
+    if (windowSaveHandlers.has(this.win)) {
+      let existingWin = windowSaveHandlers.get(this.win);
+      existingWin.cleanupEvents();
+    }
 
-  let handleClose = () => {
-    let existingWin = windows.get(win);
-    existingWin.cleanupEvents();
-    windows.delete(win);
-  };
+    let handleSave = debounce(() => {
+      if (this.win.isDestroyed()) return;
+      let bounds = this.win.getNormalBounds();
+      let key = `${BOUNDS_AUTOSAVE_PREFIX}.${this.sanitizedRestoreId}`;
 
-  win.on('resize', handleSave);
-  win.on('move', handleSave);
-  win.on('close', handleClose);
+      // For unit tests
+      if (process.env.npm_lifecycle_event === 'test') {
+        process.env.evwtTestEvWindow1 = `${key} ${JSON.stringify(bounds)}`;
+      }
 
-  let cleanupEvents = () => {
-    win.off('resize', handleSave);
-    win.off('move', handleSave);
-    win.off('close', handleClose);
-  };
+      uiState.set(key, bounds);
+    }, BOUNDS_AUTOSAVE_INTERVAL);
 
-  windows.set(win, {
-    handleSave,
-    handleClose,
-    cleanupEvents
-  });
+    handleSave();
 
-  return handleSave;
+    let handleClose = () => {
+      let existingWin = windowSaveHandlers.get(this.win);
+      existingWin.cleanupEvents();
+      windowSaveHandlers.delete(this.win);
+    };
+
+    this.win.on('resize', handleSave);
+    this.win.on('move', handleSave);
+    this.win.on('close', handleClose);
+
+    let cleanupEvents = () => {
+      this.win.off('resize', handleSave);
+      this.win.off('move', handleSave);
+      this.win.off('close', handleClose);
+    };
+
+    windowSaveHandlers.set(this.win, {
+      handleSave,
+      handleClose,
+      cleanupEvents
+    });
+
+    return handleSave;
+  }
+
+  /**
+   *
+   *
+   * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
+   * @param {Object} defaultOptions - https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
+   */
+  getStoredUiState(defaultOptions) {
+    if (!defaultOptions) {
+      log.warn('[EvWindow] defaultOptions not passed, skipping');
+      return;
+    }
+
+    if (!this.restoreId || typeof this.restoreId !== 'string' || !this.restoreId.length) {
+      log.warn('[EvWindow] Invalid restoreId passed, skipping');
+      return;
+    }
+
+    let sizeOptions = {};
+
+    let sanitizedRestoreId = Buffer.from(this.restoreId, 'binary').toString('base64');
+    let savedBounds = uiState.get(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`);
+
+    if (savedBounds) {
+      sizeOptions = getNonOverlappingBounds(defaultOptions, savedBounds);
+    }
+
+    return sizeOptions;
+  }
 }
 
 /**
@@ -100,44 +162,17 @@ export function arrange(arrangement) {
   }
 }
 
-/**
- *
- *
- * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
- * @param {Object} defaultOptions - https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
- */
-export function getStoredOptions(restoreId, defaultOptions) {
-  if (!defaultOptions) {
-    log.warn('[EvWindow] defaultOptions not passed, skipping');
-    return;
-  }
-
-  if (!restoreId || typeof restoreId !== 'string' || !restoreId.length) {
-    log.warn('[EvWindow] Invalid restoreId passed, skipping');
-    return;
-  }
-
-  let sizeOptions = {};
-
-  let sanitizedRestoreId = Buffer.from(restoreId, 'binary').toString('base64');
-  let savedBounds = store.get(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`);
-
-  if (savedBounds) {
-    sizeOptions = getNonOverlappingBounds(defaultOptions, savedBounds);
-  }
-
-  return sizeOptions;
-}
+EvWindow.arrange = arrange;
 
 function cascade() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windows = BrowserWindow.getAllWindows();
+  let allWindows = BrowserWindow.getAllWindows();
   let maxWidth = 0;
   let maxHeight = 0;
 
   // Loop through all windows, placing them at the top/left of where
   // the biggest window would be if it were centered, +32/32 pixels for each
-  for (let win of windows) {
+  for (let win of allWindows) {
     let size = win.getSize();
     if (size[0] > maxWidth) maxWidth = size[0];
     if (size[1] > maxHeight) maxHeight = size[1];
@@ -150,8 +185,8 @@ function cascade() {
   let topOfTallest = middleOfScreen - middleOfTallestWin;
   let sideOfWidest = centerOfScreen - centerOfWidestWin;
 
-  for (let idx = 0; idx < windows.length; idx++) {
-    let win = windows[idx];
+  for (let idx = 0; idx < allWindows.length; idx++) {
+    let win = allWindows[idx];
     let newX = Math.round(sideOfWidest + (32 * idx));
     let newY = Math.round(topOfTallest + (32 * idx));
     win.setPosition(newX, newY, false);
@@ -161,9 +196,9 @@ function cascade() {
 
 function tile() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windows = BrowserWindow.getAllWindows();
-  let numRows = Math.ceil(Math.sqrt(windows.length));
-  let numCols = Math.round(Math.sqrt(windows.length));
+  let allWindows = BrowserWindow.getAllWindows();
+  let numRows = Math.ceil(Math.sqrt(allWindows.length));
+  let numCols = Math.round(Math.sqrt(allWindows.length));
 
   let heightOfEach = parseInt(workArea.height / numRows);
   let widthOfEach = parseInt(workArea.width / numCols);
@@ -173,7 +208,7 @@ function tile() {
   for (let idxRow = 0; idxRow < numRows; idxRow++) {
     for (let idxCol = 0; idxCol < numCols; idxCol++) {
       let winIdx = (idxRow * numCols) + idxCol;
-      let win = windows[winIdx];
+      let win = allWindows[winIdx];
 
       if (!win) continue;
 
@@ -198,14 +233,14 @@ function tile() {
 
 function rows() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windows = BrowserWindow.getAllWindows();
-  let heightOfEach = parseInt(workArea.height / windows.length);
-  let leftOverHeight = workArea.height % windows.length;
+  let allWindows = BrowserWindow.getAllWindows();
+  let heightOfEach = parseInt(workArea.height / allWindows.length);
+  let leftOverHeight = workArea.height % allWindows.length;
 
-  for (let idx = 0; idx < windows.length; idx++) {
-    let win = windows[idx];
+  for (let idx = 0; idx < allWindows.length; idx++) {
+    let win = allWindows[idx];
 
-    if (idx === windows.length - 1) {
+    if (idx === allWindows.length - 1) {
       win.setSize(workArea.width, heightOfEach + leftOverHeight, false);
       win.focus();
     } else {
@@ -219,14 +254,14 @@ function rows() {
 
 function columns() {
   let { workArea } = screen.getDisplayNearestPoint(screen.getCursorScreenPoint());
-  let windows = BrowserWindow.getAllWindows();
-  let widthOfEach = parseInt(workArea.width / windows.length);
-  let leftOverWidth = workArea.width % windows.length;
+  let allWindows = BrowserWindow.getAllWindows();
+  let widthOfEach = parseInt(workArea.width / allWindows.length);
+  let leftOverWidth = workArea.width % allWindows.length;
 
-  for (let idx = 0; idx < windows.length; idx++) {
-    let win = windows[idx];
+  for (let idx = 0; idx < allWindows.length; idx++) {
+    let win = allWindows[idx];
 
-    if (idx === windows.length - 1) {
+    if (idx === allWindows.length - 1) {
       win.setSize(widthOfEach + leftOverWidth, workArea.height, false);
       win.focus();
     } else {
@@ -238,8 +273,4 @@ function columns() {
   }
 }
 
-export default {
-  arrange,
-  getStoredOptions,
-  startStoringOptions
-};
+export default EvWindow;
