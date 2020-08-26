@@ -9,7 +9,7 @@
     "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
     "test:declarative": "vue-test-declarative"
   },
-  "main": "index.js",
+  "main": "web-index.js",
   "module": "dist/evwt-components.esm.js",
   "license": "ISC",
   "devDependencies": {

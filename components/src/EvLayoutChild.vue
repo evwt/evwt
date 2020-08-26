@@ -48,7 +48,7 @@ export default {
         return;
       }
 
-      let sizes = this.child.sizes.map(s => [s, 0]).flat();
+      let sizes = this.child.sizes.map(s => [s, '0']).flat();
       sizes.pop();
 
       return `grid-template-${this.child.direction}s: ${sizes.join(' ')}`;
@@ -65,13 +65,12 @@ export default {
 
       return className;
     }
-
   }
 };
 </script>
 
 <style lang="scss" scoped>
-@import '../style/reset.scss';
-@import '../style/utilities.scss';
-@import '../style/split-grid.scss';
+@import '../../style/reset.scss';
+@import '../../style/utilities.scss';
+@import '../../style/split-grid.scss';
 </style>
