@@ -16,6 +16,8 @@
     "docs:build": "node scripts/buildDocs.js",
     "docs:watch": "nodemon --ignore docs/ --ignore vuese/ --exec npm run docs -e scss,js,vue,md",
     "docs:deploy": "netlify deploy --prod --dir=docs",
+    "release:dry": "release-it --dry-run && cd components && release-it --dry-run",
+    "release": "release-it && cd components && release-it",
     "test": "npm run test:declarative",
     "test:declarative": "vue-test-declarative"
   },
