@@ -1,15 +1,14 @@
 {
-  "name": "evwt-components",
-  "version": "0.0.14",
-  "description": "Web-compatible versions of EVWT components. Currently EvDropZone, EvLayout and EvVirtualScroll.",
+  "name": "evwt.evlayout",
+  "version": "0.1.0",
+  "description": "Standalone web-compatible version of EVLayout from EVWT.",
   "scripts": {
     "build": "npm run build:umd & npm run build:es",
     "build:es": "rollup --config build/rollup.config.js --format es --file dist/evwt-components.esm.js",
     "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/evwt-components.umd.js",
-    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
-    "test:declarative": "vue-test-declarative"
+    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue"
   },
-  "main": "web-index.js",
+  "main": "index.js",
   "module": "dist/evwt-components.esm.js",
   "license": "ISC",
   "devDependencies": {

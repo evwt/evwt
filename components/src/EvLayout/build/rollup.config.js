@@ -9,7 +9,7 @@ import nodePolyfills from 'rollup-plugin-node-polyfills';
 export default {
   input: 'index.js',
   output: {
-    name: 'evwt-components'
+    name: 'evwt.evlayout'
   },
   plugins: [
     nodePolyfills(),
