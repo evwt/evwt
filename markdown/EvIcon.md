@@ -2,30 +2,25 @@
 
 A library for all your vector icons, out of the box.
 
-?> 🎨 Icon svg is inlined into the html so it can be styled with css.
+?> 🎨 Icon SVG is inlined into the HTML so it can be styled with CSS.
 
 ## Usage
 
-Put your svg icons into `/src/assets/icons`. Assuming you have a file named `folder-open.svg` there:
+1) Put your svg icons into `/src/assets/icons`.
+2) Assuming you have a file named `folder-open.svg` in that folder:
 
 ```vue
 <template>
   <ev-icon name="folder-open" />
 </template>
 
-<script>
-import { EvIcon } from 'evwt/components';
-
-export default {
-  components: {
-    EvIcon
-  }
-};
-</script>
-
 <style>
 .ev-icon-folder-open svg {
-  fill: red;
+  fill: gray;
+  height: 32px;
+  width: auto;
 }
 </style>
 ```
+
+> For icons in toolbars, simply pass the name of an icon to the `icon` prop of EvToolbarItem

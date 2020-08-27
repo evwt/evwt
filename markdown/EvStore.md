@@ -4,45 +4,24 @@ A reactive persistent data store, based on [electron-store](https://github.com/s
 
 ?> 💡 EvStore gives you access to electron-store in the renderer process via Vue data binding.
 
-## Setup
+## Getting/Setting Data
 
-### Background
-
-```js
-import { EvStore } from 'evwt/background';
-
-let store = EvStore.activate();
-```
-
-### Vue
-
-In your main.js file:
-
-```js
-import { EvStore } from 'evwt/plugins';
-
-Vue.use(EvStore);
-```
-
-## Usage
-
-### Background
-
-In your background script, work with `store` per the [electron-store docs](https://github.com/sindresorhus/electron-store).
-
-### Vue
-
-Use `this.$evstore.store` to work with the store as you would any other reactive Vue data. Everything is magically synced across across your app and to disk. 🧙🏻‍♂️
+Use `this.$evstore.store` to work with the store as you would any other reactive Vue data. Everything is automatically saved and synced across your app (renderer/background and all windows) and to disk.
 
 ```vue
-<span>{{ $evstore.store.foo }}</span>
-<input v-model="$evstore.store.foo" />
+<template>
+  <div>
+    <span>{{ $evstore.store.foo }}</span>
+    <input v-model="$evstore.store.foo" />
+  </div>
+</template>
 ```
 
-```js
-this.$evstore.store.foo = 'bar';
-```
+Consider debouncing or throttling for frequently updated (many times a second) values, since every change to $evstore is a write to disk.
 
 > State is saved to a file `evwt-store.json` in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory. This can be customized by passing options into `activate`. See reference below.
 
 
+## Background
+
+In your background script, work with the `store` variable (returned by EvStore.activate() - see background.js) per the [electron-store docs](https://github.com/sindresorhus/electron-store).

@@ -8,96 +8,23 @@ Reactive native menus.
 
 ?> 🧠 EvMenu automatically remembers menu checkbox/radio state across restarts.
 
-## Setup
+## Build Menu
 
-### Background script
+Edit the [menu definition](https://www.electronjs.org/docs/api/menu#main-process) in `src/menu.js`. Make sure all your menu items have a unique `id`.
 
-```js
-import { EvMenu } from 'evwt/background';
+For each user action in your app, there should be a corresponding menu item (and shortcut key) where possible. This is one of those details that makes for a great native app.
 
-EvMenu.activate();
-```
-
-After creating a window:
-
-```js
-EvMenu.attach(win);
-```
-
-### Vue
-
-Pass a [menu template](https://www.electronjs.org/docs/api/menu#main-process) to Vue.use. Make sure all your menu items have a unique `id`.
-
-<details>
-  <summary>Example menu template</summary>
-
-  ```js
-const isMac = process.platform === 'darwin';
-
-const menu = [
-  {
-    label: 'File',
-    id: 'file',
-    submenu: [
-      {
-        id: 'open-file',
-        label: 'Open...'
-      },
-      { role: 'quit' }
-    ]
-  },
-  {
-    label: 'View',
-    id: 'view',
-    submenu: [
-      {
-        id: 'show-preview',
-        label: 'Show Preview',
-        type: 'checkbox',
-        checked: true
-      }
-    ]
-  }
-];
-
-if (isMac) {
-  menu.unshift({ role: 'appMenu' });
-}
-
-export default menu;
-  ```
-</details>
-
-```js
-import { EvMenu } from 'evwt/plugins';
-
-Vue.use(EvMenu, template);
-```
-
-## Usage
-
-### Vue
-
-##### Binding
-
-Use `this.$evmenu.get(id)` to get a menu item. This can then be used for data binding:
-
-```html
-<input v-model="$evmenu.get('file').label">
-<input v-model="$evmenu.get('show-preview').checked" type="checkbox">
-```
-
-> You can also access the entire menu with `this.$evmenu.menu`.
-
-##### Events
+## Menu Events
 
 Listen for menu events with `this.$evmenu.$on('input')`
 
 ```js
+// Listen for any menu input
 this.$evmenu.$on('input', item => {
   console.log(item);
 });
 
+// Listen for input on a specific menu item
 this.$evmenu.$on('input:open-file', item => {
   console.log(item);
 });
@@ -109,31 +36,47 @@ Send native menu commands with `this.$evmenu.$emit`
 this.$evmenu.$emit('click', 'open-file');
 ```
 
-### Background script
+## Menu Data Binding
+
+Use `this.$evmenu.get(id)` to get a menu item.
+
+```html
+<input v-model="$evmenu.get('file').label">
+<input v-model="$evmenu.get('show-preview').checked" type="checkbox">
+```
+
+> You can also access the entire menu with `this.$evmenu.menu`.
+
+
+## Background
 
 EvMenu events are also accessible in the background script.
 
 ```js
+// Listen for any menu input in this BrowserWindow
 win.on('evmenu', item => {
   console.log(item);
 });
 
+// Listen for specific menu input in this BrowserWindow
 win.on('evmenu:open-file', item => {
   console.log(item);
 });
 ```
 
 ```js
+// Listen for any menu input across the app
 app.on('evmenu', item => {
   console.log(item);
 });
 
+// Listen for specific menu input across the app
 app.on('evmenu:open-file', item => {
   console.log(item);
 });
 ```
 
-> Menu checked state is saved based on the focused EvWindow's restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
+> Menu item (checkbox and radio) state is saved based on the focused EvWindow's restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
 
 
 

@@ -4,14 +4,6 @@ An item on a toolbar.
 
 <img width="54" alt="EvToolbarItem" src="https://user-images.githubusercontent.com/611996/90172898-40ff5000-dd69-11ea-9772-419a94ce56e0.png">
 
-## Requirements
-
-See [EvToolbar requirements](/EvToolbar#requirements).
-
-## Setup
-
-See [EvToolbar setup](/EvToolbar#setup).
-
 ## Usage
 ```vue
 <ev-toolbar>
@@ -30,7 +22,7 @@ See [EvToolbar setup](/EvToolbar#setup).
 |tooltip|Text to display when hovering over item|`String`|`false`|-|
 |disabled|Whether the item is disabled and cannot receive clicks|`Boolean`|`false`|-|
 |menuId|A menu item id to trigger when the item is clicked|`String`|`false`|-|
-|iconPos|Position of icon in relation to the label|`'above'`/`'aside'`|`false`|above|
+|iconPos|Position of icon in relation to the label|`'above'`/`'aside'`|`false`|'above'|
 |fontSize|Font size of the label in px|`Number`|`false`|11|
 |iconSize|Size of the icon in px|`Number`|`false`|16|
 |labelShow|Whether to display label|`Boolean`|`false`|false|

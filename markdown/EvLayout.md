@@ -1,26 +1,15 @@
 # EvLayout
 
-**Flexible app-centric layouts, using CSS grid. Supports collapsible panes and sizing by relative or absolute units.**
-
-?> 🧠 EvLayout automatically remembers user pane sizes across restarts.
+**Layouts for your app windows.**
 
 ?> 🖥 [Try out the EvLayout playground](https://evwt-layout-playground.netlify.app/)
 
-## Setup
+?> 🧠 EvLayout automatically remembers user pane sizes across restarts.
 
-```js
-import { EvLayout } from 'evwt/components';
-
-export default {
-  components: {
-    EvLayout
-  }
-}
-```
 
 ## Usage
 
-Provide a definition of your UI layout and EvLayout will build it and provide slots to place your components. Panes can be infinitely nested.
+Provide a definition of your UI layout and EvLayout will build it and provide slots to place your components.
 
 ```vue
 <template>
@@ -48,6 +37,7 @@ export default {
   data() {
     return {
       layout: {
+        // Paste layout from playground here
         direction: 'column',
         sizes: ['250px', '1fr'],
         panes: [

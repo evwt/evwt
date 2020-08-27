@@ -1,10 +1,11 @@
 # EvWindow
-
-?> 🧠 EvWindow is a smarter BrowserWindow that automatically remembers its size and position.
+A smarter BrowserWindow that automatically remembers its size and position.
 
 ## Usage
 
-### Create
+?> 🧠 The default background.js is already set up with EvWindow out of the box.
+
+## Create Window
 
 ```js
 import { EvWindow } from 'evwt/background';
@@ -25,10 +26,10 @@ let win = evWindow.browserWindow; // access the browserWindow for the full Elect
 ```
 
 A window created in this way will have its size and position remembered across restarts.
+
 > Window state is saved based on the restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
 
-
-### Window Management
+## Window Management
 
 EvWindow can arrange windows on the screen in various ways. See reference below for all options.
 
