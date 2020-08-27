@@ -1,34 +1,59 @@
 import { ipcMain, BrowserWindow } from 'electron';
-import Store from 'electron-store';
-
-export const uiState = new Store({
-  name: 'evwt-ui-state'
-});
+import EvWindow from './EvWindow';
+import { store as uiStore } from './lib/uiStore';
+import userStore from './lib/userStore';
 
 /**
- *
+ * Activates EVStore stores (User and UI) & listeners to sync them with frontend
  *
  * @param {Object} options - [electron-store options](https://github.com/sindresorhus/electron-store#api)
+ * @returns {Object} electron-store instance
  */
 function activate(options = {}) {
-  let store = new Store({
-    name: 'evwt-store',
-    ...options
+  activateUiStore();
+  activateUserStore(options);
+}
+
+function activateUiStore() {
+  uiStore.onDidAnyChange((newStore) => {
+    for (let browserWindow of BrowserWindow.getAllWindows()) {
+      let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+      browserWindow.webContents.send('evstore:ipc:ui:changed', newStore[evWindow.restoreId]);
+    }
   });
 
-  ipcMain.on('evstore:ipc:store', (event) => {
+  ipcMain.on('evstore:ipc:ui:read', (event) => {
+    let browserWindow = BrowserWindow.fromWebContents(event.sender);
+    let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+
+    if (!uiStore.get(evWindow.restoreId)) {
+      uiStore.set(evWindow.restoreId, {});
+    }
+
+    event.returnValue = uiStore.get(evWindow.restoreId);
+  });
+
+  ipcMain.on('evstore:ipc:ui:write', (event, newState) => {
+    let browserWindow = BrowserWindow.fromWebContents(event.sender);
+    let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+
+    console.log('got newstate in write ', newState);
+    uiStore.set(evWindow.restoreId, newState);
+
+    event.returnValue = uiStore.get(evWindow.restoreId);
+  });
+}
+
+function activateUserStore(options) {
+  let store = userStore.create(options);
+
+  ipcMain.on('evstore:ipc:user:read', (event) => {
     event.returnValue = store.store;
   });
 
-  ipcMain.on('evstore:ipc:write', (event, newStore) => {
+  ipcMain.on('evstore:ipc:user:write', (event, newStore) => {
     store.set(newStore);
     event.returnValue = store.store;
-  });
-
-  store.onDidAnyChange((newStore) => {
-    for (let browserWindow of BrowserWindow.getAllWindows()) {
-      browserWindow.webContents.send('evstore:ipc:changed', newStore);
-    }
   });
 
   return store;
@@ -36,5 +61,5 @@ function activate(options = {}) {
 
 export default {
   activate,
-  uiState
+  uiState: uiStore
 };

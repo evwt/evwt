@@ -2,6 +2,7 @@
   <div
     :style="childStyle"
     :data-min-size="child.minSize"
+    :data-evlayout-name="child.name"
     class="d-grid overflow-hidden h-100 w-100"
     :class="classForChild">
     <div v-if="!child.panes" class="ev-layout-pane h-100 w-100 overflow-auto">

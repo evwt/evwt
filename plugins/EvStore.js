@@ -3,25 +3,21 @@ import { ipcRenderer } from 'electron';
 const EvStore = {};
 
 EvStore.install = function (Vue) {
-  let initialStore = ipcRenderer.sendSync('evstore:ipc:store');
+  setupUserStore(Vue);
+  setupUiStore(Vue);
+};
+
+function setupUserStore(Vue) {
+  let initialStore = ipcRenderer.sendSync('evstore:ipc:user:read');
 
   let storeVm = new Vue({
     data() {
       return {
         store: initialStore,
         storeProxy: null,
-        isClean: false
+        isClean: false,
+        isProxyClean: false
       };
-    },
-
-    computed: {
-      size() {
-        return ipcRenderer.invoke('evstore:ipc:size');
-      },
-
-      path() {
-        return ipcRenderer.invoke('evstore:ipc:path');
-      }
     },
 
     watch: {
@@ -29,16 +25,24 @@ EvStore.install = function (Vue) {
         handler(newStore) {
           if (this.isClean) {
             this.isClean = false;
-            return;
           }
 
-          ipcRenderer.sendSync('evstore:ipc:write', newStore);
+          // console.log('writing newStore', newStore);
+
+          // ipcRenderer.sendSync('evstore:ipc:user:write', newStore);
         },
         deep: true
       },
       storeProxy: {
         handler() {
-          ipcRenderer.sendSync('evstore:ipc:write', { ...this.storeProxy });
+          if (this.isProxyClean) {
+            this.isProxyClean = false;
+            return;
+          }
+
+          console.log('writing newStore in proxy', { ...this.storeProxy });
+
+          ipcRenderer.sendSync('evstore:ipc:user:write', { ...this.storeProxy });
         },
         deep: true
       }
@@ -56,15 +60,79 @@ EvStore.install = function (Vue) {
 
     methods: {
       watchRemote() {
-        ipcRenderer.on('evstore:ipc:changed', (e, store) => {
+        ipcRenderer.on('evstore:ipc:user:changed', (e, store) => {
           this.isClean = true;
+          this.isProxyClean = true;
           this.store = store;
+          this.storeProxy = new Proxy(this.store, {});
         });
       }
     }
   });
 
   Vue.prototype.$evstore = storeVm;
-};
+}
+
+function setupUiStore(Vue) {
+  let initialStore = ipcRenderer.sendSync('evstore:ipc:ui:read');
+
+  let storeVm = new Vue({
+    data() {
+      return {
+        store: initialStore,
+        storeProxy: null,
+        isClean: false,
+        isProxyClean: false
+      };
+    },
+
+    watch: {
+      store: {
+        handler(newStore) {
+          if (this.isClean) {
+            this.isClean = false;
+          }
+
+          // console.log('writing newStore', newStore);
+
+          // ipcRenderer.sendSync('evstore:ipc:ui:write', newStore);
+        },
+        deep: true
+      },
+      storeProxy: {
+        handler() {
+          if (this.isProxyClean) {
+            this.isProxyClean = false;
+            return;
+          }
+
+          console.log('writing newStore in proxy', { ...this.storeProxy });
+
+          ipcRenderer.sendSync('evstore:ipc:ui:write', { ...this.storeProxy });
+        },
+        deep: true
+      }
+    },
+
+    created() {
+      this.storeProxy = new Proxy(this.store, {});
+      this.watchRemote();
+    },
+
+    methods: {
+      watchRemote() {
+        ipcRenderer.on('evstore:ipc:ui:changed', (e, store) => {
+          console.log('Got new store!', store);
+          this.isClean = true;
+          this.isProxyClean = true;
+          this.store = store;
+          this.storeProxy = new Proxy(this.store, {});
+        });
+      }
+    }
+  });
+
+  Vue.prototype.$evstore.$ui = storeVm;
+}
 
 export default EvStore;

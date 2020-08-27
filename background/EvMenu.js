@@ -5,11 +5,9 @@ import { cloneDeep } from 'lodash';
 import log from '../lib/log';
 import { findMenuFromItem, serializableProperties } from '../lib/menus';
 import EvWindow from './EvWindow';
-import { uiState } from './EvStore';
+import { store as uiStore } from './lib/uiStore';
 
 let menu = {};
-
-const MENU_STORE_PREFIX = 'evmenu.state';
 
 /**
  * Start using EvMenu with this BrowserWindow
@@ -47,15 +45,13 @@ function onIpcClick(e, payload) {
 }
 
 function onIpcSet(e, definition, initialSet) {
-  console.log(definition, initialSet);
-
   if (!definition || !definition.length) return;
 
   if (initialSet) {
     loadUiState(e.sender, definition);
-  } else {
-    storeUiState(e.sender, definition);
   }
+
+  storeUiState(e.sender, definition);
 
   menu = Menu.buildFromTemplate(addClickToItems(cloneDeep(definition)));
 
@@ -73,16 +69,16 @@ function onIpcSet(e, definition, initialSet) {
 function storeUiState(webContents, definition) {
   let sender = BrowserWindow.fromWebContents(webContents);
   let evWindow = EvWindow.fromBrowserWindow(sender);
-  let key = `${MENU_STORE_PREFIX}.${evWindow.sanitizedRestoreId}`;
+  let key = `${evWindow.restoreId}.menu`;
 
-  uiState.set(key, buildUiState(definition));
+  uiStore.set(key, buildUiState(definition));
 }
 
 function loadUiState(webContents, definition) {
   let browserWindow = BrowserWindow.fromWebContents(webContents);
   let evWindow = EvWindow.fromBrowserWindow(browserWindow);
-  let key = `${MENU_STORE_PREFIX}.${evWindow.sanitizedRestoreId}`;
-  let menuState = uiState.get(key);
+  let key = `${evWindow.restoreId}.menu`;
+  let menuState = uiStore.get(key);
 
   console.log('Loading UI state with menuState', menuState);
   definition = applyUiState(definition, menuState);
@@ -130,7 +126,6 @@ function applyUiState(definition, state = {}) {
     if (!item) continue;
 
     if (state[item.id]) {
-      console.log('setting item.checked', item);
       item.checked = state[item.id].checked;
     }
 
@@ -144,7 +139,7 @@ function applyUiState(definition, state = {}) {
 
 function addClickToItems(definition) {
   for (let idx = 0; idx < definition.length; idx++) {
-    if (!definition[idx]) return;
+    if (!definition[idx]) continue;
 
     definition[idx].click = emitPayloadsForMenuItem;
 

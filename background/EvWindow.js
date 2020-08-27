@@ -1,11 +1,10 @@
-import { BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
 import debounce from 'lodash/debounce';
 import log from '../lib/log';
 import { getNonOverlappingBounds } from '../lib/bounds';
-import { uiState } from './EvStore';
+import { store as uiStore } from './lib/uiStore';
 
 const BOUNDS_AUTOSAVE_INTERVAL = 200;
-const BOUNDS_AUTOSAVE_PREFIX = 'evwindow.bounds';
 
 let windowSaveHandlers = new Map();
 let evWindows = new Set();
@@ -13,11 +12,12 @@ let evWindows = new Set();
 class EvWindow {
   constructor(restoreId, options) {
     this.restoreId = restoreId;
-    this.sanitizedRestoreId = Buffer.from(this.restoreId, 'binary').toString('base64');
 
     let storedOptions = this.getStoredUiState(options);
     this.win = new BrowserWindow({ ...options, ...storedOptions });
     this.startStoringUiState();
+
+    this.handleClosed();
 
     EvWindow.addWindowToCollection(this);
   }
@@ -49,6 +49,19 @@ class EvWindow {
   }
 
   /**
+   * When this window is closed, hide the app if there are no open windows
+   *
+   * @memberof EvWindow
+   */
+  handleClosed() {
+    this.win.on('closed', () => {
+      if (evWindows.size === 0) {
+        app.hide();
+      }
+    });
+  }
+
+  /**
    *
    *
    * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
@@ -75,14 +88,14 @@ class EvWindow {
     let handleSave = debounce(() => {
       if (this.win.isDestroyed()) return;
       let bounds = this.win.getNormalBounds();
-      let key = `${BOUNDS_AUTOSAVE_PREFIX}.${this.sanitizedRestoreId}`;
+      let key = `${this.restoreId}.bounds`;
 
       // For unit tests
       if (process.env.npm_lifecycle_event === 'test') {
         process.env.evwtTestEvWindow1 = `${key} ${JSON.stringify(bounds)}`;
       }
 
-      uiState.set(key, bounds);
+      uiStore.set(key, bounds);
     }, BOUNDS_AUTOSAVE_INTERVAL);
 
     handleSave();
@@ -130,9 +143,8 @@ class EvWindow {
     }
 
     let sizeOptions = {};
-
-    let sanitizedRestoreId = Buffer.from(this.restoreId, 'binary').toString('base64');
-    let savedBounds = uiState.get(`${BOUNDS_AUTOSAVE_PREFIX}.${sanitizedRestoreId}`);
+    let key = `${this.restoreId}.bounds`;
+    let savedBounds = uiStore.get(key);
 
     if (savedBounds) {
       sizeOptions = getNonOverlappingBounds(defaultOptions, savedBounds);
