@@ -1,6 +1,10 @@
 # EvLayout
 
-Flexible app-centric layouts, using CSS grid. Supports collapsible panes and sizing by relative or absolute units.
+**Flexible app-centric layouts, using CSS grid. Supports collapsible panes and sizing by relative or absolute units.**
+
+?> 🧠 EvLayout automatically remembers user pane sizes across restarts.
+
+?> 🖥 [Try out the EvLayout playground](https://evwt-layout-playground.netlify.app/)
 
 ## Setup
 
@@ -84,6 +88,8 @@ export default {
 ```
 
 > Tip: For dividers, put a border on one side of a pane.
+
+> Pane sizes are saved based on their EvWindow's restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
 
 ### Pane definition
 

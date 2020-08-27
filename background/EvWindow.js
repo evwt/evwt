@@ -14,7 +14,7 @@ class EvWindow {
     this.restoreId = restoreId;
 
     let storedOptions = this.getStoredUiState(options);
-    this.win = new BrowserWindow({ ...options, ...storedOptions });
+    this.browserWindow = new BrowserWindow({ ...options, ...storedOptions });
     this.startStoringUiState();
 
     this.handleClosed();
@@ -30,7 +30,7 @@ class EvWindow {
    */
   static addWindowToCollection(evWindow) {
     evWindows.add(evWindow);
-    evWindow.win.on('close', () => evWindows.delete(evWindow));
+    evWindow.browserWindow.on('close', () => evWindows.delete(evWindow));
   }
 
   /**
@@ -42,7 +42,7 @@ class EvWindow {
    */
   static fromBrowserWindow(win) {
     for (const evWindow of evWindows) {
-      if (evWindow.win === win) {
+      if (evWindow.browserWindow === win) {
         return evWindow;
       }
     }
@@ -54,7 +54,7 @@ class EvWindow {
    * @memberof EvWindow
    */
   handleClosed() {
-    this.win.on('closed', () => {
+    this.browserWindow.on('closed', () => {
       if (evWindows.size === 0) {
         app.hide();
       }
@@ -69,7 +69,7 @@ class EvWindow {
    * @returns {Function} Function that saves the window position/size to storage. Use after moving the window manually.
    */
   startStoringUiState() {
-    if (!this.win || !this.win.getNormalBounds) {
+    if (!this.browserWindow || !this.browserWindow.getNormalBounds) {
       log.warn('[EvWindow] Invalid window passed, not storing');
       return;
     }
@@ -80,14 +80,14 @@ class EvWindow {
     }
 
     // if the win already exists with a storageId reset everything
-    if (windowSaveHandlers.has(this.win)) {
-      let existingWin = windowSaveHandlers.get(this.win);
+    if (windowSaveHandlers.has(this.browserWindow)) {
+      let existingWin = windowSaveHandlers.get(this.browserWindow);
       existingWin.cleanupEvents();
     }
 
     let handleSave = debounce(() => {
-      if (this.win.isDestroyed()) return;
-      let bounds = this.win.getNormalBounds();
+      if (this.browserWindow.isDestroyed()) return;
+      let bounds = this.browserWindow.getNormalBounds();
       let key = `${this.restoreId}.bounds`;
 
       // For unit tests
@@ -101,22 +101,22 @@ class EvWindow {
     handleSave();
 
     let handleClose = () => {
-      let existingWin = windowSaveHandlers.get(this.win);
+      let existingWin = windowSaveHandlers.get(this.browserWindow);
       existingWin.cleanupEvents();
-      windowSaveHandlers.delete(this.win);
+      windowSaveHandlers.delete(this.browserWindow);
     };
 
-    this.win.on('resize', handleSave);
-    this.win.on('move', handleSave);
-    this.win.on('close', handleClose);
+    this.browserWindow.on('resize', handleSave);
+    this.browserWindow.on('move', handleSave);
+    this.browserWindow.on('close', handleClose);
 
     let cleanupEvents = () => {
-      this.win.off('resize', handleSave);
-      this.win.off('move', handleSave);
-      this.win.off('close', handleClose);
+      this.browserWindow.off('resize', handleSave);
+      this.browserWindow.off('move', handleSave);
+      this.browserWindow.off('close', handleClose);
     };
 
-    windowSaveHandlers.set(this.win, {
+    windowSaveHandlers.set(this.browserWindow, {
       handleSave,
       handleClose,
       cleanupEvents

@@ -117,7 +117,7 @@ function buildUiState(definition, state = {}) {
  *
  * @param {*} definition
  * @param {*} [state={}]
- * @returns
+ * @returns {*} definition
  */
 
 function applyUiState(definition, state = {}) {

@@ -4,6 +4,10 @@ Reactive native menus.
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 
+?> 💡 EvMenu gives you an easier way of working with Electron menus in the renderer process.
+
+?> 🧠 EvMenu automatically remembers menu checkbox/radio state across restarts.
+
 ## Setup
 
 ### Background script
@@ -129,6 +133,8 @@ app.on('evmenu:open-file', item => {
 });
 ```
 
+> Menu checked state is saved based on the focused EvWindow's restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
+
 
 
 
@@ -143,6 +149,13 @@ app.on('evmenu:open-file', item => {
 </dd>
 <dt><a href="#activate">activate()</a></dt>
 <dd><p>Set up IPC event handlers</p>
+</dd>
+<dt><a href="#buildUiState">buildUiState(defintion)</a></dt>
+<dd><p>Build a key/value object of menu items&#39; state (currently just the <code>checked</code> property).</p>
+<p>Later, we&#39;ll use this to restore the state of these menu items on launch.</p>
+</dd>
+<dt><a href="#applyUiState">applyUiState(definition, [state])</a> ⇒ <code>*</code></dt>
+<dd><p>Apply stored state to the menu definition</p>
 </dd>
 </dl>
 
@@ -163,6 +176,32 @@ Start using EvMenu with this BrowserWindow
 Set up IPC event handlers
 
 **Kind**: global function  
+<a name="buildUiState"></a>
+
+#### buildUiState(defintion)
+Build a key/value object of menu items' state (currently just the `checked` property).
+
+Later, we'll use this to restore the state of these menu items on launch.
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| defintion | <code>\*</code> | 
+
+<a name="applyUiState"></a>
+
+#### applyUiState(definition, [state]) ⇒ <code>\*</code>
+Apply stored state to the menu definition
+
+**Kind**: global function  
+**Returns**: <code>\*</code> - definition  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| definition | <code>\*</code> |  | 
+| [state] | <code>\*</code> | <code>{}</code> | 
+
 
 
 ### Plugin

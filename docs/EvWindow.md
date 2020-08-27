@@ -1,25 +1,34 @@
 # EvWindow
 
-## Window State
+?> 🧠 EvWindow is a smarter BrowserWindow that automatically remembers its size and position.
 
-EvWindow can automatically store BrowserWindow state across restarts, just pass a unique ID into `getStoredOptions`/`startStoringOptions`.
+## Usage
+
+### Create
 
 ```js
 import { EvWindow } from 'evwt/background';
 
-// Get stored options based on unique window ID
-let storedOptions = EvWindow.getStoredOptions('MyWindow', defaultOptions);
+// Electron BrowserWindow options
+// https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
+let options = {
+  width: 800,
+  height: 600,
+  webPreferences: {
+    nodeIntegration: true
+  }
+};
 
-// Create your window like normal, passing in the stored options
-let win = new BrowserWindow({ width: 800, height: 600, /* ... */, ...storedOptions });
-
-// Start saving options on resize/move
-EvWindow.startStoringOptions(restoreId, win);
+let restoreId = 'main'; // or a file path, database ID, etc in multiwindow apps
+let evWindow = new EvWindow(restoreId, options);
+let win = evWindow.browserWindow; // access the browserWindow for the full Electron API
 ```
 
-Currently the automatically saved properties are `width`, `height`, `x` and `y`.
+A window created in this way will have its size and position remembered across restarts.
+> Window state is saved based on the restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
 
-## Window Management
+
+### Window Management
 
 EvWindow can arrange windows on the screen in various ways. See reference below for all options.
 
@@ -34,29 +43,6 @@ EvWindow.arrange('tile'); // tile, cascade, rows or columns
 ## Reference
 ### Background
 
-#### Functions
-
-<dl>
-<dt><a href="#startStoringOptions">startStoringOptions(restoreId, win)</a> ⇒ <code>function</code></dt>
-<dd></dd>
-<dt><a href="#arrange">arrange(arrangement)</a></dt>
-<dd><p>Arranges windows on the screen.</p>
-</dd>
-<dt><a href="#getStoredOptions">getStoredOptions(restoreId, defaultOptions)</a></dt>
-<dd></dd>
-</dl>
-
-<a name="startStoringOptions"></a>
-
-#### startStoringOptions(restoreId, win) ⇒ <code>function</code>
-**Kind**: global function  
-**Returns**: <code>function</code> - Function that saves the window position/size to storage. Use after moving the window manually.  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| restoreId | <code>String</code> | A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID. |
-| win | <code>BrowserWindow</code> | https://www.electronjs.org/docs/api/browser-window |
-
 <a name="arrange"></a>
 
 #### arrange(arrangement)
@@ -67,16 +53,6 @@ Arranges windows on the screen.
 | Param | Type | Description |
 | --- | --- | --- |
 | arrangement | <code>String</code> | `tile`, `cascade`, `rows` or `columns` |
-
-<a name="getStoredOptions"></a>
-
-#### getStoredOptions(restoreId, defaultOptions)
-**Kind**: global function  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| restoreId | <code>String</code> | A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID. |
-| defaultOptions | <code>Object</code> | https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions |
 
 
 

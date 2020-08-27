@@ -4,6 +4,10 @@ Reactive native menus.
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 
+?> 💡 EvMenu gives you an easier way of working with Electron menus in the renderer process.
+
+?> 🧠 EvMenu automatically remembers menu checkbox/radio state across restarts.
+
 ## Setup
 
 ### Background script
@@ -128,4 +132,6 @@ app.on('evmenu:open-file', item => {
   console.log(item);
 });
 ```
+
+> Menu checked state is saved based on the focused EvWindow's restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
 

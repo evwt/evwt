@@ -2,6 +2,8 @@
 
 Reactive context menus.
 
+?> 💡 EvContextMenu gives you an easier way of working with Electron context menus in the renderer process.
+
 ## Setup
 
 ### Background script

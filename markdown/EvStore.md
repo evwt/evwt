@@ -2,6 +2,8 @@
 
 A reactive persistent data store, based on [electron-store](https://github.com/sindresorhus/electron-store).
 
+?> 💡 EvStore gives you access to electron-store in the renderer process via Vue data binding.
+
 ## Setup
 
 ### Background
@@ -41,4 +43,6 @@ Use `this.$evstore.store` to work with the store as you would any other reactive
 this.$evstore.store.foo = 'bar';
 ```
 
-> State is saved to a file `evwt-store.json` in your app's working directory. This can be customized by passing options into `activate`. See reference below.
+> State is saved to a file `evwt-store.json` in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory. This can be customized by passing options into `activate`. See reference below.
+
+

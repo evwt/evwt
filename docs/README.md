@@ -10,16 +10,14 @@ npm install -g @vue/cli
 vue create my-app
 cd my-app
 vue add evwt
+yarn run electron:serve
 ```
-
-Existing Electron/Vue app:
-
-`npm install evwt` (or `yarn add evwt`)
 
 ## Docs
 
-- **[Documentation](https://evwt.net/)**
-- [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
+📄  **[Documentation](https://evwt.net/)**
+<br>
+📒 [Cookbook](https://github.com/evwt/evwt/blob/master/CookBook.md)
 
 ## Playground
 
