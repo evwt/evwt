@@ -15,6 +15,8 @@
 
 <script>
 export default {
+  name: 'EvVirtualScroll',
+
   props: {
     // Array of objects with your data
     items: {

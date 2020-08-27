@@ -6,6 +6,8 @@
 
 <script>
 export default {
+  name: 'EvIcon',
+
   props: {
     // The filename of the icon without the .svg extension
     name: {

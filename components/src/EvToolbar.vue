@@ -1,5 +1,7 @@
 <script>
 export default {
+  name: 'EvToolbar',
+
   props: {
     // Whether to display icons for items by default
     iconShow: {

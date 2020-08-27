@@ -1,6 +1,6 @@
 <template>
   <ev-layout-child v-if="layoutData" :child="layoutData">
-    <!-- @vuese-ignore -->
+    <!-- EvLayout will create one slot for each pane you define -->
     <slot v-for="(_, name) in $slots" :slot="name" :name="name" />
     <template v-for="(_, name) in $scopedSlots" :slot="name" slot-scope="slotData">
       <!-- @vuese-ignore -->

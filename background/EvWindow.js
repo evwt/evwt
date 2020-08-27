@@ -1,3 +1,7 @@
+/**
+ * @module EvWindow
+ */
+
 import { app, BrowserWindow, screen } from 'electron';
 import debounce from 'lodash/debounce';
 import log from '../lib/log';
@@ -9,7 +13,7 @@ const BOUNDS_AUTOSAVE_INTERVAL = 200;
 let windowSaveHandlers = new Map();
 let evWindows = new Set();
 
-class EvWindow {
+export default class EvWindow {
   constructor(restoreId, options) {
     this.restoreId = restoreId;
 
@@ -19,33 +23,7 @@ class EvWindow {
 
     this.handleClosed();
 
-    EvWindow.addWindowToCollection(this);
-  }
-
-  /**
-   * Add window to our collection of windows, so it can be retrieved with fromBrowserWindow
-   *
-   * @static
-   * @memberof EvWindow
-   */
-  static addWindowToCollection(evWindow) {
-    evWindows.add(evWindow);
-    evWindow.browserWindow.on('close', () => evWindows.delete(evWindow));
-  }
-
-  /**
-   * Return the EvWindow associated with the passed BrowserWindow
-   *
-   * @param {*} win
-   * @returns EvWindow
-   * @memberof EvWindow
-   */
-  static fromBrowserWindow(win) {
-    for (const evWindow of evWindows) {
-      if (evWindow.browserWindow === win) {
-        return evWindow;
-      }
-    }
+    addWindowToCollection(this);
   }
 
   /**
@@ -63,7 +41,7 @@ class EvWindow {
 
   /**
    *
-   *
+   * @private
    * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
    * @param {BrowserWindow} win - https://www.electronjs.org/docs/api/browser-window
    * @returns {Function} Function that saves the window position/size to storage. Use after moving the window manually.
@@ -128,6 +106,7 @@ class EvWindow {
   /**
    *
    *
+   * @private
    * @param {String} restoreId - A unique ID for the window. For single-window apps, this can be anything. For multi-window apps, give each window a unique ID.
    * @param {Object} defaultOptions - https://www.electronjs.org/docs/api/browser-window#new-browserwindowoptions
    */
@@ -153,6 +132,33 @@ class EvWindow {
     return sizeOptions;
   }
 }
+
+/**
+ * Add window to our collection of windows, so it can be retrieved with fromBrowserWindow
+ *
+ * @private
+ * @param {*} evWindow
+ */
+function addWindowToCollection(evWindow) {
+  evWindows.add(evWindow);
+  evWindow.browserWindow.on('close', () => evWindows.delete(evWindow));
+}
+
+/**
+ * Return the EvWindow associated with the passed BrowserWindow
+ *
+ * @param {BrowserWindow} win
+ * @returns EvWindow
+ */
+export function fromBrowserWindow(win) {
+  for (const evWindow of evWindows) {
+    if (evWindow.browserWindow === win) {
+      return evWindow;
+    }
+  }
+}
+
+EvWindow.fromBrowserWindow = fromBrowserWindow;
 
 /**
  *
@@ -284,5 +290,3 @@ function columns() {
     win.setPosition(newX, workArea.y, false);
   }
 }
-
-export default EvWindow;

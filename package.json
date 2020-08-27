@@ -30,7 +30,7 @@
     "lodash": "4.17.19",
     "loglevel": "^1.6.8",
     "observable-slim": "^0.1.5",
-    "vue": "2.6.11"
+    "vue": "2.6.12"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "3.1.1",

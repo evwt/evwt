@@ -15,32 +15,17 @@ function setupUserStore(Vue) {
       return {
         store: initialStore,
         storeProxy: null,
-        isClean: false,
         isProxyClean: false
       };
     },
 
     watch: {
-      store: {
-        handler(newStore) {
-          if (this.isClean) {
-            this.isClean = false;
-          }
-
-          // console.log('writing newStore', newStore);
-
-          // ipcRenderer.sendSync('evstore:ipc:user:write', newStore);
-        },
-        deep: true
-      },
       storeProxy: {
         handler() {
           if (this.isProxyClean) {
             this.isProxyClean = false;
             return;
           }
-
-          console.log('writing newStore in proxy', { ...this.storeProxy });
 
           ipcRenderer.sendSync('evstore:ipc:user:write', { ...this.storeProxy });
         },
@@ -61,7 +46,6 @@ function setupUserStore(Vue) {
     methods: {
       watchRemote() {
         ipcRenderer.on('evstore:ipc:user:changed', (e, store) => {
-          this.isClean = true;
           this.isProxyClean = true;
           this.store = store;
           this.storeProxy = new Proxy(this.store, {});
@@ -81,32 +65,17 @@ function setupUiStore(Vue) {
       return {
         store: initialStore,
         storeProxy: null,
-        isClean: false,
         isProxyClean: false
       };
     },
 
     watch: {
-      store: {
-        handler(newStore) {
-          if (this.isClean) {
-            this.isClean = false;
-          }
-
-          // console.log('writing newStore', newStore);
-
-          // ipcRenderer.sendSync('evstore:ipc:ui:write', newStore);
-        },
-        deep: true
-      },
       storeProxy: {
         handler() {
           if (this.isProxyClean) {
             this.isProxyClean = false;
             return;
           }
-
-          console.log('writing newStore in proxy', { ...this.storeProxy });
 
           ipcRenderer.sendSync('evstore:ipc:ui:write', { ...this.storeProxy });
         },
@@ -122,8 +91,6 @@ function setupUiStore(Vue) {
     methods: {
       watchRemote() {
         ipcRenderer.on('evstore:ipc:ui:changed', (e, store) => {
-          console.log('Got new store!', store);
-          this.isClean = true;
           this.isProxyClean = true;
           this.store = store;
           this.storeProxy = new Proxy(this.store, {});

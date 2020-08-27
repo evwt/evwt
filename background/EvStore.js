@@ -37,7 +37,6 @@ function activateUiStore() {
     let browserWindow = BrowserWindow.fromWebContents(event.sender);
     let evWindow = EvWindow.fromBrowserWindow(browserWindow);
 
-    console.log('got newstate in write ', newState);
     uiStore.set(evWindow.restoreId, newState);
 
     event.returnValue = uiStore.get(evWindow.restoreId);

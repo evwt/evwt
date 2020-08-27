@@ -21,7 +21,8 @@ export function attach(win) {
         Menu.setApplicationMenu(menu);
       }
     } catch (error) {
-      log.error('[EvMenu] Invalid menu passed to attach.');
+      log.error('[EvMenu] Invalid menu passed to attach:', menu);
+      log.error(error);
     }
   });
 }
@@ -60,7 +61,8 @@ function onIpcSet(e, definition, initialSet) {
       Menu.setApplicationMenu(menu);
     }
   } catch (error) {
-    log.error('[EvMenu] Error: Invalid menu passed to attach.');
+    log.error('[EvMenu] Invalid menu passed to attach:', menu);
+    log.error(error);
   }
 
   return definition;
@@ -80,7 +82,6 @@ function loadUiState(webContents, definition) {
   let key = `${evWindow.restoreId}.menu`;
   let menuState = uiStore.get(key);
 
-  console.log('Loading UI state with menuState', menuState);
   definition = applyUiState(definition, menuState);
 
   return definition;
