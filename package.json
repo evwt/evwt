@@ -16,8 +16,6 @@
     "docs:build": "node scripts/buildDocs.js",
     "docs:watch": "nodemon --ignore docs/ --ignore vuese/ --exec npm run docs -e scss,js,vue,md",
     "docs:deploy": "netlify deploy --prod --dir=docs",
-    "release:dry": "release-it --dry-run",
-    "release": "release-it",
     "test": "npm run test:declarative",
     "test:declarative": "vue-test-declarative"
   },
@@ -29,7 +27,6 @@
     "lodash": "4.17.19",
     "loglevel": "^1.6.8",
     "observable-slim": "^0.1.5",
-    "release-it": "^13.7.0",
     "vue": "2.6.12"
   },
   "devDependencies": {

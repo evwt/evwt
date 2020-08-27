@@ -17,7 +17,7 @@ https://github.com/evwt/evwt-tutorials
 * Main project + EvLayout for web in components/
 * Always make sure markdown editor tests pass before releasing
 * Do any changes require docs/tutorial updates?
-* Use release-it to release
+* `release-it`
 * Netlify auto deploys new docs on push.
 
 ### Tutorials
