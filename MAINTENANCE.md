@@ -18,6 +18,7 @@ https://github.com/evwt/evwt-tutorials
 * Always make sure markdown editor tests pass before releasing
 * Do any changes require docs/tutorial updates?
 * Use release-it to release
+* Netlify auto deploys new docs on push.
 
 ### Tutorials
 https://github.com/evwt/evwt-tutorials
@@ -42,9 +43,7 @@ https://evwt-layout-playground.netlify.app/
 
 This uses a standalone EvLayout made for the web, see components folder.
 Should eventually move away from Evwt-components and instead just make EvLayout its own package
-
-* `npm run deploy`
-
+* Netlify auto deploys this on pushes.
 
 ## Example Apps
 

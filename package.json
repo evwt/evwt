@@ -68,7 +68,8 @@
     "sass-loader": "8.0.2",
     "vue-svg-loader": "^0.16.0",
     "vue-template-compiler": "2.6.11",
-    "vue-test-declarative": "^1.2.1"
+    "vue-test-declarative": "^1.2.1",
+    "vuese": "^1.4.7"
   },
   "peerDependencies": {},
   "bugs": {
