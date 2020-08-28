@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import Split from '../../../vendor/split-grid';
 import EvLayoutChild from '../EvLayoutChild.vue';
 
