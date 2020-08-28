@@ -1,6 +1,6 @@
 {
   "name": "evwt.evlayout",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Standalone web-compatible version of EVLayout from EVWT.",
   "scripts": {
     "build": "npm run build:umd & npm run build:es",
