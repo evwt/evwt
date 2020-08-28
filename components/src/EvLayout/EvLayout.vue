@@ -178,6 +178,8 @@ export default {
 
   methods: {
     loadUiState() {
+      if (!this.$evstore || !this.$evstore.$ui) return;
+
       if (typeof this.$evstore.$ui.store.layout === 'object') {
         for (const [paneName, paneSizes] of Object.entries(this.$evstore.$ui.store.layout)) {
           this.syncLayoutDataForPane(paneName, this.layoutData, paneSizes);
