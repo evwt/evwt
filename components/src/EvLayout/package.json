@@ -6,7 +6,8 @@
     "build": "npm run build:umd & npm run build:es",
     "build:es": "rollup --config build/rollup.config.js --format es --file dist/evwt-components.esm.js",
     "build:umd": "rollup --config build/rollup.config.js --format umd --file dist/evwt-components.umd.js",
-    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue"
+    "build:watch": "nodemon --ignore dist/ --exec npm run build -e scss,js,vue",
+    "test:declarative": "vue-test-declarative"
   },
   "main": "index.js",
   "module": "dist/evwt-components.esm.js",
@@ -47,5 +48,8 @@
     "vue-svg-loader": "^0.16.0",
     "vue-template-compiler": "2.6.11",
     "vue-test-declarative": "^1.2.1"
+  },
+  "dependencies": {
+    "lodash": "^4.17.20"
   }
 }

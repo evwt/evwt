@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { cloneDeep } from 'lodash';
 import Split from '../../../vendor/split-grid';
 import EvLayoutChild from '../EvLayoutChild.vue';
 
@@ -35,7 +36,7 @@ export default {
   },
 
   async created() {
-    this.layoutData = this.layout;
+    this.layoutData = cloneDeep(this.layout);
     this.loadUiState();
   },
 
@@ -49,6 +50,30 @@ export default {
       track: Array.prototype.indexOf.call(gutter.parentNode.children, gutter),
       element: gutter
     }));
+
+    // Return the panes before and after this gutter to their default sizes
+    for (const gutter of [...this.$el.querySelectorAll('.ev-gutter')]) {
+      gutter.addEventListener('doubleclick', (e) => {
+        let parent = e.target.parentElement;
+        let parentName = parent.dataset.evlayoutName;
+        let track = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
+        let leadingIndex = Math.floor(track / 2);
+        let trailingIndex = Math.ceil(track / 2);
+        let gridTemplate = parent.style.gridTemplateColumns || parent.style.gridTemplateRows;
+        let sizes = gridTemplate.split(' ').filter(s => s !== '0px');
+        let defaultSizes = this.defaultSizeForTrack(parentName, this.layout);
+
+        sizes[leadingIndex] = defaultSizes[leadingIndex];
+        sizes[trailingIndex] = defaultSizes[trailingIndex];
+
+        gridTemplate = sizes.join(' 0px ');
+
+        if (this.$evstore && this.$evstore.$ui) {
+          this.syncLayoutDataForPane(parentName, this.layoutData, sizes);
+          this.saveUiState();
+        }
+      });
+    }
 
     let minSizeReducer = (acc, gutter) => {
       let prevPane = gutter.previousElementSibling;
@@ -81,22 +106,7 @@ export default {
     };
 
     let onDrag = (direction, track, element, gridTemplateStyle) => {
-      let parent = element.parentElement;
-      let adjacentPane = element.previousElementSibling;
-      let maximizedClassName = 'ev-layout-pane-maximized';
-      let minimizedClassName = 'ev-layout-pane-minimized';
-
-      if (adjacentPane && adjacentPane.offsetWidth === parent.offsetWidth) {
-        adjacentPane.classList.add(maximizedClassName);
-      } else if (adjacentPane.classList.contains(maximizedClassName)) {
-        adjacentPane.classList.remove(maximizedClassName);
-      }
-
-      if (adjacentPane && adjacentPane.offsetWidth === 0) {
-        adjacentPane.classList.add(minimizedClassName);
-      } else if (adjacentPane.classList.contains(minimizedClassName)) {
-        adjacentPane.classList.remove(minimizedClassName);
-      }
+      addMinimizedMaximizedClasses(direction, track, element);
 
       // Fired when any pane is dragging
       // @arg direction, track, gutter element, gridTemplateStyle
@@ -104,6 +114,47 @@ export default {
         direction, track, element, gridTemplateStyle
       });
     };
+
+    let addMinimizedMaximizedClasses = (direction, track, element) => {
+      let maximizedClassName = 'ev-layout-pane-maximized';
+      let minimizedClassName = 'ev-layout-pane-minimized';
+      let offsetKey = direction === 'column' ? 'offsetWidth' : 'offsetHeight';
+      let parent = element.parentElement;
+      let previousPane = element.previousElementSibling;
+      let nextPane = element.nextElementSibling;
+
+      if (previousPane && previousPane[offsetKey] === parent[offsetKey]) {
+        previousPane.classList.add(maximizedClassName);
+      } else if (previousPane.classList.contains(maximizedClassName)) {
+        previousPane.classList.remove(maximizedClassName);
+      }
+
+      if (previousPane && previousPane[offsetKey] === 0) {
+        previousPane.classList.add(minimizedClassName);
+      } else if (previousPane.classList.contains(minimizedClassName)) {
+        previousPane.classList.remove(minimizedClassName);
+      }
+
+      if (nextPane && nextPane[offsetKey] === parent[offsetKey]) {
+        nextPane.classList.add(maximizedClassName);
+      } else if (nextPane.classList.contains(maximizedClassName)) {
+        nextPane.classList.remove(maximizedClassName);
+      }
+
+      if (nextPane && nextPane[offsetKey] === 0) {
+        nextPane.classList.add(minimizedClassName);
+      } else if (nextPane.classList.contains(minimizedClassName)) {
+        nextPane.classList.remove(minimizedClassName);
+      }
+    };
+
+    for (const gutter of rowGutters) {
+      addMinimizedMaximizedClasses('row', gutter.track, gutter.element);
+    }
+
+    for (const gutter of columnGutters) {
+      addMinimizedMaximizedClasses('column', gutter.track, gutter.element);
+    }
 
     let onDragEnd = async (direction, track, element) => {
       // Fired when any pane ends dragging
@@ -152,6 +203,23 @@ export default {
         }
         if (pane.panes) {
           this.syncLayoutDataForPane(name, pane, sizes);
+        }
+      }
+    },
+
+    defaultSizeForTrack(name, layoutData) {
+      if (layoutData.name === name) {
+        return layoutData.sizes;
+      }
+
+      for (let idx = 0; idx < layoutData.panes.length; idx++) {
+        let pane = layoutData.panes[idx];
+        if (!pane) continue;
+        if (pane.name === name) {
+          return pane.sizes;
+        }
+        if (pane.panes) {
+          this.defaultSizeForTrack(name, pane);
         }
       }
     },

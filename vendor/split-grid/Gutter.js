@@ -72,11 +72,13 @@ class Gutter {
     this.startDragging = this.startDragging.bind(this);
     this.stopDragging = this.stopDragging.bind(this);
     this.drag = this.drag.bind(this);
+    this.dblClick = this.dblClick.bind(this);
 
     this.minSizeStart = options.minSizeStart;
     this.minSizeEnd = options.minSizeEnd;
 
     if (options.element) {
+      this.element.addEventListener('dblclick', this.dblClick);
       this.element.addEventListener('mousedown', this.startDragging);
       this.element.addEventListener('touchstart', this.startDragging);
     }
@@ -174,6 +176,10 @@ class Gutter {
     return e[this.clientAxis];
   }
 
+  dblClick() {
+    this.element.dispatchEvent(new Event('doubleclick'));
+  }
+
   startDragging(e) {
     if ('button' in e && e.button !== 0) {
       return;
@@ -247,6 +253,7 @@ class Gutter {
     window.addEventListener('touchcancel', this.stopDragging);
     window.addEventListener('mousemove', this.drag);
     window.addEventListener('touchmove', this.drag);
+    window.addEventListener('dblclick', this.dblClick);
 
     // Disable selection. Disable!
     this.grid.addEventListener('selectstart', NOOP);
@@ -361,7 +368,7 @@ class Gutter {
     } else if (this.trackValues[this.bTrack].type === 'fr') {
       if (this.totalFrs === 1) {
         this.tracks[this.bTrack] = '1fr';
-      } else {
+      } else if (this.trackValues[this.aTrack].type === 'fr') {
         const targetFr = bTrackSize / this.frToPixels;
         this.tracks[this.bTrack] = `${targetFr}fr`;
       }
@@ -381,6 +388,11 @@ class Gutter {
     window.removeEventListener('touchcancel', this.stopDragging);
     window.removeEventListener('mousemove', this.drag);
     window.removeEventListener('touchmove', this.drag);
+
+    // Double click apparently needs to go to the end of the event loop
+    setTimeout(() => {
+      window.removeEventListener('dblclick', this.dblClick);
+    }, 0);
 
     if (this.grid) {
       this.grid.removeEventListener('selectstart', NOOP);
