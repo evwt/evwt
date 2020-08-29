@@ -10,9 +10,10 @@
 </template>
 
 <script>
-import cloneDeep from 'lodash/cloneDeep';
 import Split from '../../../vendor/split-grid';
 import EvLayoutChild from '../EvLayoutChild.vue';
+
+let cloneDeep = require('lodash.clonedeep');
 
 export default {
   name: 'EvLayout',
@@ -66,7 +67,11 @@ export default {
         sizes[leadingIndex] = defaultSizes[leadingIndex];
         sizes[trailingIndex] = defaultSizes[trailingIndex];
 
-        gridTemplate = sizes.join(' 0px ');
+        if (gutter.classList.contains('ev-gutter-row')) {
+          parent.style.gridTemplateRows = sizes.join(' 0px ');
+        } else {
+          parent.style.gridTemplateColumns = sizes.join(' 0px ');
+        }
 
         if (this.$evstore && this.$evstore.$ui) {
           this.syncLayoutDataForPane(parentName, this.layoutData, sizes);

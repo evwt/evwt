@@ -1,6 +1,6 @@
 {
   "name": "evwt.evlayout",
-  "version": "0.1.4",
+  "version": "0.1.7",
   "description": "Standalone web-compatible version of EVLayout from EVWT.",
   "scripts": {
     "build": "npm run build:umd & npm run build:es",
@@ -50,6 +50,6 @@
     "vue-test-declarative": "^1.2.1"
   },
   "dependencies": {
-    "lodash": "^4.17.20"
+    "lodash.clonedeep": "^4.5.0"
   }
 }

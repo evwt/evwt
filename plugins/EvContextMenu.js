@@ -111,6 +111,10 @@ EvContextMenu.install = function (Vue) {
               }
 
               return Reflect.set(obj, key, value);
+            },
+            has(target, property) {
+              if (['length'].includes(property)) return true;
+              return Reflect.has(target, property);
             }
           });
 
@@ -135,6 +139,7 @@ EvContextMenu.install = function (Vue) {
         // In this case we're removing all the observer/proxy stuff from the
         // object so it can be sent over IPC
         let serializedNewMenu = JSON.parse(JSON.stringify(menu));
+
         await ipcRenderer.invoke('evcontextmenu:set', { id, menu: serializedNewMenu });
       },
 
@@ -143,8 +148,23 @@ EvContextMenu.install = function (Vue) {
       },
 
       handleNativeInput() {
-        ipcRenderer.on('evcontextmenu:ipc:input', (e, { id, item }) => {
+        // Entire menu event
+        // This is required for when a radio button changes
+        // multiple items in the menu at once
+        ipcRenderer.on('evcontextmenu:ipc:menu', (e, { menu, id }) => {
+          for (let item of menu.filter(m => m.type !== 'submenu')) {
+            let menuItem = this.getItem(id, item.id);
+
+            for (let key of Object.keys(menuItem)) {
+              this.$set(menuItem, key, item[key]);
+            }
+          }
+        });
+
+        // Individual item event
+        ipcRenderer.on('evcontextmenu:ipc:input', async (e, { id, item }) => {
           let menu = this.menus[id];
+
           if (!menu) return;
 
           let menuItem = this.getItem(id, item.id);
@@ -153,6 +173,9 @@ EvContextMenu.install = function (Vue) {
           for (let key of Object.keys(menuItem)) {
             this.$set(menuItem, key, item[key]);
           }
+
+          this.$emit(`input:${id}`, item);
+          this.$emit(`input:${id}:${item.id}`, item);
         });
       },
 

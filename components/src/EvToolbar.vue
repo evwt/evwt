@@ -45,6 +45,12 @@ export default {
     }
   },
 
+  data() {
+    return {
+      renderKey: 0
+    };
+  },
+
   computed: {
     toolbarStyle() {
       if (this.height) {
@@ -55,11 +61,93 @@ export default {
     }
   },
 
+  created() {
+    let template = [
+      {
+        id: 'evtoolbar-mode-icontext',
+        label: 'Icon and Text',
+        type: 'radio',
+        checked: true
+      },
+      {
+        id: 'evtoolbar-mode-icon',
+        label: 'Icon only',
+        type: 'radio',
+        checked: false
+      },
+      {
+        id: 'evtoolbar-mode-text',
+        label: 'Text only',
+        type: 'radio',
+        checked: false
+      },
+      { type: 'separator' },
+      {
+        id: 'evtoolbar-customize',
+        label: 'Customize...'
+      },
+      {
+        id: 'evtoolbar-submenu',
+        label: 'Submenu',
+        submenu: [
+          {
+            id: 'item-aa',
+            label: 'AA',
+            type: 'radio',
+            checked: true
+          },
+          {
+            id: 'item-bb',
+            label: 'BB',
+            type: 'radio',
+            checked: false
+          },
+          {
+            id: 'item-cc',
+            label: 'CC',
+            type: 'radio',
+            checked: false
+          }
+        ]
+      }
+    ];
+
+    this.$evcontextmenu.build({
+      id: 'evtoolbar-context',
+      menu: template
+    });
+  },
+
   render(createElement) {
     let attrs = {
       class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',
-      style: this.toolbarStyle
+      style: this.toolbarStyle,
+      on: {
+        contextmenu: () => this.$evcontextmenu.show('evtoolbar-context')
+      },
+      props: {
+        iconShow: this.iconShow,
+        labelShow: this.labelShow
+      },
+      // Without a changing key, things don't seem to actually re-render
+      key: Math.random().toString()
     };
+
+    if (this.$evcontextmenu.get('evtoolbar-context')) {
+      let checked = this.$evcontextmenu.get('evtoolbar-context').find(m => m.checked) || {};
+
+      if (['evtoolbar-mode-icontext', 'evtoolbar-mode-icon'].includes(checked.id)) {
+        attrs.props.iconShow = true;
+      } else if (['evtoolbar-mode-text'].includes(checked.id)) {
+        attrs.props.iconShow = false;
+      }
+
+      if (['evtoolbar-mode-icontext', 'evtoolbar-mode-text'].includes(checked.id)) {
+        attrs.props.labelShow = true;
+      } else if (['evtoolbar-mode-icon'].includes(checked.id)) {
+        attrs.props.labelShow = false;
+      }
+    }
 
     if (!this.$slots.default) {
       return createElement('div', attrs);
@@ -67,14 +155,14 @@ export default {
 
     for (const vnode of this.$slots.default) {
       vnode.componentOptions.propsData = {
-        labelShow: this.labelShow,
         iconPos: this.iconPos,
         iconSize: this.iconSize,
         fontSize: this.fontSize,
         minWidth: this.minWidth,
         padding: this.padding,
-        iconShow: this.iconShow,
-        ...vnode.componentOptions.propsData
+        ...vnode.componentOptions.propsData,
+        labelShow: attrs.props.labelShow,
+        iconShow: attrs.props.iconShow
       };
     }
 

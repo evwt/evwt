@@ -67,28 +67,19 @@ function handleNativeInput(menuItem, focusedWindow, id) {
     return;
   }
 
+  let menu = findMenuFromItem(menuItem, contextMenus[id]);
   let ipcPayloads = [];
 
-  // If this is a radio item, send down all the sibling items too
-  if (menuItem.type === 'radio') {
-    let radioMenu = findMenuFromItem(menuItem, contextMenus[id]);
-
-    if (radioMenu && radioMenu.length) {
-      for (let radioMenuItem of radioMenu) {
-        let payload = serializableProperties(radioMenuItem);
-        ipcPayloads.push(payload);
-      }
-    }
-  } else {
-    let payload = serializableProperties(menuItem);
+  for (let item of menu) {
+    let payload = serializableProperties(item);
     ipcPayloads.push(payload);
   }
 
-  for (let payload of ipcPayloads) {
-    if (focusedWindow && focusedWindow.webContents) {
-      onIpcEmit({ sender: focusedWindow }, { id, item: payload });
-      focusedWindow.webContents.send('evcontextmenu:ipc:input', { item: payload, id });
-    }
+  if (focusedWindow && focusedWindow.webContents) {
+    let payload = serializableProperties(menuItem);
+    onIpcEmit({ sender: focusedWindow }, { id, item: payload });
+    focusedWindow.webContents.send('evcontextmenu:ipc:menu', { menu: ipcPayloads, id });
+    focusedWindow.webContents.send('evcontextmenu:ipc:input', { item: payload, id });
   }
 }
 
