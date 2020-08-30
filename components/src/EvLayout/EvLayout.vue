@@ -32,13 +32,33 @@ export default {
 
   data() {
     return {
-      layoutData: null
+      layoutData: {}
     };
   },
 
-  async created() {
-    this.layoutData = cloneDeep(this.layout);
-    this.loadUiState();
+  watch: {
+    layout: {
+      deep: true,
+      handler() {
+        this.layoutData = cloneDeep(this.layout);
+      }
+    },
+
+    layoutData: {
+      handler() {
+        this.saveUiState();
+      }
+    }
+  },
+
+  created() {
+    if (!this.$evstore || !this.$evstore.$ui || typeof this.$evstore.$ui.store.layout !== 'object') {
+      this.layoutData = cloneDeep(this.layout);
+      this.saveUiState();
+    }
+
+    this.layoutData = this.$evstore.$ui.store.layout;
+    this.$emit('update:layout', this.layoutData);
   },
 
   async mounted() {
@@ -74,8 +94,8 @@ export default {
         }
 
         if (this.$evstore && this.$evstore.$ui) {
-          this.syncLayoutDataForPane(parentName, this.layoutData, sizes);
-          this.saveUiState();
+          this.updateLayoutSizes(parentName, this.layoutData, sizes);
+          this.$emit('update:layout', this.layoutData);
         }
       });
     }
@@ -170,9 +190,10 @@ export default {
         let { gridTemplateColumns, gridTemplateRows } = element.parentElement.style;
         let gridTemplate = gridTemplateColumns || gridTemplateRows;
         let sizes = gridTemplate.split(' 0px ');
-        let name = element.parentElement.dataset.evlayoutName;
-        this.syncLayoutDataForPane(name, this.layoutData, sizes);
-        this.saveUiState();
+        let parentName = element.parentElement.dataset.evlayoutName;
+
+        this.updateLayoutSizes(parentName, this.layoutData, sizes);
+        this.$emit('update:layout', this.layoutData);
       }
     };
 
@@ -182,21 +203,12 @@ export default {
   },
 
   methods: {
-    loadUiState() {
-      if (!this.$evstore || !this.$evstore.$ui) return;
-
-      if (typeof this.$evstore.$ui.store.layout === 'object') {
-        for (const [paneName, paneSizes] of Object.entries(this.$evstore.$ui.store.layout)) {
-          this.syncLayoutDataForPane(paneName, this.layoutData, paneSizes);
-        }
-      }
-    },
-
     saveUiState() {
-      this.$set(this.$evstore.$ui.store, 'layout', this.getSizesForPanes(this.layoutData));
+      this.$set(this.$evstore.$ui.store, 'layout', this.layoutData);
     },
 
-    syncLayoutDataForPane(name, layoutData, sizes) {
+    // Keep dom changes in sync with layoutData
+    updateLayoutSizes(name, layoutData, sizes) {
       if (layoutData.name === name) {
         layoutData.sizes = sizes;
         return;
@@ -205,11 +217,22 @@ export default {
       for (let idx = 0; idx < layoutData.panes.length; idx++) {
         let pane = layoutData.panes[idx];
         if (!pane) continue;
+
         if (pane.name === name) {
+          if (pane.panes && pane.panes.some(p => p.hidden === true)) {
+            // Some children are hidden, use size 0 for those panes
+            for (let jdx = 0; jdx < pane.panes.length; jdx++) {
+              const hiddenPane = pane.panes[jdx];
+              if (!hiddenPane.hidden) continue;
+              sizes[jdx] = [0, sizes[jdx]];
+            }
+          }
+
           pane.sizes = sizes;
         }
+
         if (pane.panes) {
-          this.syncLayoutDataForPane(name, pane, sizes);
+          this.updateLayoutSizes(name, pane, sizes);
         }
       }
     },
@@ -229,23 +252,7 @@ export default {
           this.defaultSizeForTrack(name, pane);
         }
       }
-    },
-
-    getSizesForPanes(layoutData, sizes = {}) {
-      sizes[layoutData.name] = layoutData.sizes;
-
-      for (let idx = 0; idx < layoutData.panes.length; idx++) {
-        let pane = layoutData.panes[idx];
-        if (!pane) continue;
-        sizes[pane.name] = pane.sizes;
-        if (pane.panes) {
-          this.getSizesForPanes(pane, sizes);
-        }
-      }
-
-      return sizes;
     }
-
   }
 };
 </script>

@@ -25,13 +25,13 @@ EvMenu.install = function (Vue, menuDefinition) {
         deep: true,
         handler(newMenu) {
           ipcRenderer.invoke('evmenu:ipc:set', newMenu);
+          this.menu = Vue.observable(newMenu);
         }
       }
     },
 
     async created() {
-      let newMenu = await ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
-      this.menu = Vue.observable(newMenu);
+      await ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
 
       this.handleClick();
       this.handleFocus();
@@ -64,10 +64,6 @@ EvMenu.install = function (Vue, menuDefinition) {
       handleClick() {
         this.$on('click', command => {
           let menuItem = this.get(command);
-
-          if (menuItem.type === 'radio') {
-            menuItem.lastChecked = true;
-          }
 
           this.$emit(`input:${command}`, menuItem);
           this.$emit('input', menuItem);

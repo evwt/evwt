@@ -49,7 +49,16 @@ export default {
         return;
       }
 
-      let sizes = this.child.sizes.map(s => [s, '0']).flat();
+      let sizes = [];
+
+      for (const childSize of this.child.sizes) {
+        if (Array.isArray(childSize)) {
+          sizes.push(childSize[0]);
+        } else {
+          sizes.push(childSize);
+        }
+        sizes.push('0');
+      }
       sizes.pop();
 
       return `grid-template-${this.child.direction}s: ${sizes.join(' ')}`;
