@@ -1,11 +1,9 @@
 import {
   ipcMain, Menu, app, BrowserWindow
 } from 'electron';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash.clonedeep';
 import log from '../lib/log';
 import { findMenuFromItem, serializableProperties } from '../lib/menus';
-import EvWindow from './EvWindow';
-import { store as uiStore } from './lib/uiStore';
 
 let menu = {};
 
@@ -45,14 +43,8 @@ function onIpcClick(e, payload) {
   sender.emit(`evmenu:${payload.id}`, payload);
 }
 
-function onIpcSet(e, definition, initialSet) {
+function onIpcSet(e, definition) {
   if (!definition || !definition.length) return;
-
-  if (initialSet) {
-    loadUiState(e.sender, definition);
-  }
-
-  storeUiState(e.sender, definition);
 
   menu = Menu.buildFromTemplate(addClickToItems(cloneDeep(definition)));
 
@@ -63,76 +55,6 @@ function onIpcSet(e, definition, initialSet) {
   } catch (error) {
     log.error('[EvMenu] Invalid menu passed to attach:', menu);
     log.error(error);
-  }
-
-  return definition;
-}
-
-function storeUiState(webContents, definition) {
-  let sender = BrowserWindow.fromWebContents(webContents);
-  let evWindow = EvWindow.fromBrowserWindow(sender);
-  let key = `${evWindow.restoreId}.menu`;
-
-  uiStore.set(key, buildUiState(definition));
-}
-
-function loadUiState(webContents, definition) {
-  let browserWindow = BrowserWindow.fromWebContents(webContents);
-  let evWindow = EvWindow.fromBrowserWindow(browserWindow);
-  let key = `${evWindow.restoreId}.menu`;
-  let menuState = uiStore.get(key);
-
-  definition = applyUiState(definition, menuState);
-
-  return definition;
-}
-
-/**
- * Build a key/value object of menu items' state (currently just the `checked` property).
- *
- * Later, we'll use this to restore the state of these menu items on launch.
- *
- * @param {*} defintion
- */
-function buildUiState(definition, state = {}) {
-  for (let idx = 0; idx < definition.length; idx++) {
-    let item = definition[idx];
-    if (!item) continue;
-
-    if (item.type === 'checkbox' || item.type === 'radio') {
-      state[item.id] = {
-        checked: !!item.checked
-      };
-    }
-
-    if (item.submenu) {
-      buildUiState(item.submenu, state);
-    }
-  }
-
-  return state;
-}
-
-/**
- * Apply stored state to the menu definition
- *
- * @param {*} definition
- * @param {*} [state={}]
- * @returns {*} definition
- */
-
-function applyUiState(definition, state = {}) {
-  for (let idx = 0; idx < definition.length; idx++) {
-    let item = definition[idx];
-    if (!item) continue;
-
-    if (state[item.id]) {
-      item.checked = state[item.id].checked;
-    }
-
-    if (item.submenu) {
-      applyUiState(item.submenu, state);
-    }
   }
 
   return definition;
