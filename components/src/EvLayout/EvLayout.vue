@@ -32,7 +32,8 @@ export default {
 
   data() {
     return {
-      layoutData: {}
+      initialLayout: null,
+      layoutData: null
     };
   },
 
@@ -52,6 +53,8 @@ export default {
   },
 
   created() {
+    this.initialLayout = cloneDeep(this.layout);
+
     if (!this.$evstore || !this.$evstore.$ui || typeof this.$evstore.$ui.store.layout !== 'object') {
       this.layoutData = cloneDeep(this.layout);
       this.saveUiState();
@@ -86,7 +89,7 @@ export default {
         let trailingIndex = Math.ceil(track / 2);
         let gridTemplate = parent.style.gridTemplateColumns || parent.style.gridTemplateRows;
         let sizes = gridTemplate.split(' ').filter(s => s !== '0px');
-        let defaultSizes = this.defaultSizeForTrack(parentName, this.layout);
+        let defaultSizes = this.defaultSizeForTrack(parentName);
 
         sizes[leadingIndex] = defaultSizes[leadingIndex];
         sizes[trailingIndex] = defaultSizes[trailingIndex];
@@ -290,7 +293,7 @@ export default {
       }
     },
 
-    defaultSizeForTrack(name, layoutData) {
+    defaultSizeForTrack(name, layoutData = this.initialLayout) {
       if (layoutData.name === name) {
         return layoutData.sizes;
       }
@@ -400,7 +403,6 @@ export default {
           for (let jdx = 0; jdx < pane.panes.length; jdx++) {
             const innerPane = pane.panes[jdx];
             if (innerPane.name === name) {
-              console.log('setting sizes');
               pane.sizes[jdx] = size;
               this.$set(pane.sizes, jdx, size);
             }

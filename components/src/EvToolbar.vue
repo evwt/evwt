@@ -85,30 +85,6 @@ export default {
       {
         id: 'evtoolbar-customize',
         label: 'Customize...'
-      },
-      {
-        id: 'evtoolbar-submenu',
-        label: 'Submenu',
-        submenu: [
-          {
-            id: 'item-aa',
-            label: 'AA',
-            type: 'radio',
-            checked: true
-          },
-          {
-            id: 'item-bb',
-            label: 'BB',
-            type: 'radio',
-            checked: false
-          },
-          {
-            id: 'item-cc',
-            label: 'CC',
-            type: 'radio',
-            checked: false
-          }
-        ]
       }
     ];
 
