@@ -16,16 +16,16 @@ For each user action in your app, there should be a corresponding menu item (and
 
 ## Menu Events
 
-Listen for menu events with `this.$evmenu.$on('input')`
+Listen for menu events with `this.$evmenu.on('input')`
 
 ```js
 // Listen for any menu input
-this.$evmenu.$on('input', item => {
+this.$evmenu.on('input', item => {
   console.log(item);
 });
 
 // Listen for input on a specific menu item
-this.$evmenu.$on('input:open-file', item => {
+this.$evmenu.on('input:open-file', item => {
   console.log(item);
 });
 ```
@@ -93,13 +93,6 @@ app.on('evmenu:open-file', item => {
 <dt><a href="#activate">activate()</a></dt>
 <dd><p>Set up IPC event handlers</p>
 </dd>
-<dt><a href="#buildUiState">buildUiState(defintion)</a></dt>
-<dd><p>Build a key/value object of menu items&#39; state (currently just the <code>checked</code> property).</p>
-<p>Later, we&#39;ll use this to restore the state of these menu items on launch.</p>
-</dd>
-<dt><a href="#applyUiState">applyUiState(definition, [state])</a> ⇒ <code>*</code></dt>
-<dd><p>Apply stored state to the menu definition</p>
-</dd>
 </dl>
 
 <a name="attach"></a>
@@ -119,35 +112,20 @@ Start using EvMenu with this BrowserWindow
 Set up IPC event handlers
 
 **Kind**: global function  
-<a name="buildUiState"></a>
-
-#### buildUiState(defintion)
-Build a key/value object of menu items' state (currently just the `checked` property).
-
-Later, we'll use this to restore the state of these menu items on launch.
-
-**Kind**: global function  
-
-| Param | Type |
-| --- | --- |
-| defintion | <code>\*</code> | 
-
-<a name="applyUiState"></a>
-
-#### applyUiState(definition, [state]) ⇒ <code>\*</code>
-Apply stored state to the menu definition
-
-**Kind**: global function  
-**Returns**: <code>\*</code> - definition  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| definition | <code>\*</code> |  | 
-| [state] | <code>\*</code> | <code>{}</code> | 
-
 
 
 ### Plugin
+
+#### Functions
+
+<dl>
+<dt><a href="#get">get(id)</a> ⇒ <code>MenuItem</code></dt>
+<dd><p>Get menu by id</p>
+</dd>
+<dt><a href="#on">on(eventName, callback)</a></dt>
+<dd><p>Listen to events on the menu</p>
+</dd>
+</dl>
 
 <a name="get"></a>
 
@@ -159,4 +137,16 @@ Get menu by id
 | Param | Type |
 | --- | --- |
 | id | <code>String</code> | 
+
+<a name="on"></a>
+
+#### on(eventName, callback)
+Listen to events on the menu
+
+**Kind**: global function  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| eventName | <code>String</code> | Event name e.g. `evmenu:my-menu:item-1` |
+| callback | <code>function</code> | (menuItem) => {} |
 

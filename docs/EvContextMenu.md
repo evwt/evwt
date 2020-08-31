@@ -15,14 +15,35 @@ Pass a [menu template](https://www.electronjs.org/docs/api/menu#main-process) to
 let template = [
   {
     id: 'item-1',
-    label: 'First'
+    label: 'Plain'
   },
   { type: 'separator' },
   {
-    id: 'item-2',
-    label: 'Second',
+    id: 'checkbox-1',
+    label: 'Checkbox',
     type: 'checkbox',
     checked: true
+  },
+  { type: 'separator' },
+  {
+    id: 'radio-1',
+    label: 'Radio A',
+    type: 'radio',
+    checked: true
+  },
+  {
+    id: 'radio-2',
+    label: 'Radio B',
+    type: 'radio',
+    // All radio items need a `checked` property,
+    // even if false.
+    checked: false
+  },
+  {
+    id: 'radio-3',
+    label: 'Radio C',
+    type: 'radio',
+    checked: false
   }
 ]
 ```
@@ -54,7 +75,7 @@ this.$evcontextmenu.on('input:my-context-menu', item => {
 });
 
 // Listen for specific context menu item input
-this.$evcontextmenu.on('input:my-context-menu:item-2', item => {
+this.$evcontextmenu.on('input:my-context-menu:checkbox-1', item => {
   console.log(item);
 });
 ```
@@ -69,7 +90,7 @@ These can then be used for data binding:
 ```html
 <div v-if="$evcontextmenu.get('my-context-menu')">
   <input v-model="$evcontextmenu.getItem('my-context-menu', 'item-1').label">
-  <input v-model="$evcontextmenu.getItem('my-context-menu', 'item-2').checked" type="checkbox">
+  <input v-model="$evcontextmenu.getItem('my-context-menu', 'checkbox-1').checked" type="checkbox">
 </div>
 ```
 
