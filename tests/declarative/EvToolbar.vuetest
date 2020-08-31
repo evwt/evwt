@@ -1,5 +1,16 @@
 <tests for="../../components/src/EvToolbar.vue">
-  <test name="Populates correct classes">
+  <test name="Populates correct classes" :props="props">
     <expect html-of=".ev-toolbar" to-be-defined />
   </test>
 </tests>
+
+<script>
+let context = {
+  mocks: {
+    $evcontextmenu: {
+      get() {},
+      build() {}
+    }
+  }
+}
+</script>

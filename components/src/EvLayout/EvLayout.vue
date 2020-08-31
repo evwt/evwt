@@ -57,7 +57,10 @@ export default {
       this.saveUiState();
     }
 
-    this.layoutData = this.$evstore.$ui.store.layout;
+    if (this.$evstore) {
+      this.layoutData = this.$evstore.$ui.store.layout;
+    }
+
     this.$emit('update:layout', this.layoutData);
   },
 
@@ -256,7 +259,9 @@ export default {
     },
 
     saveUiState() {
-      this.$set(this.$evstore.$ui.store, 'layout', this.layoutData);
+      if (this.$evstore) {
+        this.$set(this.$evstore.$ui.store, 'layout', this.layoutData);
+      }
     },
 
     // Keep dom changes in sync with layoutData
