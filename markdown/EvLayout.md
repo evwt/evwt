@@ -27,13 +27,7 @@ Provide a definition of your UI layout and EvLayout will build it and provide sl
 </template>
 
 <script>
-import { EvLayout } from 'evwt/components';
-
 export default {
-  components: {
-    EvLayout
-  },
-
   data() {
     return {
       layout: {
@@ -67,17 +61,15 @@ export default {
 </script>
 
 <style>
-.ev-pane-sidebar {
+.ev-pane-sidebar .ev-layout-pane {
   background: #eee;
 }
 
-.ev-pane-panel {
+.ev-pane-panel .ev-layout-pane {
   background: #ddd;
 }
 </style>
 ```
-
-> Tip: For dividers, put a border on one side of a pane.
 
 > Pane sizes are saved based on their EvWindow's restoreId to evwt-ui-state.json in the [userData](https://www.electronjs.org/docs/api/app#appgetpathname) directory
 
@@ -91,3 +83,12 @@ export default {
 | sizes | Array: \[String] | Sizes of the child panes in [css grid units](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout/Basic_Concepts_of_Grid_Layout). 'auto' is valid only on non-resizable panes. | `['200px', '1fr']` |
 | direction | String: 'row'\|'column' | Direction of child panes. ||
 | resizable | Boolean | Whether the trailing edge of the pane can be dragged to resize the pane. ||
+
+
+## Methods
+
+|Name|Description|Params
+|---|---|---|
+|showPane|Show pane with name|`name`|
+|hidePane|Hide pane with name|`name`|
+

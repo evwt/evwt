@@ -61,6 +61,7 @@ export default {
       this.layoutData = this.$evstore.$ui.store.layout;
     }
 
+    // @vuese-ignore
     this.$emit('update:layout', this.layoutData);
   },
 
@@ -235,6 +236,8 @@ export default {
       let paneSize = this.getPaneUnhiddenSize(name, this.layoutData);
       this.setPaneSize(name, paneSize, this.layoutData);
       this.$emit('update:layout', this.layoutData);
+      // Fired when pane is shown
+      // @arg name
       this.$emit('pane-shown', name);
     },
 
@@ -245,6 +248,8 @@ export default {
       this.setPropertyDeep(name, this.layoutData.panes, 'hidden', true);
       this.setPaneSize(name, 0, this.layoutData);
       this.$emit('update:layout', this.layoutData);
+      // Fired when pane is hidden
+      // @arg name
       this.$emit('pane-hidden', name);
     },
 
