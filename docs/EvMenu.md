@@ -4,9 +4,7 @@ Reactive native menus.
 
 ![evmenu-demo](https://user-images.githubusercontent.com/611996/89112631-2654df00-d42b-11ea-8f7a-eec2c9ab4e83.gif)
 
-?> 💡 EvMenu gives you an easier way of working with Electron menus in the renderer process.
-
-?> 🧠 EvMenu automatically remembers menu checkbox/radio state across restarts.
+?> 💡 EvMenu gives you an easier way of working with native application menus using Vue.
 
 ## Build Menu
 
@@ -46,7 +44,6 @@ Use `this.$evmenu.get(id)` to get a menu item.
 ```
 
 > You can also access the entire menu with `this.$evmenu.menu`.
-
 
 ## Background
 
