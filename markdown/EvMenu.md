@@ -16,16 +16,16 @@ For each user action in your app, there should be a corresponding menu item (and
 
 ## Menu Events
 
-Listen for menu events with `this.$evmenu.$on('input')`
+Listen for menu events with `this.$evmenu.on('input')`
 
 ```js
 // Listen for any menu input
-this.$evmenu.$on('input', item => {
+this.$evmenu.on('input', item => {
   console.log(item);
 });
 
 // Listen for input on a specific menu item
-this.$evmenu.$on('input:open-file', item => {
+this.$evmenu.on('input:open-file', item => {
   console.log(item);
 });
 ```

@@ -657,7 +657,7 @@ You should now see two new items in the main menu:
 
 <img width="206" alt="Screen Shot 2020-08-18 at 3 04 27 PM" src="https://user-images.githubusercontent.com/611996/90560044-214e9a00-e164-11ea-83fd-079482e48c22.png">
 
-To respond to input on native menus, we use `this.$evmenu.$on('input:<id>')`, so let's update these two files:
+To respond to input on native menus, we use `this.$evmenu.on('input:<id>')`, so let's update these two files:
 
 <details>
   <summary>
@@ -666,7 +666,7 @@ To respond to input on native menus, we use `this.$evmenu.$on('input:<id>')`, so
 
 ```js
 // Add `ref="todoNew"` to the new todo input, then this in created():
-this.$evmenu.$on('input:new-todo', () => {
+this.$evmenu.on('input:new-todo', () => {
   this.$refs.todoNew.$refs.input.focus();
 });
 ```
@@ -679,7 +679,7 @@ this.$evmenu.$on('input:new-todo', () => {
 
 ```js
 // Add this to created()
-this.$evmenu.$on('input:new-category', () => {
+this.$evmenu.on('input:new-category', () => {
   this.showNew();
 });
 ```

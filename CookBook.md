@@ -122,7 +122,7 @@ ipcMain.handle('save-file', async (e, filePath, fileBytes) => {
 Now we need to invoke that 'save-file' IPC event we just created with the right parameters. We'll do this when a user selects save in the menu, uses a shortcut key, or clicks the toolbar item. This is all handled by EvMenu:
 
 ```js
-this.$evmenu.$on('input:save-file', () => {
+this.$evmenu.on('input:save-file', () => {
   ipcRenderer.invoke('save-file', '/home/me/example.md', '# It Works!');
 });
 ```

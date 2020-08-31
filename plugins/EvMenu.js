@@ -12,6 +12,16 @@ function get(id) {
   return this.findMenuItem(this.menu, id);
 }
 
+/**
+ * Listen to events on the menu
+ *
+ * @param {String} eventName - Event name e.g. `evmenu:my-menu:item-1`
+ * @param {Function} callback - (menuItem) => {}
+ */
+function on(event, cb) {
+  this.$on(event, cb);
+}
+
 EvMenu.install = function (Vue, menuDefinition) {
   let menuVm = new Vue({
     data() {
@@ -40,6 +50,7 @@ EvMenu.install = function (Vue, menuDefinition) {
 
     methods: {
       get,
+      on,
 
       findMenuItem(items, id) {
         if (!items) { return; }

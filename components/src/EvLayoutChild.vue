@@ -51,14 +51,18 @@ export default {
 
       let sizes = [];
 
-      for (const childSize of this.child.sizes) {
-        if (Array.isArray(childSize)) {
-          sizes.push(childSize[0]);
+      for (let idx = 0; idx < this.child.sizes.length; idx++) {
+        const size = this.child.sizes[idx];
+
+        if (this.child.panes[idx].hidden) {
+          sizes.push(0);
         } else {
-          sizes.push(childSize);
+          sizes.push(size);
         }
+
         sizes.push('0');
       }
+
       sizes.pop();
 
       return `grid-template-${this.child.direction}s: ${sizes.join(' ')}`;

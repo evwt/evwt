@@ -9,7 +9,7 @@ Understanding what EvMenu is doing can be a little tricky because of four event 
 - Electron App events (e.g. app.on('foo')...)
 - Electron BrowserWindow events (e.g. win.on('foo')...)
 - Electron IPC events (e.g. ipcRenderer.on('foo')...)
-- Vue events (e.g. this.$evmenu.$on('foo')...)
+- Vue events (e.g. this.$evmenu.on('foo')...)
 
 Below is a list of all EvMenu events with their types and purpose.
 

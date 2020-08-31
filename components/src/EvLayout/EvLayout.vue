@@ -124,7 +124,16 @@ export default {
     let columnMinSizes = [...this.$el.querySelectorAll('.ev-gutter-column')].reduce(minSizeReducer, {});
     let rowMinSizes = [...this.$el.querySelectorAll('.ev-gutter-row')].reduce(minSizeReducer, {});
 
+    let dragStartCoords = {};
+
     let onDragStart = (direction, track, element) => {
+      let { gridTemplateColumns, gridTemplateRows } = element.parentElement.style;
+      let gridTemplate = gridTemplateColumns || gridTemplateRows;
+      let sizes = gridTemplate.split(' 0px ');
+      let parentName = element.parentElement.dataset.evlayoutName;
+
+      dragStartCoords[parentName] = sizes;
+
       // Fired when any pane starts dragging
       // @arg direction, track, gutter element
       this.$emit('dragStart', { direction, track, element });
@@ -191,6 +200,21 @@ export default {
         let gridTemplate = gridTemplateColumns || gridTemplateRows;
         let sizes = gridTemplate.split(' 0px ');
         let parentName = element.parentElement.dataset.evlayoutName;
+        let pane = this.getPane(parentName, this.layoutData);
+        let startCoords = dragStartCoords[parentName];
+
+        for (let idx = 0; idx < pane.panes.length; idx++) {
+          const p = pane.panes[idx];
+          if (parseFloat(sizes[idx]) < 0.001) {
+            this.hidePane(p.name, startCoords[idx]);
+          } else {
+            this.setPropertyDeep(p.name, this.layoutData.panes, 'unhiddenSize', sizes[idx]);
+          }
+
+          if (parseFloat(startCoords[idx]) < 0.001) {
+            this.showPane(p.name);
+          }
+        }
 
         this.updateLayoutSizes(parentName, this.layoutData, sizes);
         this.$emit('update:layout', this.layoutData);
@@ -203,12 +227,40 @@ export default {
   },
 
   methods: {
+    showPane(name) {
+      this.setPropertyDeep(name, this.layoutData.panes, 'hidden', false);
+      let paneSize = this.getPaneUnhiddenSize(name, this.layoutData);
+      this.setPaneSize(name, paneSize, this.layoutData);
+      this.$emit('update:layout', this.layoutData);
+      this.$emit('pane-shown', name);
+    },
+
+    hidePane(name, unhiddenSize = this.getPaneSize(name, this.layoutData)) {
+      if (parseFloat(unhiddenSize) > 0.001) {
+        this.setPropertyDeep(name, this.layoutData.panes, 'unhiddenSize', unhiddenSize);
+      }
+      this.setPropertyDeep(name, this.layoutData.panes, 'hidden', true);
+      this.setPaneSize(name, 0, this.layoutData);
+      this.$emit('update:layout', this.layoutData);
+      this.$emit('pane-hidden', name);
+    },
+
+    loadUiState() {
+      if (!this.$evstore || !this.$evstore.$ui) return;
+
+      if (typeof this.$evstore.$ui.store.layout === 'object') {
+        for (const [paneName, paneSizes] of Object.entries(this.$evstore.$ui.store.layout)) {
+          this.updateLayoutSizes(paneName, this.layoutData, paneSizes);
+        }
+      }
+    },
+
     saveUiState() {
       this.$set(this.$evstore.$ui.store, 'layout', this.layoutData);
     },
 
     // Keep dom changes in sync with layoutData
-    updateLayoutSizes(name, layoutData, sizes) {
+    updateLayoutSizes(name, layoutData, sizes, initialSizes) {
       if (layoutData.name === name) {
         layoutData.sizes = sizes;
         return;
@@ -219,20 +271,11 @@ export default {
         if (!pane) continue;
 
         if (pane.name === name) {
-          if (pane.panes && pane.panes.some(p => p.hidden === true)) {
-            // Some children are hidden, use size 0 for those panes
-            for (let jdx = 0; jdx < pane.panes.length; jdx++) {
-              const hiddenPane = pane.panes[jdx];
-              if (!hiddenPane.hidden) continue;
-              sizes[jdx] = [0, sizes[jdx]];
-            }
-          }
-
           pane.sizes = sizes;
         }
 
         if (pane.panes) {
-          this.updateLayoutSizes(name, pane, sizes);
+          this.updateLayoutSizes(name, pane, sizes, initialSizes);
         }
       }
     },
@@ -250,6 +293,112 @@ export default {
         }
         if (pane.panes) {
           this.defaultSizeForTrack(name, pane);
+        }
+      }
+    },
+
+    getSizesForPanes(layoutData, sizes = {}) {
+      sizes[layoutData.name] = layoutData.sizes;
+
+      for (let idx = 0; idx < layoutData.panes.length; idx++) {
+        let pane = layoutData.panes[idx];
+        if (!pane) continue;
+        sizes[pane.name] = pane.sizes;
+        if (pane.panes) {
+          this.getSizesForPanes(pane, sizes);
+        }
+      }
+
+      return sizes;
+    },
+
+    getPaneUnhiddenSize(name, layoutData) {
+      for (let idx = 0; idx < layoutData.panes.length; idx++) {
+        let pane = layoutData.panes[idx];
+        if (!pane) continue;
+
+        if (pane.name === name) {
+          return pane.unhiddenSize;
+        }
+
+        if (pane.panes) {
+          let res = this.getPaneUnhiddenSize(name, pane);
+          if (res) return res;
+        }
+      }
+    },
+
+    setPropertyDeep(name, data, property, value) {
+      for (let idx = 0; idx < data.length; idx++) {
+        let pane = data[idx];
+
+        if (!pane) continue;
+
+        if (pane.name === name) {
+          pane[property] = value;
+          this.$set(pane, property, value);
+          return;
+        }
+
+        if (pane.panes) {
+          this.setPropertyDeep(name, pane.panes, property, value);
+        }
+      }
+    },
+
+    getPane(name, layoutData = this.layoutData) {
+      for (let idx = 0; idx < layoutData.panes.length; idx++) {
+        let pane = layoutData.panes[idx];
+        if (!pane) continue;
+        if (pane.name === name) return pane;
+
+        if (pane.panes) {
+          let res = this.getPane(name, pane);
+          if (res) return res;
+        }
+      }
+    },
+
+    getPaneSize(name, layoutData) {
+      for (let idx = 0; idx < layoutData.panes.length; idx++) {
+        let pane = layoutData.panes[idx];
+        if (!pane) continue;
+
+        if (pane.panes) {
+          for (let jdx = 0; jdx < pane.panes.length; jdx++) {
+            const innerPane = pane.panes[jdx];
+            if (innerPane.name === name) {
+              let size = pane.sizes[jdx];
+              return size;
+            }
+          }
+        }
+
+        if (pane.panes) {
+          let res = this.getPaneSize(name, pane);
+          if (res) return res;
+        }
+      }
+    },
+
+    setPaneSize(name, size, layoutData) {
+      for (let idx = 0; idx < layoutData.panes.length; idx++) {
+        let pane = layoutData.panes[idx];
+        if (!pane) continue;
+
+        if (pane.panes) {
+          for (let jdx = 0; jdx < pane.panes.length; jdx++) {
+            const innerPane = pane.panes[jdx];
+            if (innerPane.name === name) {
+              console.log('setting sizes');
+              pane.sizes[jdx] = size;
+              this.$set(pane.sizes, jdx, size);
+            }
+          }
+        }
+
+        if (pane.panes) {
+          this.setPaneSize(name, size, pane);
         }
       }
     }
