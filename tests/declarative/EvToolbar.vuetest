@@ -9,7 +9,8 @@ let context = {
   mocks: {
     $evcontextmenu: {
       get() {},
-      build() {}
+      build() {},
+      on() {}
     }
   }
 }

@@ -64,9 +64,7 @@ export default {
   },
 
   created() {
-    if (this.$evcontextmenu) {
-      this.buildContextMenus();
-    }
+    this.buildContextMenus();
   },
 
   methods: {
@@ -173,7 +171,7 @@ export default {
           this.$set(this.hiddenItems, idx, item);
           this.rebuildOverflow();
         },
-        show: (item) => {
+        show: () => {
           this.$delete(this.hiddenItems, idx);
           this.rebuildOverflow();
         },
