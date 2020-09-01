@@ -1,5 +1,5 @@
 <template>
-  <div class="ev-toolbar-overflow-item h-100 d-flex flex-middle m-w-xs" @click="$emit('click')">
+  <div class="ev-toolbar-overflow-item h-100 d-flex flex-middle m-w-xs" :class="{ 'd-none': hidden }" @click="$emit('click')">
     <chevronDoubleRight />
   </div>
 </template>
@@ -12,6 +12,13 @@ export default {
 
   components: {
     chevronDoubleRight
+  },
+
+  props: {
+    hidden: {
+      type: Boolean,
+      default: true
+    }
   }
 };
 </script>

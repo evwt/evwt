@@ -49,7 +49,6 @@ export default {
 
   data() {
     return {
-      renderKey: 0,
       hiddenItems: {}
     };
   },
@@ -65,49 +64,55 @@ export default {
   },
 
   created() {
-    let template = [
-      {
-        id: 'evtoolbar-mode-icontext',
-        label: 'Icon and Text',
-        type: 'radio',
-        checked: true
-      },
-      {
-        id: 'evtoolbar-mode-icon',
-        label: 'Icon only',
-        type: 'radio',
-        checked: false
-      },
-      {
-        id: 'evtoolbar-mode-text',
-        label: 'Text only',
-        type: 'radio',
-        checked: false
-      },
-      { type: 'separator' },
-      {
-        id: 'evtoolbar-customize',
-        label: 'Customize...'
-      }
-    ];
-
-    this.$evcontextmenu.build({
-      id: 'evtoolbar-context',
-      menu: template
-    });
-
-    this.$evcontextmenu.build({
-      id: 'evtoolbar-overflow',
-      menu: []
-    });
-
-    this.$evcontextmenu.on('input:evtoolbar-overflow', item => {
-      let toolbarItem = Object.values(this.hiddenItems).find(hi => hi.id === item.id);
-      toolbarItem.handleClick();
-    });
+    if (this.$evcontextmenu) {
+      this.buildContextMenus();
+    }
   },
 
   methods: {
+    buildContextMenus() {
+      let template = [
+        {
+          id: 'evtoolbar-mode-icontext',
+          label: 'Icon and Text',
+          type: 'radio',
+          checked: true
+        },
+        {
+          id: 'evtoolbar-mode-icon',
+          label: 'Icon only',
+          type: 'radio',
+          checked: false
+        },
+        {
+          id: 'evtoolbar-mode-text',
+          label: 'Text only',
+          type: 'radio',
+          checked: false
+        },
+        { type: 'separator' },
+        {
+          id: 'evtoolbar-customize',
+          label: 'Customize...'
+        }
+      ];
+
+      this.$evcontextmenu.build({
+        id: 'evtoolbar-context',
+        menu: template
+      });
+
+      this.$evcontextmenu.build({
+        id: 'evtoolbar-overflow',
+        menu: []
+      });
+
+      this.$evcontextmenu.on('input:evtoolbar-overflow', item => {
+        let toolbarItem = Object.values(this.hiddenItems).find(hi => hi.id === item.id);
+        toolbarItem.handleClick();
+      });
+    },
+
     rebuildOverflow() {
       let menu = [];
 
@@ -124,8 +129,10 @@ export default {
   },
 
   render(createElement) {
+    let toolbarClass = 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs overflow-hidden flex-space';
+
     let attrs = {
-      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs overflow-hidden flex-space',
+      class: toolbarClass,
       style: this.toolbarStyle,
       on: {
         contextmenu: () => this.$evcontextmenu.show('evtoolbar-context')
@@ -166,7 +173,7 @@ export default {
           this.$set(this.hiddenItems, idx, item);
           this.rebuildOverflow();
         },
-        show: () => {
+        show: (item) => {
           this.$delete(this.hiddenItems, idx);
           this.rebuildOverflow();
         },
@@ -186,8 +193,8 @@ export default {
     }
 
     let overflowButton = createElement(EvToolbarItemOverflow, {
-      class: {
-        'd-none': !Object.keys(this.hiddenItems).length
+      props: {
+        hidden: !Object.keys(this.hiddenItems).length
       },
       on: {
         click: () => this.$evcontextmenu.show('evtoolbar-overflow')
