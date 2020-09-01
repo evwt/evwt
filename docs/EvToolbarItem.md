@@ -18,16 +18,17 @@ An item on a toolbar.
 |Name|Description|Type|Required|Default|
 |---|---|---|---|---|
 |icon|Name of EvIcon to use for the icon|`String`|`false`|-|
-|label|Text to show above/aside icon|`String`|`false`|-|
+|label|Text to show above/aside icon, must be unique to this toolbar|`String`|`true`|-|
 |tooltip|Text to display when hovering over item|`String`|`false`|-|
 |disabled|Whether the item is disabled and cannot receive clicks|`Boolean`|`false`|-|
+|active|Whether the item is active, which adds the ev-active class|`Boolean`|`false`|-|
 |menuId|A menu item id to trigger when the item is clicked|`String`|`false`|-|
 |iconPos|Position of icon in relation to the label|`'above'`/`'aside'`|`false`|'above'|
 |fontSize|Font size of the label in px|`Number`|`false`|11|
 |iconSize|Size of the icon in px|`Number`|`false`|16|
 |labelShow|Whether to display label|`Boolean`|`false`|false|
 |iconShow|Whether to display an icon|`Boolean`|`false`|true|
-|minWidth|Minimum width of item|`Number`|`false`|44|
+|minWidth|Minimum width of item|`Number`|`false`|40|
 |padding|Padding within the item in px|`Number`|`false`|3|
 
 <!-- @vuese:EvToolbarItem:props:end -->
@@ -38,6 +39,8 @@ An item on a toolbar.
 <!-- @vuese:EvToolbarItem:events:start -->
 |Event Name|Description|Parameters|
 |---|---|---|
+|hide|-|-|
+|show|-|-|
 |click|-|-|
 
 <!-- @vuese:EvToolbarItem:events:end -->

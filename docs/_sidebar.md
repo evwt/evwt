@@ -6,6 +6,7 @@
   * [EvIcon](EvIcon.md)
   * [EvDropZone](EvDropZone.md)
   * [EvVirtualScroll](EvVirtualScroll.md)
+  * [EvStats](EvStats.md)
 
 * Plugins
   * [EvMenu](EvMenu.md)

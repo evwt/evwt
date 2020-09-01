@@ -30,7 +30,7 @@ Creates a toolbar like this:
 |labelShow|Whether to display labels for items by default|`Boolean`|`false`|false|
 |fontSize|Default font size of the labels in px|`Number`|`false`|11|
 |padding|Default padding within the items in px|`Number`|`false`|3|
-|minWidth|Default minimum width of items|`Number`|`false`|44|
+|minWidth|Default minimum width of items|`Number`|`false`|40|
 |height|Height of the toolbar in px|`Number`|`false`|-|
 
 <!-- @vuese:EvToolbar:props:end -->
