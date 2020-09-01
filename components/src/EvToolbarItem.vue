@@ -1,14 +1,18 @@
 <template>
   <div
-    class="ev-toolbar-item d-flex h-100 m-e-xs"
+    class="ev-toolbar-item d-flex h-100 m-e-xs p-w-xxs p-e-xxs"
     :title="tooltip"
-    :class="itemClass"
-    :style="itemStyle"
-    @click="handleClick">
-    <ev-icon v-if="iconShow" class="h-100" :name="icon" :style="iconStyle" />
-    <label v-if="labelShow" :class="labelClass" :style="labelStyle">
-      {{ label }}
-    </label>
+    :class="wrapperClass">
+    <div
+      class="d-flex"
+      :class="itemClass"
+      :style="itemStyle"
+      @click="handleClick">
+      <ev-icon v-if="iconShow" class="h-100" :name="icon" :style="iconStyle" />
+      <div v-if="labelShow" :class="labelClass" :style="labelStyle">
+        {{ label }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -26,12 +30,17 @@ export default {
   props: {
     // Name of EvIcon to use for the icon
     icon: String,
-    // Text to show above/aside icon
-    label: String,
+    // Text to show above/aside icon, must be unique to this toolbar
+    label: {
+      type: String,
+      required: true
+    },
     // Text to display when hovering over item
     tooltip: String,
     // Whether the item is disabled and cannot receive clicks
     disabled: Boolean,
+    // Whether the item is active, which adds the ev-active class
+    active: Boolean,
     // A menu item id to trigger when the item is clicked
     menuId: String,
     // Position of icon in relation to the label
@@ -63,13 +72,20 @@ export default {
     // Minimum width of item
     minWidth: {
       type: Number,
-      default: 44
+      default: 40
     },
     // Padding within the item in px
     padding: {
       type: Number,
       default: 3
     }
+  },
+
+  data() {
+    return {
+      hidden: false,
+      id: Math.random().toString().substr(2)
+    };
   },
 
   computed: {
@@ -116,32 +132,70 @@ export default {
         classes += ' flex-vertical p-n-xs p-s-xs';
       }
 
+      return classes;
+    },
+
+    wrapperClass() {
+      let classes = '';
+
       if (this.menuItem) {
-        classes += ` ev-toolbar-item-${this.menuItem.id}`;
+        if (this.menuItem.id) {
+          classes += ` ev-toolbar-item-${this.menuItem.id}`;
+        }
 
         if (this.menuItem.enabled === false) {
           classes += ' ev-disabled';
         }
 
         if (this.menuItem.checked === true) {
-          classes += ' ev-selected';
+          classes += ' ev-active';
         }
+      }
+
+      if (this.active) {
+        classes += ' ev-active';
+      }
+
+      if (this.hidden) {
+        classes += ' hide';
       }
 
       return classes;
     },
 
     menuItem() {
-      if (!this.$evmenu) return {};
+      if (!this.$evmenu) return;
 
       return this.$evmenu.get(this.menuId) || {};
     }
   },
 
-  methods: {
-    handleClick() {
-      this.$emit('click');
+  async mounted() {
+    this.observer = new IntersectionObserver(
+      this.onElementObserved,
+      {
+        root: this.$el.parentElement.parentElement,
+        threshold: 1.0
+      }
+    );
 
+    this.observer.observe(this.$el);
+  },
+
+  methods: {
+    onElementObserved(entries) {
+      entries.forEach(({ isIntersecting }) => {
+        this.hidden = !isIntersecting;
+
+        if (this.hidden) {
+          this.$emit('hide', this);
+        } else {
+          this.$emit('show', this);
+        }
+      });
+    },
+
+    handleClick() {
       if (!this.$evmenu) return;
 
       let menuItem = this.$evmenu.get(this.menuId);
@@ -161,6 +215,8 @@ export default {
 
         ipcRenderer.send('evmenu:ipc:click', menuItem);
       }
+
+      this.$emit('click');
     }
   }
 };
@@ -177,8 +233,7 @@ export default {
     line-height: 1.15;
   }
 
-  &:active,
-  &.ev-active {
+  &:active {
     transform: scale(0.94);
   }
 

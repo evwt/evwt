@@ -1,4 +1,6 @@
 <script>
+import EvToolbarItemOverflow from './EvToolbarItemOverflow';
+
 export default {
   name: 'EvToolbar',
 
@@ -37,7 +39,7 @@ export default {
     // Default minimum width of items
     minWidth: {
       type: Number,
-      default: 44
+      default: 40
     },
     // Height of the toolbar in px
     height: {
@@ -47,7 +49,8 @@ export default {
 
   data() {
     return {
-      renderKey: 0
+      renderKey: 0,
+      hiddenItems: {}
     };
   },
 
@@ -92,11 +95,37 @@ export default {
       id: 'evtoolbar-context',
       menu: template
     });
+
+    this.$evcontextmenu.build({
+      id: 'evtoolbar-overflow',
+      menu: []
+    });
+
+    this.$evcontextmenu.on('input:evtoolbar-overflow', item => {
+      let toolbarItem = Object.values(this.hiddenItems).find(hi => hi.id === item.id);
+      toolbarItem.handleClick();
+    });
+  },
+
+  methods: {
+    rebuildOverflow() {
+      let menu = [];
+
+      for (const key of Object.keys(this.hiddenItems).sort()) {
+        let item = this.hiddenItems[key];
+        menu.push({
+          id: item.id,
+          label: item.label
+        });
+      }
+
+      this.$evcontextmenu.menus['evtoolbar-overflow'] = menu;
+    }
   },
 
   render(createElement) {
     let attrs = {
-      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs',
+      class: 'ev-toolbar d-flex h-100 flex-middle p-n-xs p-s-xs p-w-xs p-e-xs overflow-hidden flex-space',
       style: this.toolbarStyle,
       on: {
         contextmenu: () => this.$evcontextmenu.show('evtoolbar-context')
@@ -129,7 +158,21 @@ export default {
       return createElement('div', attrs);
     }
 
-    for (const vnode of this.$slots.default) {
+    for (let idx = 0; idx < this.$slots.default.length; idx++) {
+      const vnode = this.$slots.default[idx];
+
+      vnode.componentOptions.listeners = {
+        hide: (item) => {
+          this.$set(this.hiddenItems, idx, item);
+          this.rebuildOverflow();
+        },
+        show: () => {
+          this.$delete(this.hiddenItems, idx);
+          this.rebuildOverflow();
+        },
+        ...vnode.componentOptions.listeners
+      };
+
       vnode.componentOptions.propsData = {
         iconPos: this.iconPos,
         iconSize: this.iconSize,
@@ -142,7 +185,22 @@ export default {
       };
     }
 
-    return createElement('div', attrs, this.$slots.default);
+    let overflowButton = createElement(EvToolbarItemOverflow, {
+      class: {
+        'd-none': !Object.keys(this.hiddenItems).length
+      },
+      on: {
+        click: () => this.$evcontextmenu.show('evtoolbar-overflow')
+      }
+    });
+
+    let overFlowWrapperAttrs = {
+      class: 'd-flex overflow-hidden'
+    };
+
+    let overflowWrapper = createElement('div', overFlowWrapperAttrs, this.$slots.default);
+
+    return createElement('div', attrs, [overflowWrapper, overflowButton]);
   }
 };
 </script>
