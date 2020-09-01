@@ -18,7 +18,7 @@ export function activate() {
 
 function onIpcSet(e, { id, menu }) {
   if (!id || !menu) return;
-  addClickToItems(menu, id);
+  addClickToItems(menu, id, e.sender);
   contextMenus[id] = Menu.buildFromTemplate(menu);
 }
 
@@ -44,19 +44,19 @@ function onIpcEmit(e, { id, item }) {
   sender.emit(`evcontextmenu:${id}:${item.id}`, { item, id });
 }
 
-function addClickToItems(items, id) {
+function addClickToItems(items, id, webContents) {
   if (!id || !items || !items.length) return;
 
   for (const item of items) {
     if (!item) return;
-    item.click = (menuItem, focusedWindow) => handleNativeInput(menuItem, focusedWindow, id);
+    item.click = (menuItem, focusedWindow) => handleNativeInput(menuItem, focusedWindow, id, webContents);
     if (item.submenu) {
-      addClickToItems(item.submenu, id);
+      addClickToItems(item.submenu, id, webContents);
     }
   }
 }
 
-function handleNativeInput(menuItem, focusedWindow, id) {
+function handleNativeInput(menuItem, focusedWindow, id, webContents) {
   if (!id) {
     log.debug('[EvContextMenu] No context menu id, not sending events.');
     return;
@@ -75,11 +75,13 @@ function handleNativeInput(menuItem, focusedWindow, id) {
     ipcPayloads.push(payload);
   }
 
-  if (focusedWindow && focusedWindow.webContents) {
+  if (webContents) {
     let payload = serializableProperties(menuItem);
-    onIpcEmit({ sender: focusedWindow }, { id, item: payload });
-    focusedWindow.webContents.send('evcontextmenu:ipc:menu', { menu: ipcPayloads, id });
-    focusedWindow.webContents.send('evcontextmenu:ipc:input', { item: payload, id });
+    if (focusedWindow) {
+      onIpcEmit({ sender: focusedWindow }, { id, item: payload });
+    }
+    webContents.send('evcontextmenu:ipc:menu', { menu: ipcPayloads, id });
+    webContents.send('evcontextmenu:ipc:input', { item: payload, id });
   }
 }
 
