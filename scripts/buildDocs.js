@@ -11,7 +11,8 @@ let documents = [
   'EvLayout',
   'EvToolbar',
   'EvToolbarItem',
-  'EvVirtualScroll'
+  'EvVirtualScroll',
+  'EvStats'
 ];
 
 let jsdoc2md = require('jsdoc-to-markdown');
