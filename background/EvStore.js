@@ -18,6 +18,7 @@ function activateUiStore() {
   uiStore.onDidAnyChange((newStore) => {
     for (let browserWindow of BrowserWindow.getAllWindows()) {
       let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+      if (!evWindow) return;
       browserWindow.webContents.send('evstore:ipc:ui:changed', newStore[evWindow.restoreId]);
     }
   });
@@ -25,6 +26,8 @@ function activateUiStore() {
   ipcMain.on('evstore:ipc:ui:read', (event) => {
     let browserWindow = BrowserWindow.fromWebContents(event.sender);
     let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+
+    if (!evWindow) return;
 
     if (!uiStore.get(evWindow.restoreId)) {
       uiStore.set(evWindow.restoreId, {});
@@ -36,6 +39,7 @@ function activateUiStore() {
   ipcMain.on('evstore:ipc:ui:write', (event, newState) => {
     let browserWindow = BrowserWindow.fromWebContents(event.sender);
     let evWindow = EvWindow.fromBrowserWindow(browserWindow);
+    if (!evWindow) return;
 
     uiStore.set(evWindow.restoreId, newState);
 

@@ -123,7 +123,7 @@ Now we need to invoke that 'save-file' IPC event we just created with the right 
 
 ```js
 this.$evmenu.on('input:save-file', () => {
-  ipcRenderer.invoke('save-file', '/home/me/example.md', '# It Works!');
+  electron.ipcRenderer.invoke('save-file', '/home/me/example.md', '# It Works!');
 });
 ```
 

@@ -8,8 +8,7 @@ module.exports = {
   },
 
   globals: {
-    BigInt: true,
-    BigUint64Array: true
+    electron: true
   },
 
   extends: [

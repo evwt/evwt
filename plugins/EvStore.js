@@ -1,5 +1,3 @@
-import { ipcRenderer } from 'electron';
-
 const EvStore = {};
 
 EvStore.install = function (Vue) {
@@ -8,7 +6,7 @@ EvStore.install = function (Vue) {
 };
 
 function setupUserStore(Vue) {
-  let initialStore = ipcRenderer.sendSync('evstore:ipc:user:read');
+  let initialStore = electron.ipcRenderer.sendSync('evstore:ipc:user:read');
 
   let storeVm = new Vue({
     data() {
@@ -27,7 +25,7 @@ function setupUserStore(Vue) {
             return;
           }
 
-          ipcRenderer.sendSync('evstore:ipc:user:write', { ...this.storeProxy });
+          electron.ipcRenderer.sendSync('evstore:ipc:user:write', { ...this.storeProxy });
         },
         deep: true
       }
@@ -45,7 +43,7 @@ function setupUserStore(Vue) {
 
     methods: {
       watchRemote() {
-        ipcRenderer.on('evstore:ipc:user:changed', (e, store) => {
+        electron.ipcRenderer.on('evstore:ipc:user:changed', (e, store) => {
           this.isProxyClean = true;
           this.store = store;
           this.storeProxy = new Proxy(this.store, {});
@@ -58,7 +56,7 @@ function setupUserStore(Vue) {
 }
 
 function setupUiStore(Vue) {
-  let initialStore = ipcRenderer.sendSync('evstore:ipc:ui:read');
+  let initialStore = electron.ipcRenderer.sendSync('evstore:ipc:ui:read');
 
   let storeVm = new Vue({
     data() {
@@ -77,7 +75,7 @@ function setupUiStore(Vue) {
             return;
           }
 
-          ipcRenderer.sendSync('evstore:ipc:ui:write', { ...this.storeProxy });
+          electron.ipcRenderer.sendSync('evstore:ipc:ui:write', { ...this.storeProxy });
         },
         deep: true
       }
@@ -90,7 +88,7 @@ function setupUiStore(Vue) {
 
     methods: {
       watchRemote() {
-        ipcRenderer.on('evstore:ipc:ui:changed', (e, store) => {
+        electron.ipcRenderer.on('evstore:ipc:ui:changed', (e, store) => {
           this.isProxyClean = true;
           this.store = store;
           this.storeProxy = new Proxy(this.store, {});

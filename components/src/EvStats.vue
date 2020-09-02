@@ -84,8 +84,6 @@
 </template>
 
 <script>
-import { webFrame } from 'electron';
-
 export default {
   data() {
     return {
@@ -130,7 +128,7 @@ export default {
       let getMemory = async () => {
         if (!document.hidden) {
           this.stats = [];
-          Object.entries(webFrame.getResourceUsage()).map(logMemDetails);
+          Object.entries(electron.webFrame.getResourceUsage()).map(logMemDetails);
           this.heap = process.getHeapStatistics();
           this.blink = process.getBlinkMemoryInfo();
           this.process = await process.getProcessMemoryInfo();

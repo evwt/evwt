@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import { ipcRenderer } from 'electron';
 import EvIcon from './EvIcon';
 
 export default {
@@ -213,7 +212,7 @@ export default {
         this.$evmenu.$emit(`input:${this.menuId}`, menuItem);
         this.$evmenu.$emit('input', menuItem);
 
-        ipcRenderer.send('evmenu:ipc:click', menuItem);
+        electron.ipcRenderer.send('evmenu:ipc:click', menuItem);
       }
 
       this.$emit('click');

@@ -1,4 +1,3 @@
-import { ipcRenderer } from 'electron';
 import ObservableSlim from 'observable-slim';
 
 const EvContextMenu = {};
@@ -88,7 +87,7 @@ EvContextMenu.install = function (Vue) {
 
               let item = change.target;
 
-              await ipcRenderer.invoke('evcontextmenu:emit', { item, id });
+              await electron.ipcRenderer.invoke('evcontextmenu:emit', { item, id });
               this.$emit(`input:${id}`, item);
               this.$emit(`input:${id}:${item.id}`, item);
             }
@@ -98,7 +97,7 @@ EvContextMenu.install = function (Vue) {
 
       handleBuild() {
         this.$on('build', async ({ id, menu }) => {
-          await ipcRenderer.invoke('evcontextmenu:set', { id, menu });
+          await electron.ipcRenderer.invoke('evcontextmenu:set', { id, menu });
 
           // We use a proxy here to watch for new items added to the menu
           // dynamically and make them observable, just like the initial items
@@ -140,18 +139,18 @@ EvContextMenu.install = function (Vue) {
         // object so it can be sent over IPC
         let serializedNewMenu = JSON.parse(JSON.stringify(menu));
 
-        await ipcRenderer.invoke('evcontextmenu:set', { id, menu: serializedNewMenu });
+        await electron.ipcRenderer.invoke('evcontextmenu:set', { id, menu: serializedNewMenu });
       },
 
       handleShow() {
-        this.$on('show', async id => ipcRenderer.invoke('evcontextmenu:show', id));
+        this.$on('show', async id => electron.ipcRenderer.invoke('evcontextmenu:show', id));
       },
 
       handleNativeInput() {
         // Entire menu event
         // This is required for when a radio button changes
         // multiple items in the menu at once
-        ipcRenderer.on('evcontextmenu:ipc:menu', (e, { menu, id }) => {
+        electron.ipcRenderer.on('evcontextmenu:ipc:menu', (e, { menu, id }) => {
           for (let item of menu.filter(m => m.type !== 'submenu')) {
             let menuItem = this.getItem(id, item.id);
 
@@ -162,7 +161,7 @@ EvContextMenu.install = function (Vue) {
         });
 
         // Individual item event
-        ipcRenderer.on('evcontextmenu:ipc:input', async (e, { id, item }) => {
+        electron.ipcRenderer.on('evcontextmenu:ipc:input', async (e, { id, item }) => {
           let menu = this.menus[id];
 
           if (!menu) return;

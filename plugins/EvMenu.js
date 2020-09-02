@@ -1,5 +1,3 @@
-import { ipcRenderer } from 'electron';
-
 const EvMenu = {};
 
 /**
@@ -34,14 +32,14 @@ EvMenu.install = function (Vue, menuDefinition) {
       menu: {
         deep: true,
         handler(newMenu) {
-          ipcRenderer.invoke('evmenu:ipc:set', newMenu);
+          electron.ipcRenderer.invoke('evmenu:ipc:set', newMenu);
           this.menu = Vue.observable(newMenu);
         }
       }
     },
 
     async created() {
-      await ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
+      await electron.ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
 
       this.handleClick();
       this.handleFocus();
@@ -67,7 +65,7 @@ EvMenu.install = function (Vue, menuDefinition) {
 
       handleFocus() {
         window.addEventListener('focus', async () => {
-          let newMenu = await ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
+          let newMenu = await electron.ipcRenderer.invoke('evmenu:ipc:set', this.menu, true);
           this.menu = Vue.observable(newMenu);
         });
       },
@@ -78,12 +76,12 @@ EvMenu.install = function (Vue, menuDefinition) {
 
           this.$emit(`input:${command}`, menuItem);
           this.$emit('input', menuItem);
-          ipcRenderer.send('evmenu:ipc:click', menuItem);
+          electron.ipcRenderer.send('evmenu:ipc:click', menuItem);
         });
       },
 
       listenIpc() {
-        ipcRenderer.on('evmenu:ipc:input', (event, payload) => {
+        electron.ipcRenderer.on('evmenu:ipc:input', (event, payload) => {
           let menuItem = this.get(payload.id);
 
           for (let key of Object.keys(payload)) {
