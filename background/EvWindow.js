@@ -24,7 +24,11 @@ export default class EvWindow {
 
     this.handleClosed();
 
-    addWindowToCollection(this);
+    this.browserWindow.webContents.on('dom-ready', () => {
+      this.addEnvironmentClasses();
+    });
+
+    this.addWindowToCollection();
   }
 
   /**
@@ -132,17 +136,46 @@ export default class EvWindow {
 
     return sizeOptions;
   }
-}
 
-/**
+  /**
+ * Add CSS classes to body based on environment
+ *
+ */
+  async addEnvironmentClasses() {
+    let code = '';
+    let platform = isMac ? 'mac' : process.platform;
+
+    let currentDesktop = process.env.XDG_CURRENT_DESKTOP;
+    let gdmSession = process.env.GDMSESSION;
+    let desktopSession = process.env.DESKTOP_SESSION;
+
+    if (currentDesktop) {
+      code += `document.body.classList.add('desktop-${currentDesktop.toLowerCase()}');`;
+    }
+
+    if (gdmSession) {
+      code += `document.body.classList.add('session-${gdmSession.toLowerCase()}');`;
+    }
+
+    if (desktopSession) {
+      code += `document.body.classList.add('desktop-session-${desktopSession.toLowerCase()}');`;
+    }
+
+    code += `document.body.classList.add('platform-${platform}');`;
+
+    await this.browserWindow.webContents.executeJavaScript(code);
+  }
+
+  /**
  * Add window to our collection of windows, so it can be retrieved with fromBrowserWindow
  *
  * @private
  * @param {*} evWindow
  */
-function addWindowToCollection(evWindow) {
-  evWindows.add(evWindow);
-  evWindow.browserWindow.on('close', () => evWindows.delete(evWindow));
+  addWindowToCollection() {
+    evWindows.add(this);
+    this.browserWindow.on('close', () => evWindows.delete(this));
+  }
 }
 
 /**

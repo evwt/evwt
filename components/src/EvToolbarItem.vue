@@ -229,14 +229,6 @@ export default {
 .ev-toolbar-item {
   user-select: none;
 
-  label {
-    line-height: 1.15;
-  }
-
-  &:active {
-    transform: scale(0.94);
-  }
-
   &.ev-disabled {
     pointer-events: none;
     opacity: 0.5;
