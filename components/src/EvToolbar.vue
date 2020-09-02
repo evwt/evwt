@@ -87,11 +87,6 @@ export default {
           label: 'Text only',
           type: 'radio',
           checked: false
-        },
-        { type: 'separator' },
-        {
-          id: 'evtoolbar-customize',
-          label: 'Customize...'
         }
       ];
 

@@ -49,9 +49,18 @@ EvWindow.arrange('tile'); // tile, cascade, rows or columns
 #### EvWindow
 
 * [EvWindow](#module_EvWindow)
-    * [.fromBrowserWindow(win)](#module_EvWindow.fromBrowserWindow) ⇒
-    * [.arrange(arrangement)](#module_EvWindow.arrange)
+    * _instance_
+        * [.addEnvironmentClasses()](#module_EvWindow+addEnvironmentClasses)
+    * _static_
+        * [.fromBrowserWindow(win)](#module_EvWindow.fromBrowserWindow) ⇒
+        * [.arrange(arrangement)](#module_EvWindow.arrange)
 
+<a name="module_EvWindow+addEnvironmentClasses"></a>
+
+##### evWindow.addEnvironmentClasses()
+Add CSS classes to body based on environment
+
+**Kind**: instance method of [<code>EvWindow</code>](#module_EvWindow)  
 <a name="module_EvWindow.fromBrowserWindow"></a>
 
 ##### EvWindow.fromBrowserWindow(win) ⇒
