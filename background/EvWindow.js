@@ -3,7 +3,7 @@
  */
 
 import { app, BrowserWindow, screen } from 'electron';
-import debounce from 'lodash/debounce';
+import debounce from 'lodash.debounce';
 import log from '../lib/log';
 import { getNonOverlappingBounds } from '../lib/bounds';
 import { store as uiStore } from './lib/uiStore';
@@ -12,6 +12,7 @@ const BOUNDS_AUTOSAVE_INTERVAL = 200;
 
 let windowSaveHandlers = new Map();
 let evWindows = new Set();
+const isMac = process.platform === 'darwin';
 
 export default class EvWindow {
   constructor(restoreId, options) {
@@ -33,7 +34,7 @@ export default class EvWindow {
    */
   handleClosed() {
     this.browserWindow.on('closed', () => {
-      if (evWindows.size === 0) {
+      if (evWindows.size === 0 && isMac) {
         app.hide();
       }
     });

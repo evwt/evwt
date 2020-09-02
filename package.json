@@ -25,6 +25,7 @@
     "core-js": "3.6.5",
     "electron-store": "^6.0.0",
     "lodash.clonedeep": "^4.5.0",
+    "lodash.debounce": "^4.0.8",
     "loglevel": "^1.6.8",
     "observable-slim": "^0.1.5",
     "vue": "2.6.12"
