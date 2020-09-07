@@ -6,6 +6,8 @@ import EvToolbarItem from './src/EvToolbarItem';
 import EvToolbarItemOverflow from './src/EvToolbarItemOverflow';
 import EvVirtualScroll from './src/EvVirtualScroll';
 import EvStats from './src/EvStats';
+import EvList from './src/EvList';
+import EvLi from './src/EvLi';
 
 export {
   EvDropZone,
@@ -15,5 +17,7 @@ export {
   EvToolbarItem,
   EvToolbarItemOverflow,
   EvVirtualScroll,
-  EvStats
+  EvStats,
+  EvList,
+  EvLi
 };
